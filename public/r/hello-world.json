@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "hello-world",
+  "title": "Hello World",
+  "description": "A starter registry component for the 23rd registry.",
+  "files": [
+    {
+      "path": "components/23rd/hello-world.tsx",
+      "content": "export function HelloWorld({\r\n  name = \"world\",\r\n  className,\r\n}: {\r\n  name?: string\r\n  className?: string\r\n}) {\r\n  return (\r\n    <div\r\n      className={[\r\n        \"rounded-lg border border-border bg-background px-4 py-3 text-sm\",\r\n        className,\r\n      ]\r\n        .filter(Boolean)\r\n        .join(\" \")}\r\n    >\r\n      Hello, <span className=\"font-medium text-foreground\">{name}</span>.\r\n    </div>\r\n  )\r\n}\r\n",
+      "type": "registry:component",
+      "target": "components/23rd/hello-world.tsx"
+    }
+  ],
+  "type": "registry:component"
+}

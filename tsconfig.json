@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "collections/*": ["./.source/*"]
     }
   },
   "include": [
@@ -29,7 +30,8 @@
     "**/*.tsx",
     "**/*.mts",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    ".source/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }
