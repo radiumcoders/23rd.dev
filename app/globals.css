@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "fumadocs-ui/css/lib/base.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -46,135 +45,85 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
-
-    /* Fumadocs tokens mapped to site theme */
-    --color-fd-background: var(--background);
-    --color-fd-foreground: var(--foreground);
-    --color-fd-muted: var(--muted);
-    --color-fd-muted-foreground: var(--muted-foreground);
-    --color-fd-popover: var(--popover);
-    --color-fd-popover-foreground: var(--popover-foreground);
-    --color-fd-card: var(--card);
-    --color-fd-card-foreground: var(--card-foreground);
-    --color-fd-border: var(--border);
-    --color-fd-primary: var(--primary);
-    --color-fd-primary-foreground: var(--primary-foreground);
-    --color-fd-secondary: var(--secondary);
-    --color-fd-secondary-foreground: var(--secondary-foreground);
-    --color-fd-accent: var(--accent);
-    --color-fd-accent-foreground: var(--accent-foreground);
-    --color-fd-ring: var(--ring);
-    --color-fd-diff-remove: rgba(200, 10, 100, 0.12);
-    --color-fd-diff-remove-symbol: rgb(230, 10, 100);
-    --color-fd-diff-add: rgba(14, 180, 100, 0.1);
-    --color-fd-diff-add-symbol: rgb(10, 200, 100);
 }
 
-/* Near-neutral with a barely-there Catppuccin hue */
 :root {
-    --background: oklch(0.995 0.002 277);
-    --foreground: oklch(0.145 0.004 277);
-    --card: oklch(1 0.001 277);
-    --card-foreground: oklch(0.145 0.004 277);
-    --popover: oklch(1 0.001 277);
-    --popover-foreground: oklch(0.145 0.004 277);
-    --primary: oklch(0.205 0.01 277);
-    --primary-foreground: oklch(0.985 0.001 277);
-    --secondary: oklch(0.97 0.003 277);
-    --secondary-foreground: oklch(0.205 0.004 277);
-    --muted: oklch(0.97 0.003 277);
-    --muted-foreground: oklch(0.556 0.008 277);
-    --accent: oklch(0.97 0.004 277);
-    --accent-foreground: oklch(0.205 0.004 277);
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0.004 277);
-    --input: oklch(0.922 0.004 277);
-    --ring: oklch(0.708 0.01 277);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
-    --radius: 0.4rem;
-    --sidebar: oklch(0.99 0.002 277);
-    --sidebar-foreground: oklch(0.145 0.004 277);
-    --sidebar-primary: oklch(0.205 0.01 277);
-    --sidebar-primary-foreground: oklch(0.985 0.001 277);
-    --sidebar-accent: oklch(0.97 0.003 277);
-    --sidebar-accent-foreground: oklch(0.205 0.004 277);
-    --sidebar-border: oklch(0.922 0.004 277);
-    --sidebar-ring: oklch(0.708 0.01 277);
+    --radius: 0.625rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
 }
 
 .dark {
-    --background: oklch(0.145 0.004 277);
-    --foreground: oklch(0.985 0.002 277);
-    --card: oklch(0.205 0.005 277);
-    --card-foreground: oklch(0.985 0.002 277);
-    --popover: oklch(0.205 0.005 277);
-    --popover-foreground: oklch(0.985 0.002 277);
-    --primary: oklch(0.922 0.004 277);
-    --primary-foreground: oklch(0.205 0.004 277);
-    --secondary: oklch(0.269 0.005 277);
-    --secondary-foreground: oklch(0.985 0.002 277);
-    --muted: oklch(0.269 0.005 277);
-    --muted-foreground: oklch(0.708 0.006 277);
-    --accent: oklch(0.269 0.006 277);
-    --accent-foreground: oklch(0.985 0.002 277);
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0.002 277 / 10%);
-    --input: oklch(1 0.002 277 / 15%);
-    --ring: oklch(0.556 0.008 277);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0.005 277);
-    --sidebar-foreground: oklch(0.985 0.002 277);
-    --sidebar-primary: oklch(0.922 0.004 277);
-    --sidebar-primary-foreground: oklch(0.205 0.004 277);
-    --sidebar-accent: oklch(0.269 0.005 277);
-    --sidebar-accent-foreground: oklch(0.985 0.002 277);
-    --sidebar-border: oklch(1 0.002 277 / 10%);
-    --sidebar-ring: oklch(0.556 0.008 277);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
-  }
+    }
   body {
     @apply bg-background text-foreground;
-  }
+    }
   html {
     @apply font-sans;
-    scroll-behavior: smooth;
-  }
+    }
 }
-
-/* Dual-theme Shiki (Catppuccin light/dark) — no block background */
-.shiki,
-.shiki pre,
-.dark .shiki,
-.dark .shiki pre {
-  background: transparent !important;
-  background-color: transparent !important;
-}
-
-.shiki code span {
-  color: var(--shiki-light);
-}
-
-.dark .shiki code span {
-  color: var(--shiki-dark);
-}
-
-.shiki code {
-  display: grid;
-  font-size: inherit;
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-}
-
