@@ -103,8 +103,8 @@ export function LandingView() {
           </div>
         </section>
 
-        <section className="relative">
-          <div className="mx-auto max-w-5xl px-6 pb-6 text-center sm:px-10">
+        <section className="relative bg-background/80 backdrop-blur-sm">
+          <div className="mx-auto max-w-5xl px-6 py-16 text-center sm:px-10">
             <h2 className="text-xl font-medium tracking-tight text-foreground sm:text-2xl">
               Built to sit behind a real interface
             </h2>
@@ -113,19 +113,19 @@ export function LandingView() {
               ready to drop into your app.
             </p>
           </div>
-          <div className="w-full">
+          <div className="w-full overflow-hidden border-y border-border/60">
             <Image
               src="/demo-product.png"
               alt="Interface preview using 23rd backgrounds"
-              width={1600}
-              height={900}
+              width={1536}
+              height={1024}
               priority
-              className="h-auto w-full"
+              className="h-auto w-full object-cover object-top"
             />
           </div>
         </section>
 
-        <footer className="flex flex-col items-center gap-3 px-6 py-16 text-center sm:px-10">
+        <footer className="relative z-10 flex flex-col items-center gap-3 bg-background/90 px-6 py-16 text-center backdrop-blur-sm sm:px-10">
           <p className="font-[family-name:var(--font-landing-display)] text-3xl text-foreground">
             Ship with taste
           </p>
