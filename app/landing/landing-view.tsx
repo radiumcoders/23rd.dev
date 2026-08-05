@@ -40,12 +40,17 @@ export function LandingView() {
             <Logo className="size-8" cornerRadius={8} />
             <span className="text-sm font-medium tracking-tight">23rd</span>
           </Link>
-          <Link
-            href="/docs"
-            className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
-          >
-            Docs
-          </Link>
+          <nav className="flex items-center gap-1">
+            <span className="mr-2 hidden text-xs text-muted-foreground sm:inline">
+              Draft
+            </span>
+            <Link
+              href="/docs"
+              className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+            >
+              Docs
+            </Link>
+          </nav>
         </header>
 
         <section className="flex min-h-[calc(100svh-4.5rem)] flex-col justify-center px-6 pb-16 pt-6 sm:px-10">
@@ -62,7 +67,11 @@ export function LandingView() {
             <motion.h1
               initial={initial}
               animate={animate}
-              transition={{ duration: 0.7, delay: reduceMotion ? 0 : 0.12, ease }}
+              transition={{
+                duration: 0.7,
+                delay: reduceMotion ? 0 : 0.12,
+                ease,
+              }}
               className="mt-6 text-2xl font-medium tracking-tight text-foreground sm:text-3xl"
             >
               Opinionated components for shippers
@@ -71,33 +80,41 @@ export function LandingView() {
             <motion.p
               initial={initial}
               animate={animate}
-              transition={{ duration: 0.7, delay: reduceMotion ? 0 : 0.22, ease }}
+              transition={{
+                duration: 0.7,
+                delay: reduceMotion ? 0 : 0.22,
+                ease,
+              }}
               className="mx-auto mt-4 max-w-md text-base leading-relaxed text-foreground/70 sm:text-lg"
             >
-              Install from the registry, own the source, and start from a
-              sharper baseline.
+              A shadcn registry with strong defaults — install what you need,
+              own the source, and ship from a sharper baseline.
             </motion.p>
 
             <motion.div
               initial={initial}
               animate={animate}
-              transition={{ duration: 0.7, delay: reduceMotion ? 0 : 0.32, ease }}
+              transition={{
+                duration: 0.7,
+                delay: reduceMotion ? 0 : 0.32,
+                ease,
+              }}
               className="mt-8 flex flex-wrap items-center justify-center gap-3"
             >
               <Link
                 href="/docs"
                 className={cn(buttonVariants({ size: "lg" }), "min-w-36")}
               >
-                Browse docs
+                Read the docs
               </Link>
               <Link
-                href="/demo"
+                href="/docs/getting-started"
                 className={cn(
                   buttonVariants({ variant: "outline", size: "lg" }),
                   "min-w-36 bg-background/60 backdrop-blur-sm"
                 )}
               >
-                Live demo
+                Get started
               </Link>
             </motion.div>
           </div>
@@ -106,17 +123,17 @@ export function LandingView() {
         <section className="relative bg-background/80 backdrop-blur-sm">
           <div className="mx-auto max-w-5xl px-6 py-16 text-center sm:px-10">
             <h2 className="text-xl font-medium tracking-tight text-foreground sm:text-2xl">
-              Built to sit behind a real interface
+              Copy in. Ship out.
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-foreground/65 sm:text-base">
-              Shader washes, fluid trails, and footers that feel finished —
-              ready to drop into your app.
+              Backgrounds, footers, and interaction pieces that already feel
+              finished — without a kitchen-sink design system.
             </p>
           </div>
           <div className="w-full overflow-hidden border-y border-border/60">
             <Image
               src="/demo-product.png"
-              alt="Interface preview using 23rd backgrounds"
+              alt="Interface preview using 23rd components"
               width={1536}
               height={1024}
               priority
@@ -129,11 +146,14 @@ export function LandingView() {
           <p className="font-[family-name:var(--font-landing-display)] text-3xl text-foreground">
             Ship with taste
           </p>
+          <p className="max-w-sm text-sm text-muted-foreground">
+            Draft homepage preview — production still opens on docs.
+          </p>
           <Link
             href="/docs"
-            className={cn(buttonVariants({ size: "lg" }), "mt-2")}
+            className={cn(buttonVariants({ size: "lg" }), "mt-1")}
           >
-            Explore components
+            Browse components
           </Link>
         </footer>
       </div>
