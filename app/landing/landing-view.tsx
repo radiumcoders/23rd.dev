@@ -1,0 +1,162 @@
+"use client"
+
+import Image from "next/image"
+import Link from "next/link"
+import { motion, useReducedMotion } from "motion/react"
+import { Instrument_Serif } from "next/font/google"
+
+import { Logo } from "@/components/logo"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import { ShaderGradient } from "@/registry/shader-gradient/shader-gradient"
+
+const display = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-landing-display",
+})
+
+const ease = [0.22, 1, 0.36, 1] as const
+
+export function LandingView() {
+  const reduceMotion = useReducedMotion()
+
+  const initial = reduceMotion ? false : { opacity: 0, y: 18 }
+  const animate = { opacity: 1, y: 0 }
+
+  return (
+    <div className={cn(display.variable, "relative overflow-x-hidden")}>
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <ShaderGradient className="absolute inset-0" />
+      </div>
+
+      <div className="relative z-10">
+        <header className="flex items-center justify-between px-6 py-5 sm:px-10">
+          <Link
+            href="/landing"
+            className="flex items-center gap-2.5 text-foreground"
+            aria-label="23rd home"
+          >
+            <Logo className="size-8" cornerRadius={8} />
+            <span className="text-sm font-medium tracking-tight">23rd</span>
+          </Link>
+          <nav className="flex items-center gap-1">
+            <span className="mr-2 hidden text-xs text-muted-foreground sm:inline">
+              Draft
+            </span>
+            <Link
+              href="/docs"
+              className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+            >
+              Docs
+            </Link>
+          </nav>
+        </header>
+
+        <section className="flex min-h-[calc(100svh-4.5rem)] flex-col justify-center px-6 pb-16 pt-6 sm:px-10">
+          <div className="mx-auto w-full max-w-3xl text-center">
+            <motion.p
+              initial={initial}
+              animate={animate}
+              transition={{ duration: 0.7, ease }}
+              className="font-[family-name:var(--font-landing-display)] text-7xl leading-none tracking-tight text-foreground sm:text-8xl md:text-9xl"
+            >
+              23rd
+            </motion.p>
+
+            <motion.h1
+              initial={initial}
+              animate={animate}
+              transition={{
+                duration: 0.7,
+                delay: reduceMotion ? 0 : 0.12,
+                ease,
+              }}
+              className="mt-6 text-2xl font-medium tracking-tight text-foreground sm:text-3xl"
+            >
+              Opinionated components for shippers
+            </motion.h1>
+
+            <motion.p
+              initial={initial}
+              animate={animate}
+              transition={{
+                duration: 0.7,
+                delay: reduceMotion ? 0 : 0.22,
+                ease,
+              }}
+              className="mx-auto mt-4 max-w-md text-base leading-relaxed text-foreground/70 sm:text-lg"
+            >
+              A shadcn registry with strong defaults — install what you need,
+              own the source, and ship from a sharper baseline.
+            </motion.p>
+
+            <motion.div
+              initial={initial}
+              animate={animate}
+              transition={{
+                duration: 0.7,
+                delay: reduceMotion ? 0 : 0.32,
+                ease,
+              }}
+              className="mt-8 flex flex-wrap items-center justify-center gap-3"
+            >
+              <Link
+                href="/docs"
+                className={cn(buttonVariants({ size: "lg" }), "min-w-36")}
+              >
+                Read the docs
+              </Link>
+              <Link
+                href="/docs/getting-started"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "lg" }),
+                  "min-w-36 bg-background/60 backdrop-blur-sm"
+                )}
+              >
+                Get started
+              </Link>
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="relative bg-background/80 backdrop-blur-sm">
+          <div className="mx-auto max-w-5xl px-6 py-16 text-center sm:px-10">
+            <h2 className="text-xl font-medium tracking-tight text-foreground sm:text-2xl">
+              Copy in. Ship out.
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-foreground/65 sm:text-base">
+              Backgrounds, footers, and interaction pieces that already feel
+              finished — without a kitchen-sink design system.
+            </p>
+          </div>
+          <div className="w-full overflow-hidden border-y border-border/60">
+            <Image
+              src="/demo-product.png"
+              alt="Interface preview using 23rd components"
+              width={1536}
+              height={1024}
+              priority
+              className="h-auto w-full object-cover object-top"
+            />
+          </div>
+        </section>
+
+        <footer className="relative z-10 flex flex-col items-center gap-3 bg-background/90 px-6 py-16 text-center backdrop-blur-sm sm:px-10">
+          <p className="font-[family-name:var(--font-landing-display)] text-3xl text-foreground">
+            Ship with taste
+          </p>
+          <p className="max-w-sm text-sm text-muted-foreground">
+            Draft homepage preview — production still opens on docs.
+          </p>
+          <Link
+            href="/docs"
+            className={cn(buttonVariants({ size: "lg" }), "mt-1")}
+          >
+            Browse components
+          </Link>
+        </footer>
+      </div>
+    </div>
+  )
+}
