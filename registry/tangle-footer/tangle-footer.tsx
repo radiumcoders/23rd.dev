@@ -142,7 +142,13 @@ function buildRings(
     const line = pool[Math.floor(rand() * pool.length)]!
     const other = pool[Math.floor(rand() * pool.length)]!
     const circumference = 2 * Math.PI * r
-    const text = buildRingCopy(line, other, rand() > 0.45, circumference, fontSize)
+    const text = buildRingCopy(
+      line,
+      other,
+      rand() > 0.45,
+      circumference,
+      fontSize
+    )
 
     return {
       d: circlePath(cx, cy, r),
@@ -285,26 +291,28 @@ export function TangleFooter({
               >
                 <use
                   href={`#${pathId}`}
-                  stroke={ribbon ?? "var(--tangle-ribbon)"}
                   strokeWidth={ring.strokeWidth}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   fill="none"
+                  style={{
+                    // Live CSS so `var(--tangle-ribbon)` tracks `html.dark`.
+                    stroke: ribbon ?? "var(--tangle-ribbon)",
+                  }}
                 />
                 <text
-                  fill={textColor ?? "var(--tangle-text)"}
                   fontSize={ring.fontSize}
                   fontFamily="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
                   fontWeight={700}
                   letterSpacing="0.05em"
                   dominantBaseline="central"
-                  style={{ userSelect: "none", pointerEvents: "none" }}
+                  style={{
+                    fill: textColor ?? "var(--tangle-text)",
+                    userSelect: "none",
+                    pointerEvents: "none",
+                  }}
                 >
-                  <textPath
-                    href={`#${pathId}`}
-                    startOffset="0"
-                    method="align"
-                  >
+                  <textPath href={`#${pathId}`} startOffset="0" method="align">
                     {ring.text}
                   </textPath>
                 </text>
