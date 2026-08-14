@@ -5,7 +5,7 @@ description: Five nested circular text rings — concentric semicircle loops wit
 
 import { TangleFooterDemo } from "@/registry/tangle-footer/tangle-footer-demo"
 
-Five concentric rings as an **upper semicircle** — outer diameter spans the parent width (`max-w-7xl`) when height is left at the default (half width). A shorter `height` scales the nest down so the arches stay complete. Rings rotate for a continuous marquee. Colors follow the site theme unless you override them.
+Five concentric rings as an **upper semicircle** — outer diameter spans the parent width (`max-w-7xl`) when height is left at the default (half width). A shorter `height` scales the nest down so the arches stay complete. Rings rotate for a continuous marquee. Colors follow the site theme (`html.dark`) unless you override them. Press `d` to toggle.
 
 <TangleFooterDemo />
 
@@ -48,13 +48,13 @@ export function SiteFooter() {
 
 ## Props
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `lines` | `string[]` | built-in phrases |
-| `ribbon` | `string` | theme (`#141414` / `#E8E4DC`) |
-| `textColor` | `string` | theme (`#F4F0E8` / `#161616`) |
-| `background` | `string` | theme (`#EFEAE2` / `#121210`) |
-| `height` | `number` | half of measured width (semicircle) |
-| `seed` | `number` | `23` |
-| `label` | `string` | `Site footer` |
-| `className` | `string` | — |
+| Prop         | Type       | Default                             |
+| ------------ | ---------- | ----------------------------------- |
+| `lines`      | `string[]` | built-in phrases                    |
+| `ribbon`     | `string`   | theme (`#141414` / `#E8E4DC`)       |
+| `textColor`  | `string`   | theme (`#F4F0E8` / `#161616`)       |
+| `background` | `string`   | theme (`#EFEAE2` / `#121210`)       |
+| `height`     | `number`   | half of measured width (semicircle) |
+| `seed`       | `number`   | `23`                                |
+| `label`      | `string`   | `Site footer`                       |
+| `className`  | `string`   | —                                   |
