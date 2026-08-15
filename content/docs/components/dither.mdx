@@ -1,0 +1,64 @@
+---
+title: Dither
+description: A retro 1-bit ordered dither background — still, fire, and wind variants in ink and paper.
+---
+
+import { DitherDemo } from "@/registry/dither/dither-demo"
+
+Classic Bayer dither as a full-bleed wash. Only two colors — theme ink on theme paper. Sparse enough for UI. Press `d` to toggle theme.
+
+<DitherDemo />
+
+## Installation
+
+<CliCommand command="shadcn@latest add @23rd/dither" />
+
+Or install straight from the public GitHub source registry:
+
+<CliCommand
+  npm="npx shadcn@latest add radiumcoders/23rd.dev/dither"
+  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/dither"
+  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/dither"
+  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/dither"
+/>
+
+## Usage
+
+Place it behind content in a relatively positioned container. Pick a motion variant.
+
+```tsx
+"use client"
+
+import { Dither } from "@/components/ui/dither"
+
+export function Hero() {
+  return (
+    <div className="relative h-svh overflow-hidden bg-background">
+      <Dither variant="fire" />
+      <div className="relative z-10 p-10">Your content</div>
+    </div>
+  )
+}
+```
+
+## Variants
+
+| Variant | Motion |
+| --- | --- |
+| `still` | Slow ambient drift with a quieter center |
+| `fire` | Sparse flame tongues rising from the bottom |
+| `wind` | Horizontal air streaks with light shear |
+
+## Props
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `variant` | `"still" \| "fire" \| "wind"` | `still` |
+| `pixelSize` | `number` | `3` |
+| `speed` | `number` | `1` |
+| `intensity` | `number` | `0.55` |
+| `color` | `string` | theme ink |
+| `backgroundColor` | `string` | theme paper |
+| `animate` | `boolean` | `true` |
+| `theme` | `"light" \| "dark" \| "auto"` | `auto` |
+| `className` | `string` | — |

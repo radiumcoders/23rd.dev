@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "items": [
+    {
+      "name": "dither",
+      "type": "registry:ui",
+      "title": "Dither",
+      "description": "Retro 1-bit ordered dither background — still, fire, and wind variants. Theme-aware, zero deps.",
+      "files": [
+        {
+          "path": "dither.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/dither.tsx"
+        }
+      ]
+    }
+  ]
+}

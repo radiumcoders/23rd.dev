@@ -1,59 +1,51 @@
 ---
 title: Getting Started
-description: How content, routing, and the docs UI fit together.
+description: Install 23rd components into a shadcn project with the CLI.
 ---
 
-import { Button } from "@/components/ui/button"
+23rd is a [shadcn/ui](https://ui.shadcn.com) registry. After install you own the source — same as any other registry item.
 
-## Content
+## Install a component
 
-MDX files live in `content/docs`. Frontmatter needs at least a `title`:
+<CliCommand command="shadcn@latest add @23rd/dither" />
 
-```mdx
----
-title: My Page
-description: Optional description
----
+Or pull straight from the public GitHub source registry:
 
-## Hello
-```
+<CliCommand
+  npm="npx shadcn@latest add radiumcoders/23rd.dev/dither"
+  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/dither"
+  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/dither"
+  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/dither"
+/>
 
-## Routing
+Swap `dither` for any item name — `shader-gradient`, `tangle-footer`, `gooey-color-picker`, and so on.
 
-Pages are served at `/docs/*` from `app/docs/[[...slug]]/page.tsx`. The page tree comes from `lib/source.ts`.
+## Use a background
 
-## Component preview
-
-Live examples use `ComponentPreview` — full content width, roughly a quarter of the viewport tall:
+Place the component behind content in a relatively positioned container. Keep the UI in a later stacking context.
 
 ```tsx
-<ComponentPreview title="Button">
-  <Button>Click me</Button>
-</ComponentPreview>
+"use client"
+
+import { Dither } from "@/components/ui/dither"
+
+export function Hero() {
+  return (
+    <section className="relative isolate min-h-svh overflow-hidden bg-background">
+      <Dither variant="wind" />
+      <div className="relative z-10 p-10">Your content</div>
+    </section>
+  )
+}
 ```
 
-<ComponentPreview title="Button">
-  <Button>Default</Button>
-  <Button variant="outline">Outline</Button>
-  <Button variant="secondary">Secondary</Button>
-</ComponentPreview>
+Shaders such as [Shader Gradient](/docs/components/shader-gradient) follow the same pattern — they are atmosphere, not the page.
 
-## Installation commands
+## Browse
 
-CLI blocks use `CliCommand` — colored package manager logo on the left, dropdown on the right:
-
-```tsx
-<CliCommand command="shadcn@latest add button" />
-```
-
-<CliCommand command="shadcn@latest add button" />
-
-## Customizing the UI
-
-| Piece | Where to edit |
+| Category | Components |
 | --- | --- |
-| Site title / nav links | `lib/layout.shared.tsx` |
-| Docs sidebar layout | `app/docs/layout.tsx` |
-| Page title, TOC, body | `app/docs/[[...slug]]/page.tsx` |
-| MDX component map | `components/mdx.tsx` |
-| Shadcn sidebar kit | `components/ui/sidebar.tsx` |
+| Background | [Dither](/docs/components/dither), [Radiant Lines](/docs/components/radiant-lines), [ASCII Fluid](/docs/components/ascii-fluid) |
+| Shaders | [Shader Gradient](/docs/components/shader-gradient) |
+| Footers | [Tangle Footer](/docs/components/tangle-footer), [Stretchy Footer](/docs/components/stretchy-footer) |
+| Components | [Gooey Color Picker](/docs/components/gooey-color-picker) |

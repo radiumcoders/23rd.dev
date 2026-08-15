@@ -17,6 +17,19 @@
       "type": "registry:ui"
     },
     {
+      "name": "dither",
+      "title": "Dither",
+      "description": "Retro 1-bit ordered dither background — still, fire, and wind variants. Theme-aware, zero deps.",
+      "files": [
+        {
+          "path": "registry/dither/dither.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/dither.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "gooey-color-picker",
       "title": "Gooey Color Picker",
       "description": "A floating color picker with a circular hue wheel, alpha slider, hex field, and motion-powered open/close.",
@@ -51,7 +64,7 @@
     {
       "name": "shader-gradient",
       "title": "Shader Gradient",
-      "description": "A subtle animated WebGL gradient wash that follows shadcn light/dark theme — soft color blobs and optional pointer follow.",
+      "description": "Quiet WebGL color wash for landing heroes, empty states, and marketing sections — theme-aware, optional pointer follow.",
       "files": [
         {
           "path": "registry/shader-gradient/shader-gradient.tsx",

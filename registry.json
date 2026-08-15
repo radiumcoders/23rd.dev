@@ -4,6 +4,7 @@
   "homepage": "https://23rd.dev",
   "include": [
     "registry/ascii-fluid/registry.json",
+    "registry/dither/registry.json",
     "registry/gooey-color-picker/registry.json",
     "registry/radiant-lines/registry.json",
     "registry/shader-gradient/registry.json",

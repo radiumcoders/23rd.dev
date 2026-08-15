@@ -1,11 +1,11 @@
 ---
 title: Shader Gradient
-description: A subtle animated WebGL gradient wash — soft color blobs over the theme background, with optional pointer follow.
+description: A quiet WebGL color wash for landing heroes, empty states, and marketing sections — sits behind UI, follows the theme, optional pointer follow.
 ---
 
 import { ShaderGradientDemo } from "@/registry/shader-gradient/shader-gradient-demo"
 
-Soft-focus hero wash — sky, sage, cream, and lavender. Follows your shadcn theme (`html.dark`): light pastels on paper in light mode, deep ~700-weight hues on slate in dark. Press `d` to toggle. Place it behind content — no extra dependencies.
+Not a standalone gradient. Use it as atmosphere behind a hero, wait screen, or empty state so the page feels finished without competing with the copy. Soft sky / sage / cream / lavender on paper in light mode; deep dusk hues in dark. Press `d` to toggle.
 
 <ShaderGradientDemo />
 
@@ -24,7 +24,7 @@ Or install straight from the public GitHub source registry:
 
 ## Usage
 
-Place it behind content in a relatively positioned container. With the default `theme="auto"`, it tracks shadcn / next-themes (`class` on `<html>`).
+Pin it behind a relatively positioned section. Keep content in a later stacking context (`relative z-10`). Default `theme="auto"` follows shadcn / next-themes (`class` on `<html>`).
 
 ```tsx
 "use client"
@@ -33,15 +33,26 @@ import { ShaderGradient } from "@/components/ui/shader-gradient"
 
 export function Hero() {
   return (
-    <div className="relative h-svh overflow-hidden bg-background">
+    <section className="relative isolate min-h-svh overflow-hidden bg-background">
       <ShaderGradient />
-      <div className="relative z-10 p-10">Your content</div>
-    </div>
+      <div className="relative z-10 mx-auto flex min-h-svh max-w-xl flex-col items-center justify-center px-6 text-center">
+        <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
+          New
+        </p>
+        <h1 className="mt-3 text-4xl font-medium tracking-tight">
+          Ship the page, not the backdrop
+        </h1>
+        <p className="mt-3 text-muted-foreground">
+          Headline, proof, and a primary action sit on the wash. The shader
+          stays quiet.
+        </p>
+      </div>
+    </section>
   )
 }
 ```
 
-Force a palette if you need to:
+Force a palette if the parent theme should not drive it:
 
 ```tsx
 <ShaderGradient theme="light" />

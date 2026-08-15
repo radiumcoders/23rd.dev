@@ -2,13 +2,15 @@
   "title": "Components",
   "pages": [
     "---Background---",
+    "dither",
     "radiant-lines",
-    "shader-gradient",
     "ascii-fluid",
+    "---Shaders---",
+    "shader-gradient",
     "---Footers---",
     "tangle-footer",
     "stretchy-footer",
-    "---Specific Components---",
+    "---Components---",
     "gooey-color-picker"
   ]
 }

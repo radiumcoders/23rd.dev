@@ -1,5 +1,6 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
 import {
   ComponentControls,
   ControlColors,
@@ -25,7 +26,7 @@ export function ShaderGradientDemo() {
   return (
     <>
       <ComponentPreview
-        title="Shader Gradient"
+        title="Landing hero"
         stageClassName="min-h-0 overflow-hidden p-0"
       >
         <div className="relative h-[56svh] w-full overflow-hidden rounded-[inherit] bg-background">
@@ -37,6 +38,24 @@ export function ShaderGradientDemo() {
             interactive={props.interactive}
             colors={props.colors}
           />
+          <div className="relative z-10 flex size-full flex-col items-center justify-center px-8 text-center">
+            <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
+              Atmosphere
+            </p>
+            <h3 className="mt-3 max-w-md text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
+              Soft wash behind the work
+            </h3>
+            <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
+              Sit a landing hero, empty state, or wait screen on a theme-aware
+              field. Copy stays readable; the shader stays in the back.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+              <Button type="button">Start shipping</Button>
+              <Button type="button" variant="outline">
+                See the API
+              </Button>
+            </div>
+          </div>
         </div>
       </ComponentPreview>
 

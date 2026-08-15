@@ -264,8 +264,9 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
 }
 
 /**
- * Airy pastel WebGL wash — wide soft-focus color fields on near-white paper.
- * Theme-aware light / dusk. Props are read via ref so effect deps stay stable.
+ * Quiet WebGL atmosphere for heroes and empty states — soft-focus color
+ * fields behind UI. Theme-aware light / dusk. Props are read via ref so
+ * effect deps stay stable.
  */
 export function ShaderGradient({
   className,
