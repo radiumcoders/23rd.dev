@@ -7,45 +7,45 @@ description: Install 23rd components into a shadcn project with the CLI.
 
 ## Install a component
 
-<CliCommand command="shadcn@latest add @23rd/dither" />
+<CliCommand command="shadcn@latest add @23rd/shader-gradient" />
 
 Or pull straight from the public GitHub source registry:
 
 <CliCommand
-  npm="npx shadcn@latest add radiumcoders/23rd.dev/dither"
-  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/dither"
-  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/dither"
-  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/dither"
+  npm="npx shadcn@latest add radiumcoders/23rd.dev/shader-gradient"
+  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/shader-gradient"
+  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/shader-gradient"
+  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/shader-gradient"
 />
 
-Swap `dither` for any item name — `shader-gradient`, `tangle-footer`, `gooey-color-picker`, and so on.
+Swap `shader-gradient` for any item name — `radiant-lines`, `tangle-footer`, `gooey-color-picker`, and so on.
 
-## Use a background
+## Use a background or shader
 
 Place the component behind content in a relatively positioned container. Keep the UI in a later stacking context.
 
 ```tsx
 "use client"
 
-import { Dither } from "@/components/ui/dither"
+import { ShaderGradient } from "@/components/ui/shader-gradient"
 
 export function Hero() {
   return (
     <section className="relative isolate min-h-svh overflow-hidden bg-background">
-      <Dither variant="wind" />
+      <ShaderGradient />
       <div className="relative z-10 p-10">Your content</div>
     </section>
   )
 }
 ```
 
-Shaders such as [Shader Gradient](/docs/components/shader-gradient) follow the same pattern — they are atmosphere, not the page.
+Shaders such as [Shader Gradient](/docs/components/shader-gradient) are atmosphere, not the page.
 
 ## Browse
 
 | Category | Components |
 | --- | --- |
-| Background | [Dither](/docs/components/dither), [Radiant Lines](/docs/components/radiant-lines), [ASCII Fluid](/docs/components/ascii-fluid) |
+| Background | [Radiant Lines](/docs/components/radiant-lines), [ASCII Fluid](/docs/components/ascii-fluid) |
 | Shaders | [Shader Gradient](/docs/components/shader-gradient) |
 | Footers | [Tangle Footer](/docs/components/tangle-footer), [Stretchy Footer](/docs/components/stretchy-footer) |
 | Components | [Gooey Color Picker](/docs/components/gooey-color-picker) |

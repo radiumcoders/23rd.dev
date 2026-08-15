@@ -2,7 +2,6 @@
   "title": "Components",
   "pages": [
     "---Background---",
-    "dither",
     "radiant-lines",
     "ascii-fluid",
     "---Shaders---",
