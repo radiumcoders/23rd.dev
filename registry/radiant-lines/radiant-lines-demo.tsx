@@ -88,7 +88,15 @@ export function RadiantLinesDemo() {
         </div>
       </ComponentPreview>
 
-      <ComponentControls hasChanges={hasChanges} onReset={resetProps}>
+      <ComponentControls
+        hasChanges={hasChanges}
+        onReset={resetProps}
+        component="RadiantLines"
+        snippetProps={{
+          starCount: props.starCount,
+          colors: props.colors,
+        }}
+      >
         <ControlColors
           label="Colors"
           colors={props.colors}

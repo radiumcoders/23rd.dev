@@ -1,7 +1,6 @@
 "use client"
 
-import { useEffect, useMemo } from "react"
-import { useTheme } from "next-themes"
+import { useLayoutEffect, useMemo } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -11,6 +10,7 @@ import {
   ControlSwitch,
 } from "@/components/component-controls"
 import { ComponentPreview } from "@/components/component-preview"
+import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
   DARK_COLORS,
@@ -33,8 +33,8 @@ function isStockPalette(colors: string[]) {
 }
 
 export function ShaderGradientDemo() {
-  const { resolvedTheme } = useTheme()
-  const palette = resolvedTheme === "dark" ? DARK_COLORS : LIGHT_COLORS
+  const theme = useHydratedTheme()
+  const palette = theme === "dark" ? DARK_COLORS : LIGHT_COLORS
 
   const defaults = useMemo(
     () => ({
@@ -51,7 +51,7 @@ export function ShaderGradientDemo() {
     usePreviewProps(defaults)
 
   // Keep the stock wash on the active theme until the user picks custom colors.
-  useEffect(() => {
+  useLayoutEffect(() => {
     setProps((prev) => {
       if (!isStockPalette(prev.colors)) return prev
       if (colorsEqual(prev.colors, palette)) return prev
@@ -105,7 +105,18 @@ export function ShaderGradientDemo() {
         </div>
       </ComponentPreview>
 
-      <ComponentControls hasChanges={hasChanges} onReset={resetProps}>
+      <ComponentControls
+        hasChanges={hasChanges}
+        onReset={resetProps}
+        component="ShaderGradient"
+        snippetProps={{
+          speed: props.speed,
+          blur: props.blur,
+          intensity: props.intensity,
+          interactive: props.interactive,
+          colors: useAutoTheme ? undefined : props.colors,
+        }}
+      >
         <ControlColors
           label="Palette"
           colors={props.colors}

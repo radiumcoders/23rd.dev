@@ -12,6 +12,7 @@ import {
 } from "react"
 import { RiAddLine, RiRefreshLine } from "@remixicon/react"
 
+import { CopyButton } from "@/components/copy-button"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
@@ -51,6 +52,46 @@ const DEFAULT_PALETTES = [
   ["#3D1E6D", "#7B2CBF", "#C77DFF", "#E0AAFF"],
 ]
 
+function formatJsxLiteral(value: unknown): string {
+  if (typeof value === "string") {
+    return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value)
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => formatJsxLiteral(item)).join(", ")}]`
+  }
+  return JSON.stringify(value)
+}
+
+function formatJsxAttr(value: unknown): string {
+  if (typeof value === "string") return formatJsxLiteral(value)
+  return `{${formatJsxLiteral(value)}}`
+}
+
+/** Live control values as a pasteable JSX element. `undefined` props are omitted. */
+export function formatComponentSnippet(
+  name: string,
+  props: Record<string, unknown>
+) {
+  const lines: string[] = []
+  for (const [key, value] of Object.entries(props)) {
+    if (value === undefined) continue
+    if (value === true) {
+      lines.push(`  ${key}`)
+      continue
+    }
+    if (value === false) {
+      lines.push(`  ${key}={false}`)
+      continue
+    }
+    lines.push(`  ${key}=${formatJsxAttr(value)}`)
+  }
+  if (lines.length === 0) return `<${name} />`
+  return `<${name}\n${lines.join("\n")}\n/>`
+}
+
 export type ComponentControlsProps = {
   children: ReactNode
   /** Label in the figcaption — matches CliCommand / ComponentPreview */
@@ -58,6 +99,10 @@ export type ComponentControlsProps = {
   hasChanges?: boolean
   onReset?: () => void
   className?: string
+  /** Component tag for the copy snippet, e.g. `"ShaderFire"` */
+  component?: string
+  /** Props included in the copied JSX. `undefined` values are omitted. */
+  snippetProps?: Record<string, unknown>
 }
 
 /**
@@ -70,7 +115,13 @@ export function ComponentControls({
   hasChanges = false,
   onReset,
   className,
+  component,
+  snippetProps,
 }: ComponentControlsProps) {
+  const snippet = component
+    ? formatComponentSnippet(component, snippetProps ?? {})
+    : ""
+
   return (
     <figure
       data-slot="component-controls"
@@ -81,19 +132,30 @@ export function ComponentControls({
     >
       <figcaption className="flex items-center justify-between gap-3 px-3.5 py-0.5">
         <span className="text-sm font-medium text-foreground/90">{title}</span>
-        {onReset ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            onClick={onReset}
-            disabled={!hasChanges}
-            aria-label="Reset props"
-            className="text-muted-foreground"
-          >
-            <RiRefreshLine data-icon="inline-start" />
-            Reset
-          </Button>
+        {snippet || onReset ? (
+          <div className="flex items-center">
+            {snippet ? (
+              <CopyButton
+                size="xs"
+                text={snippet}
+                label="Copy"
+              />
+            ) : null}
+            {onReset ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="xs"
+                onClick={onReset}
+                disabled={!hasChanges}
+                aria-label="Reset props"
+                className="text-muted-foreground"
+              >
+                <RiRefreshLine data-icon="inline-start" />
+                Reset
+              </Button>
+            ) : null}
+          </div>
         ) : null}
       </figcaption>
 

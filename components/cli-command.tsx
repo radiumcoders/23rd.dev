@@ -1,16 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { RiCheckLine, RiFileCopyLine } from "@remixicon/react"
-import { toast } from "sonner"
 
+import { CopyButton } from "@/components/copy-button"
 import {
   BunIcon,
   NpmIcon,
   PnpmIcon,
   YarnIcon,
 } from "@/components/package-manager-icons"
-import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -96,7 +94,6 @@ export function CliCommand({
   className,
 }: CliCommandProps) {
   const [manager, setManager] = useState<PackageManager>(defaultManager)
-  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     try {
@@ -128,18 +125,6 @@ export function CliCommand({
       window.localStorage.setItem(STORAGE_KEY, value)
     } catch {
       // ignore
-    }
-  }
-
-  async function onCopy() {
-    if (!activeCommand) return
-    try {
-      await navigator.clipboard.writeText(activeCommand)
-      setCopied(true)
-      toast.success("Copied to clipboard")
-      window.setTimeout(() => setCopied(false), 1600)
-    } catch {
-      toast.error("Couldn’t copy command")
     }
   }
 
@@ -189,16 +174,11 @@ export function CliCommand({
           <pre className="min-w-0 flex-1 overflow-x-auto font-mono text-[13px] leading-6 text-foreground/90">
             <code>{activeCommand}</code>
           </pre>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label={copied ? "Copied" : "Copy command"}
-            onClick={onCopy}
-            className="shrink-0 text-muted-foreground hover:text-foreground"
-          >
-            {copied ? <RiCheckLine /> : <RiFileCopyLine />}
-          </Button>
+          <CopyButton
+            text={activeCommand}
+            label="Copy command"
+            errorMessage="Couldn’t copy command"
+          />
         </div>
       </div>
     </figure>

@@ -1,7 +1,6 @@
 "use client"
 
-import { useEffect, useMemo } from "react"
-import { useTheme } from "next-themes"
+import { useLayoutEffect, useMemo } from "react"
 
 import {
   ComponentControls,
@@ -10,6 +9,7 @@ import {
   ControlSwitch,
 } from "@/components/component-controls"
 import { ComponentPreview } from "@/components/component-preview"
+import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import { AsciiFluid } from "@/registry/ascii-fluid/ascii-fluid"
 
@@ -43,8 +43,8 @@ function isStockThemePalette(color: string, backgroundColor: string) {
 }
 
 export function AsciiFluidDemo() {
-  const { resolvedTheme } = useTheme()
-  const palette: ThemePalette = resolvedTheme === "dark" ? DARK : LIGHT
+  const theme = useHydratedTheme()
+  const palette: ThemePalette = theme === "dark" ? DARK : LIGHT
 
   const defaults = useMemo(
     () => ({
@@ -63,7 +63,7 @@ export function AsciiFluidDemo() {
     usePreviewProps(defaults)
 
   // Keep stock ink/paper on the active theme until the user picks custom colors.
-  useEffect(() => {
+  useLayoutEffect(() => {
     setProps((prev) => {
       if (!isStockThemePalette(prev.color, prev.backgroundColor)) return prev
       if (matchesPalette(prev.color, prev.backgroundColor, palette)) return prev
@@ -101,7 +101,20 @@ export function AsciiFluidDemo() {
         </div>
       </ComponentPreview>
 
-      <ComponentControls hasChanges={hasChanges} onReset={resetProps}>
+      <ComponentControls
+        hasChanges={hasChanges}
+        onReset={resetProps}
+        component="AsciiFluid"
+        snippetProps={{
+          cellSize: props.cellSize,
+          force: props.force,
+          dissipation: props.dissipation,
+          brush: props.brush,
+          animate: props.animate,
+          color: useAutoTheme ? undefined : props.color,
+          backgroundColor: useAutoTheme ? undefined : props.backgroundColor,
+        }}
+      >
         <ControlColor
           label="Ink"
           value={props.color}
