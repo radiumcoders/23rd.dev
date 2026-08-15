@@ -24,12 +24,12 @@ export type ShaderGradientProps = {
 }
 
 /** Airy hero wash — sky / sage / cream / lavender on paper */
-const LIGHT_COLORS = ["#7CB4E0", "#B4D8C4", "#EFE4BC", "#D2D7EC"]
+export const LIGHT_COLORS = ["#7CB4E0", "#B4D8C4", "#EFE4BC", "#D2D7EC"]
 /**
- * Near-black dusk hues (~800–900 weight) — sky / sage / amber / lilac.
- * Reads as deep ink washes, not pastel neon on dark.
+ * Dusk hues that still read on slate — sky / sage / amber / lilac.
+ * Bright enough to see, dark enough not to go pastel neon.
  */
-const DARK_COLORS = ["#1A3A58", "#1A4534", "#4A3E22", "#2A2C4A"]
+export const DARK_COLORS = ["#3A6FA0", "#2F6B52", "#8A6B32", "#4A4D7A"]
 
 const LIGHT_FALLBACK = {
   backgroundColor: "#FCFBF9",
@@ -46,12 +46,12 @@ const LIGHT_FALLBACK = {
 const DARK_FALLBACK = {
   backgroundColor: "#08090C",
   backgroundImage: [
-    "radial-gradient(60% 45% at 60% 20%, #1A3A58 0%, transparent 70%)",
-    "radial-gradient(40% 50% at 90% 46%, #1A3A58 0%, transparent 70%)",
-    "radial-gradient(30% 40% at 100% 60%, #1A4534 0%, transparent 70%)",
-    "radial-gradient(38% 46% at 4% 56%, #4A3E22 0%, transparent 70%)",
-    "radial-gradient(28% 24% at 90% 74%, #4A3E22 0%, transparent 70%)",
-    "radial-gradient(40% 38% at 32% 38%, #2A2C4A 0%, transparent 70%)",
+    "radial-gradient(60% 45% at 60% 20%, #3A6FA0 0%, transparent 70%)",
+    "radial-gradient(40% 50% at 90% 46%, #3A6FA0 0%, transparent 70%)",
+    "radial-gradient(30% 40% at 100% 60%, #2F6B52 0%, transparent 70%)",
+    "radial-gradient(38% 46% at 4% 56%, #8A6B32 0%, transparent 70%)",
+    "radial-gradient(28% 24% at 90% 74%, #8A6B32 0%, transparent 70%)",
+    "radial-gradient(40% 38% at 32% 38%, #4A4D7A 0%, transparent 70%)",
   ].join(", "),
 } as const
 
@@ -199,9 +199,9 @@ void main() {
     vec3 paper = vec3(0.988, 0.986, 0.982);
     col = mix(paper, tint, clamp(cover, 0.0, 1.0));
   } else {
-    // Near-black ink — deep ~800 hues barely lift off the void
+    // Near-black ink — dusk hues lift off the void without going neon
     vec3 slate = vec3(0.03, 0.032, 0.042);
-    float glow = clamp(cover * 0.95, 0.0, 1.0);
+    float glow = clamp(cover * 0.72, 0.0, 1.0);
     col = mix(slate, tint, glow);
   }
 

@@ -1,5 +1,8 @@
 "use client"
 
+import { useEffect, useMemo } from "react"
+import { useTheme } from "next-themes"
+
 import { Button } from "@/components/ui/button"
 import {
   ComponentControls,
@@ -9,19 +12,54 @@ import {
 } from "@/components/component-controls"
 import { ComponentPreview } from "@/components/component-preview"
 import { usePreviewProps } from "@/hooks/use-preview-props"
-import { ShaderGradient } from "@/registry/shader-gradient/shader-gradient"
+import {
+  DARK_COLORS,
+  LIGHT_COLORS,
+  ShaderGradient,
+} from "@/registry/shader-gradient/shader-gradient"
 
-const DEFAULTS = {
-  speed: 0.14,
-  blur: 0.7,
-  intensity: 0.95,
-  interactive: true,
-  colors: ["#7CB4E0", "#B4D8C4", "#EFE4BC", "#D2D7EC"],
+function norm(hex: string) {
+  return hex.trim().toUpperCase()
+}
+
+function colorsEqual(a: string[], b: string[]) {
+  return (
+    a.length === b.length && a.every((color, i) => norm(color) === norm(b[i]!))
+  )
+}
+
+function isStockPalette(colors: string[]) {
+  return colorsEqual(colors, LIGHT_COLORS) || colorsEqual(colors, DARK_COLORS)
 }
 
 export function ShaderGradientDemo() {
-  const { props, updateProp, resetProps, hasChanges } =
-    usePreviewProps(DEFAULTS)
+  const { resolvedTheme } = useTheme()
+  const palette = resolvedTheme === "dark" ? DARK_COLORS : LIGHT_COLORS
+
+  const defaults = useMemo(
+    () => ({
+      speed: 0.14,
+      blur: 0.7,
+      intensity: 0.95,
+      interactive: true,
+      colors: palette,
+    }),
+    [palette]
+  )
+
+  const { props, updateProp, resetProps, hasChanges, setProps } =
+    usePreviewProps(defaults)
+
+  // Keep the stock wash on the active theme until the user picks custom colors.
+  useEffect(() => {
+    setProps((prev) => {
+      if (!isStockPalette(prev.colors)) return prev
+      if (colorsEqual(prev.colors, palette)) return prev
+      return { ...prev, colors: palette }
+    })
+  }, [palette, setProps])
+
+  const useAutoTheme = isStockPalette(props.colors)
 
   return (
     <>
@@ -36,23 +74,31 @@ export function ShaderGradientDemo() {
             blur={props.blur}
             intensity={props.intensity}
             interactive={props.interactive}
-            colors={props.colors}
+            colors={useAutoTheme ? undefined : props.colors}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--background)_0%,transparent_58%)] opacity-40 dark:opacity-65"
           />
           <div className="relative z-10 flex size-full flex-col items-center justify-center px-8 text-center">
-            <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
-              Atmosphere
+            <p className="text-xs font-medium tracking-[0.2em] text-foreground/55 uppercase">
+              Landing
             </p>
-            <h3 className="mt-3 max-w-md text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
-              Soft wash behind the work
+            <h3 className="mt-3 max-w-lg text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
+              A first screen that already feels finished
             </h3>
-            <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
-              Sit a landing hero, empty state, or wait screen on a theme-aware
-              field. Copy stays readable; the shader stays in the back.
+            <p className="mt-3 max-w-sm text-sm leading-relaxed text-foreground/70">
+              Headline and a primary action sit on the wash. The shader stays
+              in the back.
             </p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-              <Button type="button">Start shipping</Button>
-              <Button type="button" variant="outline">
-                See the API
+              <Button type="button">Install</Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="bg-background/70 backdrop-blur-sm"
+              >
+                View API
               </Button>
             </div>
           </div>
