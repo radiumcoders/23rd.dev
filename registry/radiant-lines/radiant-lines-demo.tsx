@@ -92,6 +92,36 @@ export function RadiantLinesDemo() {
         <ControlColors
           label="Colors"
           colors={props.colors}
+          palettes={[
+            DEFAULTS.colors,
+            [
+              "#F97316",
+              "#FACC15",
+              "#4ADE80",
+              "#22D3EE",
+              "#818CF8",
+              "#E879F9",
+              "#FB7185",
+            ],
+            [
+              "#F5E6C8",
+              "#E8B86D",
+              "#C17F59",
+              "#8B5E3C",
+              "#A3B18A",
+              "#588157",
+              "#3A5A40",
+            ],
+            [
+              "#E2E8F0",
+              "#94A3B8",
+              "#64748B",
+              "#38BDF8",
+              "#818CF8",
+              "#C084FC",
+              "#F472B6",
+            ],
+          ]}
           onChange={(colors) => updateProp("colors", colors)}
         />
         <ControlSlider

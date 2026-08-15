@@ -112,6 +112,12 @@ export function ShaderFireDemo() {
         <ControlColors
           label="Palette"
           colors={props.colors}
+          palettes={[
+            palette,
+            ["#1E3A5F", "#4A90A4", "#C5E4E7"],
+            ["#5B1E6E", "#C44569", "#FFA07A"],
+            ["#1A1A1A", "#6B4F3A", "#E8E4DC"],
+          ]}
           onChange={(colors) => updateProp("colors", colors)}
         />
         <ControlSlider

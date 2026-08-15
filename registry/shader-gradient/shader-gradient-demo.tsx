@@ -109,6 +109,12 @@ export function ShaderGradientDemo() {
         <ControlColors
           label="Palette"
           colors={props.colors}
+          palettes={[
+            palette,
+            ["#E07A5F", "#F2CC8F", "#81B29A", "#3D405B"],
+            ["#0D1B2A", "#1B263B", "#415A77", "#778DA9"],
+            ["#F72585", "#7209B7", "#3A0CA3", "#4CC9F0"],
+          ]}
           onChange={(colors) => updateProp("colors", colors)}
         />
         <ControlSlider
