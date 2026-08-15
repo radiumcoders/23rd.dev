@@ -71,6 +71,7 @@ pnpm dlx shadcn@latest add radiumcoders/23rd.dev/gooey-color-picker
 | [ASCII Fluid](https://23rd.dev/docs/components/ascii-fluid) | `@23rd/ascii-fluid` | Mouse-trail WebGL fluid quantized to a clean ASCII brightness ramp |
 | [Gooey Color Picker](https://23rd.dev/docs/components/gooey-color-picker) | `@23rd/gooey-color-picker` | Floating swatch → hue wheel, alpha, hex — joined by an SVG gooey filter |
 | [Radiant Lines](https://23rd.dev/docs/components/radiant-lines) | `@23rd/radiant-lines` | Hyperspace starfield background; warp speed driven by scroll |
+| [Shader Fire](https://23rd.dev/docs/components/shader-fire) | `@23rd/shader-fire` | Sparse 2D fire wash — tongues rise from the bottom behind a landing hero |
 | [Shader Gradient](https://23rd.dev/docs/components/shader-gradient) | `@23rd/shader-gradient` | Quiet WebGL wash behind landing heroes, empty states, and marketing sections |
 | [Stretchy Footer](https://23rd.dev/docs/components/stretchy-footer) | `@23rd/stretchy-footer` | Dia-style rubber overscroll; aurora stretches past the bottom, then snaps back |
 | [Tangle Footer](https://23rd.dev/docs/components/tangle-footer) | `@23rd/tangle-footer` | Nested SVG text ribbons as a footer |

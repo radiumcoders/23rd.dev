@@ -1,0 +1,79 @@
+---
+title: Shader Fire
+description: A sparse 2D WebGL fire wash for landing heroes — tongues rise from the bottom, sit behind UI, follow the theme, optional pointer heat.
+---
+
+import { ShaderFireDemo } from "@/registry/shader-fire/shader-fire-demo"
+
+Not a wall of flame. Use it as heat under a hero or wait screen so the page feels finished without covering the copy. Sienna / amber / dusty peach on paper in light mode; visible coals on slate in dark. Toggle **Dither** for an ordered Bayer print of the same field. Press `d` to switch theme.
+
+<ShaderFireDemo />
+
+## Installation
+
+<CliCommand command="shadcn@latest add @23rd/shader-fire" />
+
+Or install straight from the public GitHub source registry:
+
+<CliCommand
+  npm="npx shadcn@latest add radiumcoders/23rd.dev/shader-fire"
+  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/shader-fire"
+  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/shader-fire"
+  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/shader-fire"
+/>
+
+## Usage
+
+Pin it behind a relatively positioned section. Keep content in a later stacking context (`relative z-10`). Default `theme="auto"` follows shadcn / next-themes (`class` on `<html>`).
+
+```tsx
+"use client"
+
+import { ShaderFire } from "@/components/ui/shader-fire"
+
+export function Hero() {
+  return (
+    <section className="relative isolate min-h-svh overflow-hidden bg-background">
+      <ShaderFire />
+      <div className="relative z-10 mx-auto flex min-h-svh max-w-xl flex-col items-center justify-center px-6 text-center">
+        <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
+          New
+        </p>
+        <h1 className="mt-3 text-4xl font-medium tracking-tight">
+          Heat under the headline
+        </h1>
+        <p className="mt-3 text-muted-foreground">
+          The fire stays a wash. The page stays readable.
+        </p>
+      </div>
+    </section>
+  )
+}
+```
+
+Force a palette if the parent theme should not drive it:
+
+```tsx
+<ShaderFire theme="light" />
+<ShaderFire theme="dark" />
+```
+
+Print the same field as ordered Bayer pixels:
+
+```tsx
+<ShaderFire dither pixelSize={1} />
+```
+
+## Props
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `colors` | `string[]` | ember / flame / highlight |
+| `speed` | `number` | `0.55` |
+| `intensity` | `number` | `0.55` |
+| `height` | `number` | `0.45` |
+| `interactive` | `boolean` | `true` |
+| `dither` | `boolean` | `false` |
+| `pixelSize` | `number` | `1` |
+| `theme` | `"light" \| "dark" \| "auto"` | `auto` |
+| `className` | `string` | — |

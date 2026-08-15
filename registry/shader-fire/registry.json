@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "items": [
+    {
+      "name": "shader-fire",
+      "type": "registry:ui",
+      "title": "Shader Fire",
+      "description": "Sparse 2D WebGL fire wash for landing heroes — tongues rise from the bottom, theme-aware, optional pointer heat.",
+      "files": [
+        {
+          "path": "shader-fire.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/shader-fire.tsx"
+        }
+      ]
+    }
+  ]
+}
