@@ -33,6 +33,19 @@
       "type": "registry:ui"
     },
     {
+      "name": "live-orb",
+      "title": "Live Orb",
+      "description": "A matte 3D sphere with two capsule eyes that follow the pointer — white, black, webgl, and custom variants.",
+      "files": [
+        {
+          "path": "registry/live-orb/live-orb.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/live-orb.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "radiant-lines",
       "title": "Radiant Lines",
       "description": "A hyperspace starfield background — colored streaks radiate from the center, with warp speed driven by scroll velocity via Motion.",

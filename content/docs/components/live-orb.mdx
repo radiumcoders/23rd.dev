@@ -1,0 +1,62 @@
+---
+title: Live Orb
+description: A matte 3D sphere with two capsule eyes that follow the pointer — white, black, webgl, and custom variants.
+---
+
+import { LiveOrbDemo } from "@/registry/live-orb/live-orb-demo"
+
+A still orb. Two pill eyes ride the curve and look at the cursor. White is the default — a quiet off-white ball with black capsules. Black inverts it. WebGL keeps the same face on an iridescent interior. Custom takes your hex.
+
+<LiveOrbDemo />
+
+## Installation
+
+<CliCommand command="shadcn@latest add @23rd/live-orb" />
+
+Or install straight from the public GitHub source registry:
+
+<CliCommand
+  npm="npx shadcn@latest add radiumcoders/23rd.dev/live-orb"
+  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/live-orb"
+  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/live-orb"
+  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/live-orb"
+/>
+
+## Usage
+
+```tsx
+"use client"
+
+import { LiveOrb } from "@/components/ui/live-orb"
+
+export function Mascot() {
+  return <LiveOrb />
+}
+```
+
+Named variants set the material. `custom` reads `color` and `eyeColor`. `webgl` can take an optional three-stop `colors` palette.
+
+```tsx
+<LiveOrb variant="white" />
+<LiveOrb variant="black" />
+<LiveOrb variant="webgl" />
+<LiveOrb variant="webgl" colors={["#7C6AF7", "#7DD3C7", "#E8B4D4"]} />
+<LiveOrb variant="custom" color="#7C5CFF" eyeColor="#FAFAFA" />
+```
+
+The orb does not follow the pointer — only the eyes do. Pass `interactive={false}` to park the gaze.
+
+## Props
+
+| Prop          | Type                                        | Default                   |
+| ------------- | ------------------------------------------- | ------------------------- |
+| `variant`     | `"white" \| "black" \| "webgl" \| "custom"` | `"white"`                 |
+| `size`        | `number`                                    | `280`                     |
+| `color`       | `string`                                    | `"#7C5CFF"`               |
+| `eyeColor`    | `string`                                    | `"#FAFAFA"`               |
+| `colors`      | `string[]`                                  | violet / foam / dust-rose |
+| `interactive` | `boolean`                                   | `true`                    |
+| `blink`       | `boolean`                                   | `true`                    |
+| `className`   | `string`                                    | —                         |
+
+`color` and `eyeColor` apply only when `variant="custom"`. `colors` applies only when `variant="webgl"`.

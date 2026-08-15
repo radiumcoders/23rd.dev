@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "items": [
+    {
+      "name": "live-orb",
+      "type": "registry:ui",
+      "title": "Live Orb",
+      "description": "A matte 3D sphere with two capsule eyes that follow the pointer — white, black, webgl, and custom variants.",
+      "files": [
+        {
+          "path": "live-orb.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/live-orb.tsx"
+        }
+      ]
+    }
+  ]
+}
