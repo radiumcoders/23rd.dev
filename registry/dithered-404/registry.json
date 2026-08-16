@@ -5,7 +5,7 @@
       "name": "dithered-404",
       "type": "registry:ui",
       "title": "Dithered 404",
-      "description": "Bayer-pixel 404 section — a fireball cursor burns the glyph into embers until leftover type falls, then reforms. Optional soft realistic fire.",
+      "description": "Bayer-pixel 404 section — a fireball cursor burns the glyph into embers until leftover type falls, piles, then reforms. Optional soft realistic fire.",
       "files": [
         {
           "path": "dithered-404.tsx",
