@@ -1,0 +1,73 @@
+---
+title: Dithered 404
+description: A Bayer-pixel 404 section — the pointer becomes a dithered fireball that burns the glyph into embers until leftover type falls off and reforms.
+---
+
+import { Dithered404Demo } from "@/registry/dithered-404/dithered-404-demo"
+
+Bold **404** printed as ordered Bayer pixels — or turn **Dither** off for a soft, realistic fire like Shader Fire. Move over the type: the cursor is a coal. Linger and the glyph burns away; leftover chunks fall. After the ashes settle, the number assembles again and you can burn it once more. Press `d` to switch theme.
+
+<Dithered404Demo />
+
+## Installation
+
+<CliCommand command="shadcn@latest add @23rd/dithered-404" />
+
+Or install straight from the public GitHub source registry:
+
+<CliCommand
+  npm="npx shadcn@latest add radiumcoders/23rd.dev/dithered-404"
+  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/dithered-404"
+  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/dithered-404"
+  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/dithered-404"
+/>
+
+## Usage
+
+Pin it inside a relatively positioned section. Default `theme="auto"` follows shadcn / next-themes (`class` on `<html>`). Pass `color` to set the glyph ink to any hex.
+
+```tsx
+"use client"
+
+import { Dithered404 } from "@/components/ui/dithered-404"
+
+export function NotFound() {
+  return (
+    <section className="relative isolate min-h-svh overflow-hidden bg-background">
+      <Dithered404 color="#E8B45A" />
+      <div className="relative z-10 flex min-h-svh flex-col items-center justify-end px-6 pb-16 text-center">
+        <p className="text-sm text-muted-foreground">
+          This page could not be found.
+        </p>
+      </div>
+    </section>
+  )
+}
+```
+
+Force a palette if the parent theme should not drive it:
+
+```tsx
+<Dithered404 theme="light" />
+<Dithered404 theme="dark" />
+```
+
+Honors `prefers-reduced-motion` (static 404, no fireball).
+
+Print the same scene as a soft fire instead of Bayer pixels:
+
+```tsx
+<Dithered404 dither={false} />
+```
+
+## Props
+
+| Prop          | Type                          | Default   |
+| ------------- | ----------------------------- | --------- |
+| `color`       | `string`                      | theme ink |
+| `pixelSize`   | `number`                      | `4`       |
+| `brush`       | `number`                      | `28`      |
+| `interactive` | `boolean`                     | `true`    |
+| `dither`      | `boolean`                     | `true`    |
+| `theme`       | `"light" \| "dark" \| "auto"` | `auto`    |
+| `className`   | `string`                      | —         |

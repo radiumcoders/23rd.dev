@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "items": [
+    {
+      "name": "dithered-404",
+      "type": "registry:ui",
+      "title": "Dithered 404",
+      "description": "Bayer-pixel 404 section — a fireball cursor burns the glyph into embers until leftover type falls, then reforms. Optional soft realistic fire.",
+      "files": [
+        {
+          "path": "dithered-404.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/dithered-404.tsx"
+        }
+      ]
+    }
+  ]
+}
