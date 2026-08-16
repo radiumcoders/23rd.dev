@@ -46,6 +46,9 @@ const REFORM_SNAP_MS = 1800
 const COLLAPSE_RATIO = 0.12
 const COLLAPSE_SETTLE_MS = 4200
 const MAX_EMBERS = 900
+const MAX_EMBERS_FINE = 260
+const CHAR_HEAT_GAIN = 0.2
+const CHAR_COOL = 0.01
 /** CSS px of foundation; 2 rows at the default `pixelSize` of 4. */
 const GROUND_CSS_PX = 8
 const MIN_GROUND_ROWS = 2
@@ -89,6 +92,7 @@ type Particle = {
   fill: string
   alpha: number
   sleep: number
+  heat: number
 }
 
 type GlyphCell = {
@@ -221,6 +225,39 @@ function rgba(hex: string, a: number) {
   return `rgba(${r},${g},${b},${a})`
 }
 
+function scorchedInk(ink: string, heat: number): string {
+  if (heat <= 0.02) return ink
+  const [r, g, b] = hexRgb(ink)
+  const h = heat > 1 ? 1 : heat
+  const lum = (r + g + b) / 3
+  let nr: number
+  let ng: number
+  let nb: number
+  if (lum >= 130) {
+    const k = 1 - h * 0.9
+    nr = r * k
+    ng = g * k * (1 - h * 0.12)
+    nb = b * k * (1 - h * 0.22)
+    if (h > 0.5) {
+      const g2 = (h - 0.5) / 0.5
+      nr = nr * (1 - g2 * 0.35) + 163 * g2 * 0.55
+      ng = ng * (1 - g2 * 0.35) + 58 * g2 * 0.4
+      nb = nb * (1 - g2 * 0.35) + 24 * g2 * 0.25
+    }
+  } else {
+    nr = r * (1 - h * 0.22) + 52 * h
+    ng = g * (1 - h * 0.38) + 18 * h
+    nb = b * (1 - h * 0.52) + 8 * h
+    if (h > 0.55) {
+      const g2 = (h - 0.55) / 0.45
+      nr = nr * (1 - g2 * 0.4) + 163 * g2 * 0.7
+      ng = ng * (1 - g2 * 0.4) + 58 * g2 * 0.5
+      nb = nb * (1 - g2 * 0.4) + 24 * g2 * 0.3
+    }
+  }
+  return `rgb(${nr | 0},${ng | 0},${nb | 0})`
+}
+
 function rasterizeGlyph(
   cssW: number,
   cssH: number,
@@ -312,6 +349,7 @@ function spawnFromCells(
       fill: ink,
       alpha: cell.alpha,
       sleep: 0,
+      heat: 0,
     }
   })
 }
@@ -507,7 +545,8 @@ function collidePixels(
   particles: Particle[],
   cell: number,
   cssW: number,
-  cssH: number
+  cssH: number,
+  includeSolid: boolean
 ) {
   const cellSize = Math.max(2, cell)
   const hash = new Map<number, Particle[]>()
@@ -531,12 +570,16 @@ function collidePixels(
   }
 
   for (const p of particles) {
-    if (p.state === FALLING || p.state === SOLID) insert(p)
+    if (p.state === FALLING || (includeSolid && p.state === SOLID)) insert(p)
   }
 
   const seen = new Set<Particle>()
   for (const p of particles) {
     if (p.state !== FALLING) continue
+    if (p.sleep >= SLEEP_FRAMES) {
+      boundFalling(p, cssW, cssH)
+      continue
+    }
     seen.clear()
     const x0 = Math.floor(p.x / cellSize) - 1
     const y0 = Math.floor(p.y / cellSize) - 1
@@ -613,8 +656,20 @@ function stepFallingPhysics(
     boundFalling(p, cssW, cssH)
   }
 
-  for (let i = 0; i < COLLIDE_ITERS; i++) {
-    collidePixels(particles, pixelSize, cssW, cssH)
+  let falling = 0
+  let awake = 0
+  for (const p of particles) {
+    if (p.state !== FALLING) continue
+    falling++
+    if (p.sleep < SLEEP_FRAMES) awake++
+  }
+  if (awake > 0) {
+    const iters =
+      pixelSize <= 2 || falling > 160 ? 1 : COLLIDE_ITERS
+    const includeSolid = pixelSize >= 4 && falling < 280
+    for (let i = 0; i < iters; i++) {
+      collidePixels(particles, pixelSize, cssW, cssH, includeSolid)
+    }
   }
 
   for (const p of particles) {
@@ -637,19 +692,27 @@ function fallingSettled(p: Particle) {
 function burnParticle(
   particles: Particle[],
   p: Particle,
-  emberCount: { n: number }
+  emberCount: { n: number },
+  pixelSize: number,
+  maxEmbers: number
 ) {
   p.state = EMBER
-  p.life = 0.35 + Math.random() * 0.45
+  p.life = 0.28 + Math.random() * (pixelSize <= 2 ? 0.28 : 0.45)
   p.size = Math.max(1, p.size * 0.55)
   p.vx = (Math.random() - 0.5) * 2.8
   p.vy = -1.2 - Math.random() * 2.4
   p.fill = fireTint(0.35 + Math.random() * 0.65)
   p.alpha = 1
+  p.heat = 0
   emberCount.n++
 
-  const extra = 1 + Math.floor(Math.random() * 3)
-  for (let i = 0; i < extra && emberCount.n < MAX_EMBERS; i++) {
+  const extra =
+    pixelSize <= 2
+      ? Math.random() < 0.22
+        ? 1
+        : 0
+      : 1 + Math.floor(Math.random() * 3)
+  for (let i = 0; i < extra && emberCount.n < maxEmbers; i++) {
     particles.push({
       x: p.x + (Math.random() - 0.5) * p.size,
       y: p.y + (Math.random() - 0.5) * p.size,
@@ -667,6 +730,7 @@ function burnParticle(
       fill: fireTint(0.25 + Math.random() * 0.75),
       alpha: 1,
       sleep: 0,
+      heat: 0,
     })
     emberCount.n++
   }
@@ -739,7 +803,7 @@ function drawFireball(
     return
   }
 
-  const cell = pixelSize
+  const cell = Math.max(3, pixelSize)
   for (let y = minY; y <= maxY; y += cell) {
     for (let x = minX; x <= maxX; x += cell) {
       const cx = Math.floor(x / cell) * cell
@@ -882,6 +946,7 @@ export function Dithered404({
         p.vr = 0
         p.sleep = 0
         p.life = 1
+        p.heat = 0
         have.add(cellKey(p.gx, p.gy))
       }
       for (const cell of cells) {
@@ -903,6 +968,7 @@ export function Dithered404({
           fill: ink,
           alpha: cell.alpha,
           sleep: 0,
+          heat: 0,
         })
       }
       phase = PHASE_REFORMING
@@ -985,26 +1051,40 @@ export function Dithered404({
         let reformingCount = 0
         let fallingCount = 0
         const emberBudget = { n: 0 }
+        const maxEmbers = px <= 2 ? MAX_EMBERS_FINE : MAX_EMBERS
 
         const canBurn = interactive && hoverRef.current && phase === PHASE_READY
 
-        const burnR = brush * 0.72
+        const scorchR = brush * 0.92
+        const scorchR2 = scorchR * scorchR
+        const burnR = brush * 0.62
         const burnR2 = burnR * burnR
 
         for (let i = particles.length - 1; i >= 0; i--) {
           const p = particles[i]!
           if (p.state === SOLID) {
-            p.fill = ink
             if (canBurn) {
               const dx = p.x + p.size * 0.5 - m.x
               const dy = p.y + p.size * 0.5 - m.y
               const d2 = dx * dx + dy * dy
-              if (d2 < burnR2) {
-                const heat = 1 - Math.sqrt(d2) / burnR
-                if (Math.random() < heat * 0.42 * dt) {
-                  burnParticle(particles, p, emberBudget)
+              if (d2 < scorchR2) {
+                const heat = 1 - Math.sqrt(d2) / scorchR
+                p.heat = Math.min(1, p.heat + heat * CHAR_HEAT_GAIN * dt)
+                if (
+                  p.heat > 0.58 &&
+                  d2 < burnR2 &&
+                  Math.random() < heat * 0.28 * dt
+                ) {
+                  burnParticle(particles, p, emberBudget, px, maxEmbers)
                 }
+              } else if (p.heat > 0) {
+                p.heat = Math.max(0, p.heat - CHAR_COOL * dt)
               }
+            } else if (p.heat > 0) {
+              p.heat = Math.max(0, p.heat - CHAR_COOL * dt)
+            }
+            if (p.state === SOLID) {
+              p.fill = p.heat > 0 ? scorchedInk(ink, p.heat) : ink
             }
           }
 
@@ -1014,10 +1094,11 @@ export function Dithered404({
             p.vy *= 0.97
             p.x += p.vx * dt
             p.y += p.vy * dt
-            p.life -= 0.028 * dt
+            p.life -= (px <= 2 ? 0.04 : 0.028) * dt
             p.size = Math.max(0.6, p.size * (1 - 0.02 * dt))
             if (p.life <= 0) {
-              particles.splice(i, 1)
+              const last = particles.pop()
+              if (last && i < particles.length) particles[i] = last
               continue
             }
             emberCount++
@@ -1036,6 +1117,7 @@ export function Dithered404({
             p.vx = 0
             p.vy = 0
             p.fill = ink
+            p.heat = 0
             if (Math.hypot(p.homeX - p.x, p.homeY - p.y) < 0.7) {
               p.x = p.homeX
               p.y = p.homeY
@@ -1043,6 +1125,7 @@ export function Dithered404({
               p.size = px
               p.rot = 0
               p.sleep = 0
+              p.heat = 0
               solidCount++
             } else {
               reformingCount++
@@ -1068,7 +1151,8 @@ export function Dithered404({
         }
 
         supportTick++
-        if (supportTick % 2 === 0 && phase === PHASE_READY) {
+        const supportEvery = cells.length > 900 ? 4 : 2
+        if (supportTick % supportEvery === 0 && phase === PHASE_READY) {
           markUnsupported(particles, floorGy, groundRows)
         }
 
@@ -1114,16 +1198,19 @@ export function Dithered404({
               p.size = px
               p.rot = 0
               p.sleep = 0
+              p.heat = 0
+              p.fill = ink
             }
             phase = PHASE_READY
           }
         }
 
-        if (emberCount > MAX_EMBERS) {
-          let extra = emberCount - MAX_EMBERS
+        if (emberCount > maxEmbers) {
+          let extra = emberCount - maxEmbers
           for (let i = particles.length - 1; i >= 0 && extra > 0; i--) {
             if (particles[i]!.state === EMBER) {
-              particles.splice(i, 1)
+              const last = particles.pop()
+              if (last && i < particles.length) particles[i] = last
               extra--
             }
           }
@@ -1153,10 +1240,13 @@ export function Dithered404({
           }
           continue
         }
-        ctx.fillStyle = ink
+        ctx.fillStyle = p.fill
         ctx.globalAlpha = dither ? 1 : p.alpha
         const pad = dither ? 0 : 0.35
-        if ((p.state === FALLING || p.state === REFORMING) && p.rot !== 0) {
+        if (
+          (p.state === FALLING || p.state === REFORMING) &&
+          Math.abs(p.rot) > 0.04
+        ) {
           const half = p.size * 0.5
           ctx.save()
           ctx.translate(p.x + half, p.y + half)
