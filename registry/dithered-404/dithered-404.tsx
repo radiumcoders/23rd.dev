@@ -45,6 +45,10 @@ const RESET_DELAY_MS = 1200
 const REFORM_SNAP_MS = 1800
 const COLLAPSE_RATIO = 0.12
 const MAX_EMBERS = 900
+/** CSS px of foundation; 2 rows at the default `pixelSize` of 4. */
+const GROUND_CSS_PX = 8
+const MIN_GROUND_ROWS = 2
+const GROUND_HEIGHT_RATIO = 0.04
 
 const BAYER8 = [
   [0, 32, 8, 40, 2, 34, 10, 42],
@@ -139,6 +143,45 @@ function resolveDark(theme: "light" | "dark" | "auto"): boolean {
 
 function cellKey(gx: number, gy: number) {
   return gx * 4096 + gy
+}
+
+/**
+ * Floor for leftover-chunk collapse. Fine Bayer grids (pixel size 2)
+ * would otherwise treat a few anti-aliased dots — or one digit of "404" —
+ * as the only ground, and the rest of the glyph falls on its own.
+ */
+function glyphGround(cells: GlyphCell[], pixelSize: number) {
+  if (cells.length === 0) {
+    return { floorGy: 0, groundRows: MIN_GROUND_ROWS }
+  }
+
+  let minGy = Infinity
+  let maxGy = -Infinity
+  const counts = new Map<number, number>()
+  for (const c of cells) {
+    if (c.gy < minGy) minGy = c.gy
+    if (c.gy > maxGy) maxGy = c.gy
+    counts.set(c.gy, (counts.get(c.gy) ?? 0) + 1)
+  }
+
+  const height = Math.max(1, maxGy - minGy)
+  const groundRows = Math.max(
+    MIN_GROUND_ROWS,
+    Math.round(GROUND_CSS_PX / Math.max(1, pixelSize)),
+    Math.ceil(height * GROUND_HEIGHT_RATIO)
+  )
+
+  // Skip 1–2-pixel fringe rows so they don't become the only floor.
+  const minMass = 3
+  let floorGy = maxGy
+  for (let y = maxGy; y >= minGy; y--) {
+    if ((counts.get(y) ?? 0) >= minMass) {
+      floorGy = y
+      break
+    }
+  }
+
+  return { floorGy, groundRows }
 }
 
 function fireTint(field: number) {
@@ -260,17 +303,19 @@ function spawnFromCells(
   })
 }
 
-function markUnsupported(particles: Particle[]) {
-  let maxGy = -Infinity
+function markUnsupported(
+  particles: Particle[],
+  floorGy: number,
+  groundRows: number
+) {
   const occ = new Map<number, Particle>()
   for (const p of particles) {
     if (p.state !== SOLID) continue
-    if (p.gy > maxGy) maxGy = p.gy
     occ.set(cellKey(p.gx, p.gy), p)
   }
-  if (maxGy === -Infinity) return
+  if (occ.size === 0) return
 
-  const grounded = maxGy - 1
+  const grounded = floorGy - (Math.max(1, groundRows) - 1)
   const seen = new Set<number>()
   const queue: Particle[] = []
 
@@ -546,6 +591,8 @@ export function Dithered404({
     let lastW = 0
     let lastH = 0
     let supportTick = 0
+    let floorGy = 0
+    let groundRows = MIN_GROUND_ROWS
     let phase = PHASE_READY
     let resetAt = 0
     let reformAt = 0
@@ -559,6 +606,9 @@ export function Dithered404({
       const px = Math.max(2, Math.round(propsRef.current.pixelSize))
       const useDither = propsRef.current.dither
       cells = rasterizeGlyph(cssW, cssH, px, dpr, useDither)
+      const ground = glyphGround(cells, px)
+      floorGy = ground.floorGy
+      groundRows = ground.groundRows
       particles = spawnFromCells(cells, px, inkOf(), cssH, assemble)
       phase = assemble ? PHASE_REFORMING : PHASE_READY
       resetAt = 0
@@ -717,7 +767,7 @@ export function Dithered404({
 
         supportTick++
         if (supportTick % 2 === 0 && phase === PHASE_READY) {
-          markUnsupported(particles)
+          markUnsupported(particles, floorGy, groundRows)
         }
 
         const initial = cells.length || 1
