@@ -603,6 +603,9 @@ function stepFallingPhysics(
 
     p.vy += GRAVITY * dt
     p.vx *= AIR_DRAG
+    const maxFall = p.size / Math.max(dt, 1e-6)
+    if (p.vy > maxFall) p.vy = maxFall
+    else if (p.vy < -maxFall) p.vy = -maxFall
     p.x += p.vx * dt
     p.y += p.vy * dt
     p.rot += p.vr * dt
@@ -980,6 +983,8 @@ export function Dithered404({
         let solidCount = 0
         let emberCount = 0
         let reformingCount = 0
+        let fallingCount = 0
+        const emberBudget = { n: 0 }
 
         const canBurn = interactive && hoverRef.current && phase === PHASE_READY
 
@@ -997,7 +1002,7 @@ export function Dithered404({
               if (d2 < burnR2) {
                 const heat = 1 - Math.sqrt(d2) / burnR
                 if (Math.random() < heat * 0.42 * dt) {
-                  burnParticle(particles, p, { n: emberCount })
+                  burnParticle(particles, p, emberBudget)
                 }
               }
             }
@@ -1020,6 +1025,7 @@ export function Dithered404({
           }
 
           if (p.state === FALLING) {
+            fallingCount++
             continue
           }
 
@@ -1049,15 +1055,17 @@ export function Dithered404({
           }
         }
 
-        stepFallingPhysics(
-          particles,
-          dt,
-          cssW,
-          cssH,
-          px,
-          interactive && hoverRef.current ? m : null,
-          brush
-        )
+        if (fallingCount > 0) {
+          stepFallingPhysics(
+            particles,
+            dt,
+            cssW,
+            cssH,
+            px,
+            interactive && hoverRef.current ? m : null,
+            brush
+          )
+        }
 
         supportTick++
         if (supportTick % 2 === 0 && phase === PHASE_READY) {
@@ -1067,8 +1075,8 @@ export function Dithered404({
         const initial = cells.length || 1
         if (
           phase === PHASE_READY &&
-          solidCount / initial < COLLAPSE_RATIO &&
-          solidCount > 0
+          cells.length > 0 &&
+          solidCount / initial < COLLAPSE_RATIO
         ) {
           phase = PHASE_COLLAPSING
           collapseAt = now
