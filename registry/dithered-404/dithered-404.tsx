@@ -34,35 +34,21 @@ const FIRE_HIGHLIGHT = "#E8B45A"
 
 const SOLID = 0
 const EMBER = 1
-const FALLING = 2
+const SMOKE = 2
 const REFORMING = 3
 
 const PHASE_READY = 0
 const PHASE_REFORMING = 1
-const PHASE_COLLAPSING = 2
 
 const RESET_DELAY_MS = 900
 const REFORM_SNAP_MS = 1800
 const COLLAPSE_RATIO = 0.12
-const COLLAPSE_SETTLE_MS = 4200
 const MAX_EMBERS = 900
 const MAX_EMBERS_FINE = 260
+const MAX_SMOKE = 420
+const MAX_SMOKE_FINE = 160
 const CHAR_HEAT_GAIN = 0.2
 const CHAR_COOL = 0.01
-/** CSS px of foundation; 2 rows at the default `pixelSize` of 4. */
-const GROUND_CSS_PX = 8
-const MIN_GROUND_ROWS = 2
-const GROUND_HEIGHT_RATIO = 0.04
-
-const GRAVITY = 0.52
-const AIR_DRAG = 0.994
-const SPIN_DAMP = 0.984
-const RESTITUTION = 0.22
-const GROUND_FRICTION = 0.74
-const WALL_RESTITUTION = 0.34
-const SLEEP_VEL = 0.16
-const SLEEP_FRAMES = 14
-const COLLIDE_ITERS = 2
 
 const BAYER8 = [
   [0, 32, 8, 40, 2, 34, 10, 42],
@@ -159,45 +145,6 @@ function resolveDark(theme: "light" | "dark" | "auto"): boolean {
 
 function cellKey(gx: number, gy: number) {
   return gx * 4096 + gy
-}
-
-/**
- * Floor for leftover-chunk collapse. Fine Bayer grids (pixel size 2)
- * would otherwise treat a few anti-aliased dots — or one digit of "404" —
- * as the only ground, and the rest of the glyph falls on its own.
- */
-function glyphGround(cells: GlyphCell[], pixelSize: number) {
-  if (cells.length === 0) {
-    return { floorGy: 0, groundRows: MIN_GROUND_ROWS }
-  }
-
-  let minGy = Infinity
-  let maxGy = -Infinity
-  const counts = new Map<number, number>()
-  for (const c of cells) {
-    if (c.gy < minGy) minGy = c.gy
-    if (c.gy > maxGy) maxGy = c.gy
-    counts.set(c.gy, (counts.get(c.gy) ?? 0) + 1)
-  }
-
-  const height = Math.max(1, maxGy - minGy)
-  const groundRows = Math.max(
-    MIN_GROUND_ROWS,
-    Math.round(GROUND_CSS_PX / Math.max(1, pixelSize)),
-    Math.ceil(height * GROUND_HEIGHT_RATIO)
-  )
-
-  // Skip 1–2-pixel fringe rows so they don't become the only floor.
-  const minMass = 3
-  let floorGy = maxGy
-  for (let y = maxGy; y >= minGy; y--) {
-    if ((counts.get(y) ?? 0) >= minMass) {
-      floorGy = y
-      break
-    }
-  }
-
-  return { floorGy, groundRows }
 }
 
 function fireTint(field: number) {
@@ -354,347 +301,22 @@ function spawnFromCells(
   })
 }
 
-function markUnsupported(
-  particles: Particle[],
-  floorGy: number,
-  groundRows: number
-) {
-  const occ = new Map<number, Particle>()
-  for (const p of particles) {
-    if (p.state !== SOLID) continue
-    occ.set(cellKey(p.gx, p.gy), p)
+function smokeFill(dark: boolean) {
+  if (dark) {
+    return Math.random() > 0.45 ? "#A1A1AA" : "#71717A"
   }
-  if (occ.size === 0) return
-
-  const grounded = floorGy - (Math.max(1, groundRows) - 1)
-  const seen = new Set<number>()
-  const queue: Particle[] = []
-
-  for (const p of occ.values()) {
-    if (p.gy >= grounded) {
-      const k = cellKey(p.gx, p.gy)
-      seen.add(k)
-      queue.push(p)
-    }
-  }
-
-  const dirs = [
-    [1, 0],
-    [-1, 0],
-    [0, 1],
-    [0, -1],
-    [1, 1],
-    [-1, 1],
-    [1, -1],
-    [-1, -1],
-  ] as const
-
-  for (let i = 0; i < queue.length; i++) {
-    const p = queue[i]!
-    for (const [dx, dy] of dirs) {
-      const n = occ.get(cellKey(p.gx + dx, p.gy + dy))
-      if (!n) continue
-      const k = cellKey(n.gx, n.gy)
-      if (seen.has(k)) continue
-      seen.add(k)
-      queue.push(n)
-    }
-  }
-
-  const islands: Particle[][] = []
-  for (const p of occ.values()) {
-    if (seen.has(cellKey(p.gx, p.gy))) continue
-    const bunch: Particle[] = []
-    const q = [p]
-    const local = new Set<number>([cellKey(p.gx, p.gy)])
-    while (q.length) {
-      const cur = q.pop()!
-      bunch.push(cur)
-      for (const [dx, dy] of dirs) {
-        const n = occ.get(cellKey(cur.gx + dx, cur.gy + dy))
-        if (!n || seen.has(cellKey(n.gx, n.gy))) continue
-        const nk = cellKey(n.gx, n.gy)
-        if (local.has(nk)) continue
-        local.add(nk)
-        q.push(n)
-      }
-    }
-    for (const member of bunch) {
-      seen.add(cellKey(member.gx, member.gy))
-    }
-    islands.push(bunch)
-  }
-
-  for (const bunch of islands) {
-    const drift = (Math.random() - 0.5) * 1.6
-    for (const p of bunch) {
-      p.state = FALLING
-      p.vx = drift + (Math.random() - 0.5) * 0.55
-      p.vy = 0.35 + Math.random() * 0.85
-      p.vr = (Math.random() - 0.5) * 0.2
-      p.sleep = 0
-    }
-  }
-}
-
-function bucketKey(ix: number, iy: number) {
-  return ix * 65536 + iy
-}
-
-function boundFalling(p: Particle, cssW: number, cssH: number) {
-  const maxX = Math.max(0, cssW - p.size)
-  if (p.x < 0) {
-    p.x = 0
-    p.vx = Math.abs(p.vx) * WALL_RESTITUTION
-    p.vr += p.vy * 0.015
-    p.sleep = 0
-  } else if (p.x > maxX) {
-    p.x = maxX
-    p.vx = -Math.abs(p.vx) * WALL_RESTITUTION
-    p.vr -= p.vy * 0.015
-    p.sleep = 0
-  }
-
-  if (p.y + p.size > cssH) {
-    p.y = cssH - p.size
-    if (p.vy > 0) {
-      const bounce = p.vy > 0.85
-      p.vy = bounce ? -p.vy * RESTITUTION : 0
-      p.vx *= GROUND_FRICTION
-      p.vr *= 0.62
-      if (
-        !bounce &&
-        Math.abs(p.vx) < SLEEP_VEL &&
-        Math.abs(p.vr) < 0.05
-      ) {
-        p.vx = 0
-        p.vr = 0
-        p.sleep++
-      } else {
-        p.sleep = 0
-      }
-    }
-  } else if (p.y < 0) {
-    p.y = 0
-    if (p.vy < 0) p.vy *= -0.18
-    p.sleep = 0
-  }
-}
-
-function separatePixels(
-  a: Particle,
-  b: Particle,
-  bStatic: boolean,
-  quiet = false
-) {
-  const as = a.size
-  const bs = b.size
-  const dx = a.x + as * 0.5 - (b.x + bs * 0.5)
-  const dy = a.y + as * 0.5 - (b.y + bs * 0.5)
-  const ox = (as + bs) * 0.5 - Math.abs(dx)
-  const oy = (as + bs) * 0.5 - Math.abs(dy)
-  if (ox <= 0 || oy <= 0) return
-
-  const nx = dx >= 0 ? 1 : -1
-  const ny = dy >= 0 ? 1 : -1
-  const share = bStatic ? 1 : 0.5
-  const bounce = quiet ? 0.04 : RESTITUTION
-
-  if (ox < oy) {
-    a.x += nx * ox * share
-    if (!bStatic) b.x -= nx * ox * share
-    const rel = a.vx - (bStatic ? 0 : b.vx)
-    if (rel * nx < 0) {
-      const impulse = rel * (1 + bounce)
-      if (bStatic) {
-        a.vx -= impulse
-      } else {
-        a.vx -= impulse * 0.5
-        b.vx += impulse * 0.5
-      }
-    }
-    if (!quiet) {
-      a.vr += dy * 0.01
-      if (!bStatic) b.vr -= dy * 0.01
-    }
-  } else {
-    a.y += ny * oy * share
-    if (!bStatic) b.y -= ny * oy * share
-    const rel = a.vy - (bStatic ? 0 : b.vy)
-    if (rel * ny < 0) {
-      const impulse = rel * (1 + bounce)
-      if (bStatic) {
-        a.vy -= impulse
-      } else {
-        a.vy -= impulse * 0.5
-        b.vy += impulse * 0.5
-      }
-    }
-    if (!quiet) {
-      a.vr -= dx * 0.01
-      if (!bStatic) b.vr += dx * 0.01
-    }
-  }
-  if (!quiet) {
-    a.sleep = 0
-    if (!bStatic) b.sleep = 0
-  }
-}
-
-function collidePixels(
-  particles: Particle[],
-  cell: number,
-  cssW: number,
-  cssH: number,
-  includeSolid: boolean
-) {
-  const cellSize = Math.max(2, cell)
-  const hash = new Map<number, Particle[]>()
-
-  const insert = (p: Particle) => {
-    const x0 = Math.floor(p.x / cellSize)
-    const y0 = Math.floor(p.y / cellSize)
-    const x1 = Math.floor((p.x + p.size) / cellSize)
-    const y1 = Math.floor((p.y + p.size) / cellSize)
-    for (let iy = y0; iy <= y1; iy++) {
-      for (let ix = x0; ix <= x1; ix++) {
-        const k = bucketKey(ix, iy)
-        let bin = hash.get(k)
-        if (!bin) {
-          bin = []
-          hash.set(k, bin)
-        }
-        bin.push(p)
-      }
-    }
-  }
-
-  for (const p of particles) {
-    if (p.state === FALLING || (includeSolid && p.state === SOLID)) insert(p)
-  }
-
-  const seen = new Set<Particle>()
-  for (const p of particles) {
-    if (p.state !== FALLING) continue
-    if (p.sleep >= SLEEP_FRAMES) {
-      boundFalling(p, cssW, cssH)
-      continue
-    }
-    seen.clear()
-    const x0 = Math.floor(p.x / cellSize) - 1
-    const y0 = Math.floor(p.y / cellSize) - 1
-    const x1 = Math.floor((p.x + p.size) / cellSize) + 1
-    const y1 = Math.floor((p.y + p.size) / cellSize) + 1
-    for (let iy = y0; iy <= y1; iy++) {
-      for (let ix = x0; ix <= x1; ix++) {
-        const bin = hash.get(bucketKey(ix, iy))
-        if (!bin) continue
-        for (const other of bin) {
-          if (other === p || seen.has(other)) continue
-          seen.add(other)
-          if (other.state === SOLID) {
-            separatePixels(p, other, true)
-            continue
-          }
-          if (other.state !== FALLING) continue
-          const quiet =
-            p.sleep >= SLEEP_FRAMES && other.sleep >= SLEEP_FRAMES
-          if (p.x > other.x || (p.x === other.x && p.y > other.y)) continue
-          separatePixels(p, other, false, quiet)
-        }
-      }
-    }
-    boundFalling(p, cssW, cssH)
-  }
-}
-
-function stepFallingPhysics(
-  particles: Particle[],
-  dt: number,
-  cssW: number,
-  cssH: number,
-  pixelSize: number,
-  mouse: { x: number; y: number } | null,
-  brush: number
-) {
-  const kickR = brush * 1.12
-  const kickR2 = kickR * kickR
-
-  for (const p of particles) {
-    if (p.state !== FALLING) continue
-
-    if (mouse) {
-      const dx = p.x + p.size * 0.5 - mouse.x
-      const dy = p.y + p.size * 0.5 - mouse.y
-      const d2 = dx * dx + dy * dy
-      if (d2 < kickR2) {
-        const d = Math.sqrt(d2) || 1
-        const push = (1 - d / kickR) * 2.4 * dt
-        p.vx += (dx / d) * push
-        p.vy += (dy / d) * push
-        p.sleep = 0
-      }
-    }
-
-    if (
-      p.sleep >= SLEEP_FRAMES &&
-      p.y + p.size >= cssH - 0.6 &&
-      Math.hypot(p.vx, p.vy) < SLEEP_VEL
-    ) {
-      continue
-    }
-
-    p.vy += GRAVITY * dt
-    p.vx *= AIR_DRAG
-    const maxFall = p.size / Math.max(dt, 1e-6)
-    if (p.vy > maxFall) p.vy = maxFall
-    else if (p.vy < -maxFall) p.vy = -maxFall
-    p.x += p.vx * dt
-    p.y += p.vy * dt
-    p.rot += p.vr * dt
-    p.vr *= SPIN_DAMP
-    boundFalling(p, cssW, cssH)
-  }
-
-  let falling = 0
-  let awake = 0
-  for (const p of particles) {
-    if (p.state !== FALLING) continue
-    falling++
-    if (p.sleep < SLEEP_FRAMES) awake++
-  }
-  if (awake > 0) {
-    const iters =
-      pixelSize <= 2 || falling > 160 ? 1 : COLLIDE_ITERS
-    const includeSolid = pixelSize >= 4 && falling < 280
-    for (let i = 0; i < iters; i++) {
-      collidePixels(particles, pixelSize, cssW, cssH, includeSolid)
-    }
-  }
-
-  for (const p of particles) {
-    if (p.state !== FALLING) continue
-    if (Math.hypot(p.vx, p.vy) < SLEEP_VEL * 2) {
-      p.vx *= 0.88
-      p.vy *= 0.88
-      p.vr *= 0.8
-    }
-  }
-}
-
-function fallingSettled(p: Particle) {
-  return (
-    p.state === FALLING &&
-    (p.sleep >= SLEEP_FRAMES || Math.hypot(p.vx, p.vy) < SLEEP_VEL * 1.8)
-  )
+  return Math.random() > 0.45 ? "#52525B" : "#3F3F46"
 }
 
 function burnParticle(
   particles: Particle[],
   p: Particle,
   emberCount: { n: number },
+  smokeCount: { n: number },
   pixelSize: number,
-  maxEmbers: number
+  maxEmbers: number,
+  maxSmoke: number,
+  dark: boolean
 ) {
   p.state = EMBER
   p.life = 0.28 + Math.random() * (pixelSize <= 2 ? 0.28 : 0.45)
@@ -733,6 +355,36 @@ function burnParticle(
       heat: 0,
     })
     emberCount.n++
+  }
+
+  const puffs =
+    pixelSize <= 2
+      ? Math.random() < 0.55
+        ? 1
+        : 0
+      : 1 + (Math.random() < 0.55 ? 1 : 0)
+  for (let i = 0; i < puffs && smokeCount.n < maxSmoke; i++) {
+    const puff = pixelSize * (1.6 + Math.random() * 1.8)
+    particles.push({
+      x: p.x + (Math.random() - 0.5) * p.size * 0.8,
+      y: p.y + (Math.random() - 0.5) * p.size * 0.8,
+      homeX: p.homeX,
+      homeY: p.homeY,
+      vx: (Math.random() - 0.5) * 0.55,
+      vy: -0.45 - Math.random() * 0.85,
+      size: puff,
+      state: SMOKE,
+      life: 0.75 + Math.random() * 0.95,
+      rot: 0,
+      vr: (Math.random() - 0.5) * 0.04,
+      gx: p.gx,
+      gy: p.gy,
+      fill: smokeFill(dark),
+      alpha: 0.42,
+      sleep: 0,
+      heat: 0,
+    })
+    smokeCount.n++
   }
 }
 
@@ -823,10 +475,9 @@ function drawFireball(
 }
 
 /**
- * Bayer-pixel 404 section — a fireball cursor burns the glyph
- * into embers until leftover chunks fall, bounce, and pile, then
- * the type reforms. `dither={false}` is a soft realistic fire,
- * same idea as Shader Fire.
+ * Bayer-pixel 404 section — a fireball cursor scorches and burns
+ * the glyph into embers and smoke, then the type reforms.
+ * `dither={false}` is a soft realistic fire, same idea as Shader Fire.
  */
 export function Dithered404({
   className,
@@ -905,13 +556,9 @@ export function Dithered404({
     let lastDither: boolean | null = null
     let lastW = 0
     let lastH = 0
-    let supportTick = 0
-    let floorGy = 0
-    let groundRows = MIN_GROUND_ROWS
     let phase = PHASE_READY
     let resetAt = 0
     let reformAt = 0
-    let collapseAt = 0
     let lastNow = performance.now()
     const start = lastNow
 
@@ -922,14 +569,10 @@ export function Dithered404({
       const px = Math.max(2, Math.round(propsRef.current.pixelSize))
       const useDither = propsRef.current.dither
       cells = rasterizeGlyph(cssW, cssH, px, dpr, useDither)
-      const ground = glyphGround(cells, px)
-      floorGy = ground.floorGy
-      groundRows = ground.groundRows
       particles = spawnFromCells(cells, px, inkOf(), cssH, assemble)
       phase = assemble ? PHASE_REFORMING : PHASE_READY
       resetAt = 0
       reformAt = assemble ? performance.now() : 0
-      collapseAt = 0
       lastPixel = px
       lastDither = useDither
     }
@@ -937,7 +580,7 @@ export function Dithered404({
     const startReform = (now: number, px: number, ink: string) => {
       const have = new Set<number>()
       for (const p of particles) {
-        if (p.state === EMBER) continue
+        if (p.state === EMBER || p.state === SMOKE) continue
         p.state = REFORMING
         p.size = px
         p.fill = ink
@@ -973,7 +616,6 @@ export function Dithered404({
       }
       phase = PHASE_REFORMING
       resetAt = 0
-      collapseAt = 0
       reformAt = now
     }
 
@@ -1048,10 +690,12 @@ export function Dithered404({
 
         let solidCount = 0
         let emberCount = 0
+        let smokeCount = 0
         let reformingCount = 0
-        let fallingCount = 0
         const emberBudget = { n: 0 }
+        const smokeBudget = { n: 0 }
         const maxEmbers = px <= 2 ? MAX_EMBERS_FINE : MAX_EMBERS
+        const maxSmoke = px <= 2 ? MAX_SMOKE_FINE : MAX_SMOKE
 
         const canBurn = interactive && hoverRef.current && phase === PHASE_READY
 
@@ -1075,7 +719,16 @@ export function Dithered404({
                   d2 < burnR2 &&
                   Math.random() < heat * 0.28 * dt
                 ) {
-                  burnParticle(particles, p, emberBudget, px, maxEmbers)
+                  burnParticle(
+                    particles,
+                    p,
+                    emberBudget,
+                    smokeBudget,
+                    px,
+                    maxEmbers,
+                    maxSmoke,
+                    darkRef.current
+                  )
                 }
               } else if (p.heat > 0) {
                 p.heat = Math.max(0, p.heat - CHAR_COOL * dt)
@@ -1105,8 +758,21 @@ export function Dithered404({
             continue
           }
 
-          if (p.state === FALLING) {
-            fallingCount++
+          if (p.state === SMOKE) {
+            p.vy -= 0.018 * dt
+            p.vx += Math.sin((now + p.x * 12) * 0.002) * 0.012 * dt
+            p.vx *= 0.985
+            p.x += p.vx * dt
+            p.y += p.vy * dt
+            p.size += 0.12 * dt
+            p.life -= (px <= 2 ? 0.018 : 0.012) * dt
+            p.alpha = Math.max(0, p.life * 0.5)
+            if (p.life <= 0 || p.y + p.size < -40) {
+              const last = particles.pop()
+              if (last && i < particles.length) particles[i] = last
+              continue
+            }
+            smokeCount++
             continue
           }
 
@@ -1138,52 +804,14 @@ export function Dithered404({
           }
         }
 
-        if (fallingCount > 0) {
-          stepFallingPhysics(
-            particles,
-            dt,
-            cssW,
-            cssH,
-            px,
-            interactive && hoverRef.current ? m : null,
-            brush
-          )
-        }
-
-        supportTick++
-        const supportEvery = cells.length > 900 ? 4 : 2
-        if (supportTick % supportEvery === 0 && phase === PHASE_READY) {
-          markUnsupported(particles, floorGy, groundRows)
-        }
-
         const initial = cells.length || 1
         if (
           phase === PHASE_READY &&
           cells.length > 0 &&
-          solidCount / initial < COLLAPSE_RATIO
+          solidCount / initial < COLLAPSE_RATIO &&
+          resetAt === 0
         ) {
-          phase = PHASE_COLLAPSING
-          collapseAt = now
-          const drift = (Math.random() - 0.5) * 1.4
-          for (const p of particles) {
-            if (p.state !== SOLID) continue
-            p.state = FALLING
-            p.vx = drift + (Math.random() - 0.5) * 1.1
-            p.vy = 0.35 + Math.random() * 1.1
-            p.vr = (Math.random() - 0.5) * 0.22
-            p.sleep = 0
-          }
-        }
-
-        if (phase === PHASE_COLLAPSING && resetAt === 0) {
-          const unsettled = particles.some(
-            (p) =>
-              p.state === SOLID ||
-              (p.state === FALLING && !fallingSettled(p))
-          )
-          if (!unsettled || (collapseAt && now - collapseAt > COLLAPSE_SETTLE_MS)) {
-            resetAt = now + RESET_DELAY_MS
-          }
+          resetAt = now + RESET_DELAY_MS
         }
 
         if (phase === PHASE_REFORMING) {
@@ -1215,6 +843,17 @@ export function Dithered404({
             }
           }
         }
+
+        if (smokeCount > maxSmoke) {
+          let extra = smokeCount - maxSmoke
+          for (let i = particles.length - 1; i >= 0 && extra > 0; i--) {
+            if (particles[i]!.state === SMOKE) {
+              const last = particles.pop()
+              if (last && i < particles.length) particles[i] = last
+              extra--
+            }
+          }
+        }
       }
 
       ctx.clearRect(0, 0, cssW, cssH)
@@ -1240,13 +879,23 @@ export function Dithered404({
           }
           continue
         }
+        if (p.state === SMOKE) {
+          ctx.globalAlpha = Math.max(0, Math.min(0.45, p.alpha))
+          ctx.fillStyle = p.fill
+          const half = p.size * 0.5
+          if (!dither) {
+            ctx.beginPath()
+            ctx.arc(p.x + half, p.y + half, Math.max(1.2, half), 0, Math.PI * 2)
+            ctx.fill()
+          } else {
+            ctx.fillRect(p.x, p.y, p.size, p.size)
+          }
+          continue
+        }
         ctx.fillStyle = p.fill
         ctx.globalAlpha = dither ? 1 : p.alpha
         const pad = dither ? 0 : 0.35
-        if (
-          (p.state === FALLING || p.state === REFORMING) &&
-          Math.abs(p.rot) > 0.04
-        ) {
+        if (p.state === REFORMING && Math.abs(p.rot) > 0.04) {
           const half = p.size * 0.5
           ctx.save()
           ctx.translate(p.x + half, p.y + half)
