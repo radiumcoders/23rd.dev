@@ -120,7 +120,7 @@ Stack: Next.js 16, React 19, Fumadocs, Tailwind CSS 4, shadcn/ui (Base UI), Clou
 pnpm cf:deploy
 ```
 
-Connect the repo in the [Cloudflare dashboard](https://dash.cloudflare.com/) (Workers Builds) for Git-based deploys. Set `NEXT_PUBLIC_DATABUDDY_CLIENT_ID` under Build variables and secrets. Point `23rd.dev` DNS at the Worker when you're ready to cut over from Vercel.
+Connect the repo in the [Cloudflare dashboard](https://dash.cloudflare.com/) (Workers Builds) for Git-based deploys. Point `23rd.dev` DNS at the Worker when you're ready to cut over from Vercel.
 
 ## Contributing
 

@@ -1,7 +1,7 @@
-import { Databuddy } from "@databuddy/sdk/react"
 import { Geist, Geist_Mono } from "next/font/google"
 import { RootProvider } from "fumadocs-ui/provider/next"
 import type { Metadata } from "next"
+import Script from "next/script"
 import type { ReactNode } from "react"
 
 import { DocsSearchDialog } from "@/components/docs-search-dialog"
@@ -64,10 +64,10 @@ export default function RootLayout({
             </TooltipProvider>
           </RootProvider>
         </ThemeProvider>
-        <Databuddy
-          clientId={process.env.NEXT_PUBLIC_DATABUDDY_CLIENT_ID!}
-          trackWebVitals
-          trackErrors
+        <Script
+          defer
+          src="https://cloud.umami.is/script.js"
+          data-website-id="5a96c4a1-18ca-49b5-9cf9-b80c01c5ffa9"
         />
       </body>
     </html>
