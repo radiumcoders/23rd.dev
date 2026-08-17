@@ -66,15 +66,17 @@ pnpm dlx shadcn@latest add radiumcoders/23rd.dev/gooey-color-picker
 
 ## Components
 
-| Component | Install | Description |
-| --- | --- | --- |
-| [ASCII Fluid](https://23rd.dev/docs/components/ascii-fluid) | `@23rd/ascii-fluid` | Mouse-trail WebGL fluid quantized to a clean ASCII brightness ramp |
-| [Gooey Color Picker](https://23rd.dev/docs/components/gooey-color-picker) | `@23rd/gooey-color-picker` | Floating swatch → hue wheel, alpha, hex — joined by an SVG gooey filter |
-| [Radiant Lines](https://23rd.dev/docs/components/radiant-lines) | `@23rd/radiant-lines` | Hyperspace starfield background; warp speed driven by scroll |
-| [Shader Fire](https://23rd.dev/docs/components/shader-fire) | `@23rd/shader-fire` | Sparse 2D fire wash — tongues rise from the bottom behind a landing hero |
-| [Shader Gradient](https://23rd.dev/docs/components/shader-gradient) | `@23rd/shader-gradient` | Quiet WebGL wash behind landing heroes, empty states, and marketing sections |
-| [Stretchy Footer](https://23rd.dev/docs/components/stretchy-footer) | `@23rd/stretchy-footer` | Dia-style rubber overscroll; aurora stretches past the bottom, then snaps back |
-| [Tangle Footer](https://23rd.dev/docs/components/tangle-footer) | `@23rd/tangle-footer` | Nested SVG text ribbons as a footer |
+| Component                                                                 | Install                    | Description                                                                       |
+| ------------------------------------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------- |
+| [ASCII Fluid](https://23rd.dev/docs/components/ascii-fluid)               | `@23rd/ascii-fluid`        | Mouse-trail WebGL fluid quantized to a clean ASCII brightness ramp                |
+| [ASCII Logo](https://23rd.dev/docs/components/ascii-logo)                 | `@23rd/ascii-logo`         | Interactive ASCII wordmark — hover shove, then click to scatter, drop, and gather |
+| [Gooey Color Picker](https://23rd.dev/docs/components/gooey-color-picker) | `@23rd/gooey-color-picker` | Floating swatch → hue wheel, alpha, hex — joined by an SVG gooey filter           |
+| [Radiant Lines](https://23rd.dev/docs/components/radiant-lines)           | `@23rd/radiant-lines`      | Hyperspace starfield background; warp speed driven by scroll                      |
+| [Shader Fire](https://23rd.dev/docs/components/shader-fire)               | `@23rd/shader-fire`        | Sparse 2D fire wash — tongues rise from the bottom behind a landing hero          |
+| [Shader Gradient](https://23rd.dev/docs/components/shader-gradient)       | `@23rd/shader-gradient`    | Quiet WebGL wash behind landing heroes, empty states, and marketing sections      |
+| [Shader Grass](https://23rd.dev/docs/components/shader-grass)             | `@23rd/shader-grass`       | Raymarched rolling meadow under an open sky, with wind moving through the grass   |
+| [Stretchy Footer](https://23rd.dev/docs/components/stretchy-footer)       | `@23rd/stretchy-footer`    | Dia-style rubber overscroll; aurora stretches past the bottom, then snaps back    |
+| [Tangle Footer](https://23rd.dev/docs/components/tangle-footer)           | `@23rd/tangle-footer`      | Nested SVG text ribbons as a footer                                               |
 
 ```tsx
 import { GooeyColorPicker } from "@/components/ui/gooey-color-picker"
@@ -100,15 +102,15 @@ pnpm dev
 
 Useful scripts:
 
-| Script | What it does |
-| --- | --- |
-| `pnpm dev` | Next.js dev server |
-| `pnpm build` | Build registry + production app |
-| `pnpm preview` | Build with OpenNext and preview in the Workers runtime |
-| `pnpm cf:deploy` | Build with OpenNext and deploy to Cloudflare Workers |
-| `pnpm registry:build` | Emit `public/r/*.json` from `registry/` |
-| `pnpm test` | Run registry tests |
-| `pnpm typecheck` | MDX + TypeScript check |
+| Script                | What it does                                           |
+| --------------------- | ------------------------------------------------------ |
+| `pnpm dev`            | Next.js dev server                                     |
+| `pnpm build`          | Build registry + production app                        |
+| `pnpm preview`        | Build with OpenNext and preview in the Workers runtime |
+| `pnpm cf:deploy`      | Build with OpenNext and deploy to Cloudflare Workers   |
+| `pnpm registry:build` | Emit `public/r/*.json` from `registry/`                |
+| `pnpm test`           | Run registry tests                                     |
+| `pnpm typecheck`      | MDX + TypeScript check                                 |
 
 Stack: Next.js 16, React 19, Fumadocs, Tailwind CSS 4, shadcn/ui (Base UI), Cloudflare Workers (OpenNext).
 

@@ -1,0 +1,78 @@
+---
+title: ASCII Logo
+description: An interactive ASCII wordmark — glyphs shove away from the cursor, then scatter, fall, and gather back on click.
+---
+
+import { AsciiLogoDemo } from "@/registry/ascii-logo/ascii-logo-demo"
+
+A logo sampled onto a grid of letters and numbers. Move over it and the characters drift aside. Click to scatter them, click again to drop them under gravity, click once more to gather them back. Theme-aware. Press `d` to toggle theme.
+
+<AsciiLogoDemo />
+
+## Installation
+
+<CliCommand command="shadcn@latest add @23rd/ascii-logo" />
+
+Or install straight from the public GitHub source registry:
+
+<CliCommand
+  npm="npx shadcn@latest add radiumcoders/23rd.dev/ascii-logo"
+  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/ascii-logo"
+  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/ascii-logo"
+  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/ascii-logo"
+/>
+
+## Usage
+
+Place it in a sized container. The canvas fills the parent.
+
+```tsx
+"use client"
+
+import { AsciiLogo } from "@/components/ui/ascii-logo"
+
+export function FooterMark() {
+  return (
+    <div className="relative h-64 w-full overflow-hidden bg-background">
+      <AsciiLogo text="23rd" />
+    </div>
+  )
+}
+```
+
+Pass `src` to sample an image instead of text — any raster, or a same-origin SVG.
+
+```tsx
+<AsciiLogo src="/logo.svg" />
+```
+
+Clicks cycle `logo → scattered → fallen → returning → logo`. Hover repulsion only runs in the resting `logo` phase.
+
+## Props
+
+| Prop              | Type                          | Default                         |
+| ----------------- | ----------------------------- | ------------------------------- |
+| `text`            | `string`                      | `"23rd"`                        |
+| `src`             | `string`                      | —                               |
+| `fit`             | `number`                      | `0.82`                          |
+| `cellSize`        | `number`                      | `11`                            |
+| `cellGap`         | `number`                      | `2`                             |
+| `charset`         | `string`                      | letters, numbers, a few symbols |
+| `threshold`       | `number`                      | `0.2`                           |
+| `invert`          | `boolean`                     | `true` when `src` is set        |
+| `color`           | `string`                      | theme ink                       |
+| `backgroundColor` | `string`                      | theme paper                     |
+| `hoverRadius`     | `number`                      | `7`                             |
+| `hoverPush`       | `number`                      | `2.6`                           |
+| `hoverEase`       | `number`                      | `0.18`                          |
+| `scatterRange`    | `number`                      | `16`                            |
+| `scatterEase`     | `number`                      | `0.055`                         |
+| `gravity`         | `number`                      | `0.14`                          |
+| `bounce`          | `number`                      | `0.28`                          |
+| `resetEase`       | `number`                      | `0.08`                          |
+| `staggerFrames`   | `number`                      | `18`                            |
+| `interactive`     | `boolean`                     | `true`                          |
+| `theme`           | `"light" \| "dark" \| "auto"` | `auto`                          |
+| `label`           | `string`                      | `text` or `"ASCII logo"`        |
+| `onPhaseChange`   | `(phase) => void`             | —                               |
+| `className`       | `string`                      | —                               |

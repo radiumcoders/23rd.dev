@@ -17,6 +17,19 @@
       "type": "registry:ui"
     },
     {
+      "name": "ascii-logo",
+      "title": "ASCII Logo",
+      "description": "Interactive ASCII wordmark — glyphs shove away from the cursor, then click-cycle through scatter, gravity drop, and reassemble. Zero deps.",
+      "files": [
+        {
+          "path": "registry/ascii-logo/ascii-logo.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/ascii-logo.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "gooey-color-picker",
       "title": "Gooey Color Picker",
       "description": "A floating color picker with a circular hue wheel, alpha slider, hex field, and motion-powered open/close.",
