@@ -1,7 +1,18 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+
+export const metadata: Metadata = {
+  title: "Page not found",
+  description:
+    "This page could not be found. It might have been moved or deleted.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default function NotFound() {
   return (
@@ -11,7 +22,10 @@ export default function NotFound() {
         <p className="text-muted-foreground">
           This page could not be found. It might have been moved or deleted.
         </p>
-        <Link href="/docs" className={cn(buttonVariants({ variant: "default" }))}>
+        <Link
+          href="/docs"
+          className={cn(buttonVariants({ variant: "default" }))}
+        >
           Back to docs
         </Link>
       </div>
