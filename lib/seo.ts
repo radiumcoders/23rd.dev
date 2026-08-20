@@ -7,7 +7,7 @@ export const SITE_NAME = "23rd"
 export const SITE_TAGLINE = "Opinionated UI components for shippers"
 export const SITE_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`
 export const SITE_DESCRIPTION =
-  "A shadcn/ui registry of opinionated React components — shaders, backgrounds, footers, and interactive UI. Install with the CLI, own the source, and ship."
+  "A shadcn/ui registry of opinionated React and Svelte components — shaders, backgrounds, footers, and interactive UI. Install with the CLI, own the source, and ship."
 
 export const SITE_KEYWORDS = [
   "23rd",
@@ -15,8 +15,10 @@ export const SITE_KEYWORDS = [
   "shadcn registry",
   "shadcn/ui",
   "React components",
+  "Svelte components",
   "UI components",
   "Next.js",
+  "Svelte",
   "Tailwind CSS",
   "WebGL",
   "shaders",
@@ -216,8 +218,8 @@ export function docsJsonLd({
       description: desc,
       url,
       codeRepository: getGithubRepoUrl(),
-      programmingLanguage: ["TypeScript", "React"],
-      runtimePlatform: "React",
+      programmingLanguage: ["TypeScript", "React", "Svelte"],
+      runtimePlatform: ["React", "Svelte"],
       isPartOf: { "@id": `${SITE_URL}/#app` },
     })
   }
