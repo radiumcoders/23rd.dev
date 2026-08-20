@@ -11,21 +11,18 @@ Not a wall of flame. Use it as heat under a hero or wait screen so the page feel
 
 ## Installation
 
-<CliCommand command="shadcn@latest add @23rd/shader-fire" />
+<CliCommand item="shader-fire" />
 
 Or install straight from the public GitHub source registry:
 
-<CliCommand
-  npm="npx shadcn@latest add radiumcoders/23rd.dev/shader-fire"
-  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/shader-fire"
-  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/shader-fire"
-  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/shader-fire"
-/>
+<CliCommand item="shader-fire" github />
 
 ## Usage
 
 Pin it behind a relatively positioned section. Keep content in a later stacking context (`relative z-10`). Default `theme="auto"` follows shadcn / next-themes (`class` on `<html>`).
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -50,19 +47,62 @@ export function Hero() {
   )
 }
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import ShaderFire from "$lib/components/ui/shader-fire.svelte"
+</script>
+
+<section class="relative isolate min-h-svh overflow-hidden bg-background">
+  <ShaderFire />
+  <div class="relative z-10 mx-auto flex min-h-svh max-w-xl flex-col items-center justify-center px-6 text-center">
+    <p class="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
+      New
+    </p>
+    <h1 class="mt-3 text-4xl font-medium tracking-tight">
+      Heat under the headline
+    </h1>
+    <p class="mt-3 text-muted-foreground">
+      The fire stays a wash. The page stays readable.
+    </p>
+  </div>
+</section>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 Force a palette if the parent theme should not drive it:
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 <ShaderFire theme="light" />
 <ShaderFire theme="dark" />
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<ShaderFire theme="light" />
+<ShaderFire theme="dark" />
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 Print the same field as ordered Bayer pixels:
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 <ShaderFire dither pixelSize={1} />
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<ShaderFire dither pixelSize={1} />
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 ## Props
 
@@ -76,4 +116,5 @@ Print the same field as ordered Bayer pixels:
 | `dither` | `boolean` | `false` |
 | `pixelSize` | `number` | `1` |
 | `theme` | `"light" \| "dark" \| "auto"` | `auto` |
-| `className` | `string` | — |
+| `className` | `string` | React only |
+| `class` | `string` | Svelte only |

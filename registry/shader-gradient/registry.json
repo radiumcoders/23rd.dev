@@ -13,6 +13,19 @@
           "target": "components/ui/shader-gradient.tsx"
         }
       ]
+    },
+    {
+      "name": "shader-gradient-svelte",
+      "type": "registry:ui",
+      "title": "Shader Gradient",
+      "description": "Quiet WebGL color wash for landing heroes, empty states, and marketing sections — theme-aware, optional pointer follow.",
+      "files": [
+        {
+          "path": "shader-gradient.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/shader-gradient.svelte"
+        }
+      ]
     }
   ]
 }

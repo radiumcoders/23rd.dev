@@ -76,13 +76,14 @@ export async function generateMetadata(props: {
 
   const path = docsPath(params.slug)
   const extraKeywords = isComponentPage(params.slug)
-    ? [page.data.title, "shadcn component", "React component"]
+    ? [page.data.title, "shadcn component", "React component", "Svelte component"]
     : [page.data.title]
 
   return buildPageMetadata({
     title: isDocsIndex(params.slug) ? SITE_TITLE : page.data.title,
     description: page.data.description,
     path,
+    slug: params.slug,
     keywords: extraKeywords,
     type: "article",
     absoluteTitle: isDocsIndex(params.slug),

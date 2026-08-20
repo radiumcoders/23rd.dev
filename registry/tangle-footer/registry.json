@@ -14,6 +14,20 @@
           "target": "components/ui/tangle-footer.tsx"
         }
       ]
+    },
+    {
+      "name": "tangle-footer-svelte",
+      "type": "registry:ui",
+      "title": "Tangle Footer",
+      "description": "A footer of tangled SVG ribbons — thick dark strokes with white text running along each path via textPath.",
+      "files": [
+        {
+          "path": "tangle-footer.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/tangle-footer.svelte"
+        }
+      ],
+      "dependencies": []
     }
   ]
 }

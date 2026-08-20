@@ -17,6 +17,19 @@
       "type": "registry:ui"
     },
     {
+      "name": "ascii-fluid-svelte",
+      "title": "ASCII Fluid",
+      "description": "Mouse-trail WebGL fluid background quantized to a clean ASCII brightness ramp - zero deps, theme-aware.",
+      "files": [
+        {
+          "path": "registry/ascii-fluid/ascii-fluid.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/ascii-fluid.svelte"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "ascii-logo",
       "title": "ASCII Logo",
       "description": "Interactive ASCII wordmark — glyphs shove away from the cursor, then click-cycle through scatter, gravity drop, and reassemble. Zero deps.",
@@ -30,6 +43,19 @@
       "type": "registry:ui"
     },
     {
+      "name": "ascii-logo-svelte",
+      "title": "ASCII Logo",
+      "description": "Interactive ASCII wordmark — glyphs shove away from the cursor, then click-cycle through scatter, gravity drop, and reassemble. Zero deps.",
+      "files": [
+        {
+          "path": "registry/ascii-logo/ascii-logo.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/ascii-logo.svelte"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "dithered-404",
       "title": "Dithered 404",
       "description": "Bayer-pixel 404 section — a fireball cursor scorches the glyph, burns it into embers and smoke, then reforms. Optional soft realistic fire.",
@@ -38,6 +64,19 @@
           "path": "registry/dithered-404/dithered-404.tsx",
           "type": "registry:ui",
           "target": "components/ui/dithered-404.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
+      "name": "dithered-404-svelte",
+      "title": "Dithered 404",
+      "description": "Bayer-pixel 404 section — a fireball cursor scorches the glyph, burns it into embers and smoke, then reforms. Optional soft realistic fire.",
+      "files": [
+        {
+          "path": "registry/dithered-404/dithered-404.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/dithered-404.svelte"
         }
       ],
       "type": "registry:ui"
@@ -59,6 +98,20 @@
       "type": "registry:ui"
     },
     {
+      "name": "gooey-color-picker-svelte",
+      "title": "Gooey Color Picker",
+      "description": "A floating color picker with a circular hue wheel, alpha slider, hex field, and motion-powered open/close.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/gooey-color-picker/gooey-color-picker.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/gooey-color-picker.svelte"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "live-orb",
       "title": "Live Orb",
       "description": "A matte 3D sphere with two capsule eyes that follow the pointer — white, black, webgl, and custom variants.",
@@ -72,17 +125,41 @@
       "type": "registry:ui"
     },
     {
+      "name": "live-orb-svelte",
+      "title": "Live Orb",
+      "description": "A matte 3D sphere with two capsule eyes that follow the pointer — white, black, webgl, and custom variants.",
+      "files": [
+        {
+          "path": "registry/live-orb/live-orb.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/live-orb.svelte"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "radiant-lines",
       "title": "Radiant Lines",
-      "description": "A hyperspace starfield background — colored streaks radiate from the center, with warp speed driven by scroll velocity via Motion.",
-      "dependencies": [
-        "motion"
-      ],
+      "description": "A hyperspace starfield background — colored streaks radiate from the center, with warp speed driven by scroll velocity.",
       "files": [
         {
           "path": "registry/radiant-lines/radiant-lines.tsx",
           "type": "registry:ui",
           "target": "components/ui/radiant-lines.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
+      "name": "radiant-lines-svelte",
+      "title": "Radiant Lines",
+      "description": "A hyperspace starfield background — colored streaks radiate from the center, with warp speed driven by scroll velocity.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/radiant-lines/radiant-lines.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/radiant-lines.svelte"
         }
       ],
       "type": "registry:ui"
@@ -101,6 +178,20 @@
       "type": "registry:ui"
     },
     {
+      "name": "shader-fire-svelte",
+      "title": "Shader Fire",
+      "description": "Sparse 2D WebGL fire wash for landing heroes — tongues rise from the bottom, theme-aware, optional pointer heat.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/shader-fire/shader-fire.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/shader-fire.svelte"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "shader-gradient",
       "title": "Shader Gradient",
       "description": "Quiet WebGL color wash for landing heroes, empty states, and marketing sections — theme-aware, optional pointer follow.",
@@ -109,6 +200,19 @@
           "path": "registry/shader-gradient/shader-gradient.tsx",
           "type": "registry:ui",
           "target": "components/ui/shader-gradient.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
+      "name": "shader-gradient-svelte",
+      "title": "Shader Gradient",
+      "description": "Quiet WebGL color wash for landing heroes, empty states, and marketing sections — theme-aware, optional pointer follow.",
+      "files": [
+        {
+          "path": "registry/shader-gradient/shader-gradient.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/shader-gradient.svelte"
         }
       ],
       "type": "registry:ui"
@@ -130,6 +234,20 @@
       "type": "registry:ui"
     },
     {
+      "name": "stretchy-footer-svelte",
+      "title": "Stretchy Footer",
+      "description": "Dia-style rubber overscroll — rainbow aurora stretches up past the bottom, then snaps back.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/stretchy-footer/stretchy-footer.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/stretchy-footer.svelte"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "tangle-footer",
       "title": "Tangle Footer",
       "description": "A footer of tangled SVG ribbons — thick dark strokes with white text running along each path via textPath.",
@@ -141,6 +259,20 @@
           "path": "registry/tangle-footer/tangle-footer.tsx",
           "type": "registry:ui",
           "target": "components/ui/tangle-footer.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
+      "name": "tangle-footer-svelte",
+      "title": "Tangle Footer",
+      "description": "A footer of tangled SVG ribbons — thick dark strokes with white text running along each path via textPath.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/tangle-footer/tangle-footer.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/tangle-footer.svelte"
         }
       ],
       "type": "registry:ui"

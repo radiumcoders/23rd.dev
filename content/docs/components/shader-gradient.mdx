@@ -11,21 +11,18 @@ Not a standalone gradient. Use it as atmosphere behind a hero, wait screen, or e
 
 ## Installation
 
-<CliCommand command="shadcn@latest add @23rd/shader-gradient" />
+<CliCommand item="shader-gradient" />
 
 Or install straight from the public GitHub source registry:
 
-<CliCommand
-  npm="npx shadcn@latest add radiumcoders/23rd.dev/shader-gradient"
-  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/shader-gradient"
-  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/shader-gradient"
-  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/shader-gradient"
-/>
+<CliCommand item="shader-gradient" github />
 
 ## Usage
 
 Pin it behind a relatively positioned section. Keep content in a later stacking context (`relative z-10`). Default `theme="auto"` follows shadcn / next-themes (`class` on `<html>`).
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -51,13 +48,48 @@ export function Hero() {
   )
 }
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import ShaderGradient from "$lib/components/ui/shader-gradient.svelte"
+</script>
+
+<section class="relative isolate min-h-svh overflow-hidden bg-background">
+  <ShaderGradient />
+  <div class="relative z-10 mx-auto flex min-h-svh max-w-xl flex-col items-center justify-center px-6 text-center">
+    <p class="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
+      New
+    </p>
+    <h1 class="mt-3 text-4xl font-medium tracking-tight">
+      Ship the page, not the backdrop
+    </h1>
+    <p class="mt-3 text-muted-foreground">
+      Headline, proof, and a primary action sit on the wash. The shader
+      stays quiet.
+    </p>
+  </div>
+</section>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 Force a palette if the parent theme should not drive it:
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 <ShaderGradient theme="light" />
 <ShaderGradient theme="dark" />
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<ShaderGradient theme="light" />
+<ShaderGradient theme="dark" />
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 ## Props
 
@@ -69,4 +101,5 @@ Force a palette if the parent theme should not drive it:
 | `intensity` | `number` | `0.95` |
 | `interactive` | `boolean` | `true` |
 | `theme` | `"light" \| "dark" \| "auto"` | `auto` |
-| `className` | `string` | — |
+| `className` | `string` | React only |
+| `class` | `string` | Svelte only |

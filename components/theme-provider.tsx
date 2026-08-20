@@ -21,6 +21,15 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
       return
     }
 
+    // Next.js view transitions briefly keep outgoing + incoming segments in
+    // OuterLayoutRouter without keys. Harmless; we cannot key that list.
+    if (
+      message.includes('unique "key" prop') &&
+      message.includes("OuterLayoutRouter")
+    ) {
+      return
+    }
+
     originalError.apply(console, args)
   }
 }

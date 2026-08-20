@@ -1,259 +1,33 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { cn } from "@/lib/utils"
 
-export type LiveOrbVariant = "white" | "black" | "webgl" | "custom"
+import {
+  createLiveOrb,
+  resolveVariant,
+  type LiveOrbInstance,
+  type LiveOrbOptions,
+} from "./live-orb-vanilla"
 
-export type LiveOrbProps = {
+export {
+  BLACK,
+  CUSTOM_DEFAULT,
+  resolveVariant,
+  WEBGL_COLORS,
+  WHITE,
+} from "./live-orb-vanilla"
+export type {
+  LiveOrbInstance,
+  LiveOrbOptions,
+  LiveOrbVariant,
+} from "./live-orb-vanilla"
+
+export type LiveOrbProps = Omit<LiveOrbOptions, "onHasGl"> & {
   className?: string
   /** Edge length in CSS pixels. Default `280`. */
   size?: number
-  /** Material preset. Default `"white"`. */
-  variant?: LiveOrbVariant
-  /** Body hex — used when `variant="custom"`. */
-  color?: string
-  /** Eye hex — used when `variant="custom"`. */
-  eyeColor?: string
-  /** Iridescent stops — used when `variant="webgl"`. */
-  colors?: string[]
-  /** Eyes follow the pointer. Default `true`. */
-  interactive?: boolean
-  /** Occasional blink. Default `true`. */
-  blink?: boolean
-}
-
-export const WHITE = { color: "#F4F4F5", eyeColor: "#09090B" } as const
-export const BLACK = { color: "#18181B", eyeColor: "#F4F4F5" } as const
-export const CUSTOM_DEFAULT = { color: "#7C5CFF", eyeColor: "#FAFAFA" } as const
-/** Violet / foam / dust-rose — stock webgl interior. */
-export const WEBGL_COLORS = ["#7C6AF7", "#7DD3C7", "#E8B4D4"]
-
-const VERT = `
-attribute vec2 a_position;
-void main() {
-  gl_Position = vec4(a_position, 0.0, 1.0);
-}
-`
-
-const FRAG = `
-precision highp float;
-
-uniform vec2 u_resolution;
-uniform float u_time;
-uniform float u_speed;
-uniform vec2 u_look;
-uniform float u_blink;
-uniform float u_mode;
-uniform vec3 u_body;
-uniform vec3 u_eye;
-uniform vec3 u_c1;
-uniform vec3 u_c2;
-uniform vec3 u_c3;
-
-float hash(vec2 p) {
-  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
-}
-
-float noise(vec2 p) {
-  vec2 i = floor(p);
-  vec2 f = fract(p);
-  float a = hash(i);
-  float b = hash(i + vec2(1.0, 0.0));
-  float c = hash(i + vec2(0.0, 1.0));
-  float d = hash(i + vec2(1.0, 1.0));
-  vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
-}
-
-float fbm(vec2 p) {
-  float v = 0.0;
-  float a = 0.5;
-  mat2 m = mat2(1.6, 1.2, -1.2, 1.6);
-  for (int i = 0; i < 5; i++) {
-    v += a * noise(p);
-    p = m * p;
-    a *= 0.5;
-  }
-  return v;
-}
-
-vec3 orient(vec3 p, vec2 look) {
-  float yaw = look.x * 0.92;
-  float pitch = -look.y * 0.78;
-  float cy = cos(yaw);
-  float sy = sin(yaw);
-  float cp = cos(pitch);
-  float sp = sin(pitch);
-  vec3 q = vec3(p.x, p.y * cp - p.z * sp, p.y * sp + p.z * cp);
-  return vec3(q.x * cy + q.z * sy, q.y, -q.x * sy + q.z * cy);
-}
-
-float eyeMask(vec3 n, vec3 e, vec3 right, vec3 up, float halfH, float rad) {
-  float facing = dot(n, e);
-  float x = dot(n, right) - dot(e, right);
-  float y = dot(n, up) - dot(e, up);
-  y -= clamp(y, -halfH, halfH);
-  float d = length(vec2(x, y)) - rad;
-  float fill = 1.0 - smoothstep(-0.01, 0.01, d);
-  return fill * smoothstep(0.12, 0.32, facing);
-}
-
-vec3 matteShade(vec3 n, vec3 body) {
-  vec3 light = normalize(vec3(-0.22, 0.62, 0.72));
-  float wrap = dot(n, light) * 0.42 + 0.58;
-  vec3 halfV = normalize(light + vec3(0.0, 0.0, 1.0));
-  float spec = pow(max(dot(n, halfV), 0.0), 56.0) * 0.16;
-  float rim = pow(1.0 - n.z, 1.55);
-  vec3 col = body * wrap;
-  col *= mix(1.0, 0.78, rim);
-  col += vec3(spec);
-  return col;
-}
-
-vec3 webglShade(vec3 n, float t) {
-  vec2 q = n.xy * 2.2 + n.z * 0.85;
-  vec2 w1 = vec2(
-    fbm(q * 1.4 + vec2(t * 0.22, t * 0.18)),
-    fbm(q * 1.4 + vec2(-t * 0.16, t * 0.24) + 4.1)
-  );
-  q += (w1 - 0.5) * 0.72;
-  float f = fbm(q * 2.1 + vec2(0.0, t * 0.12));
-  float g = fbm(q * 4.6 - vec2(t * 0.2, 0.0));
-  vec3 interior = mix(u_c1, u_c2, smoothstep(0.28, 0.72, f));
-  interior = mix(interior, u_c3, pow(smoothstep(0.42, 0.9, g), 1.4));
-  vec3 light = normalize(vec3(-0.18, 0.55, 0.8));
-  float wrap = dot(n, light) * 0.28 + 0.72;
-  float fres = pow(1.0 - n.z, 2.1);
-  vec3 col = interior * wrap;
-  col += fres * mix(u_c2, u_c3, 0.45) * 0.55;
-  col += pow(max(dot(n, light), 0.0), 40.0) * 0.22;
-  return col;
-}
-
-void main() {
-  vec2 uv = (gl_FragCoord.xy / u_resolution.xy) * 2.0 - 1.0;
-  float aspect = u_resolution.x / max(u_resolution.y, 1.0);
-  uv.x *= aspect;
-
-  float radius = 0.86;
-  vec2 p = uv / radius;
-  float r2 = dot(p, p);
-  float edge = 1.0 - smoothstep(0.985, 1.012, sqrt(max(r2, 0.0)));
-  if (edge <= 0.001) {
-    gl_FragColor = vec4(0.0);
-    return;
-  }
-
-  float z = sqrt(max(1.0 - r2, 0.0));
-  vec3 n = normalize(vec3(p, z));
-
-  vec2 look = u_look;
-  float lm = length(look);
-  if (lm > 1.0) look /= lm;
-
-  vec3 right = orient(vec3(1.0, 0.0, 0.0), look);
-  vec3 up = orient(vec3(0.0, 1.0, 0.0), look);
-  vec3 eL = orient(normalize(vec3(-0.32, 0.08, 1.0)), look);
-  vec3 eR = orient(normalize(vec3(0.32, 0.08, 1.0)), look);
-
-  float halfH = mix(0.128, 0.012, u_blink);
-  float rad = mix(0.054, 0.062, u_blink);
-  float eyes = max(
-    eyeMask(n, eL, right, up, halfH, rad),
-    eyeMask(n, eR, right, up, halfH, rad)
-  );
-
-  vec3 body = u_mode > 0.5
-    ? webglShade(n, u_time * u_speed)
-    : matteShade(n, u_body);
-
-  vec3 col = mix(body, u_eye, clamp(eyes, 0.0, 1.0));
-  col += (hash(gl_FragCoord.xy + fract(u_time * 0.01)) - 0.5) * 0.012;
-
-  gl_FragColor = vec4(clamp(col, 0.0, 1.0), edge);
-}
-`
-
-function hexToRgb(hex: string): [number, number, number] {
-  const h = hex.replace("#", "").trim()
-  const full =
-    h.length === 3
-      ? h
-          .split("")
-          .map((c) => c + c)
-          .join("")
-      : h.padEnd(6, "0").slice(0, 6)
-  const n = Number.parseInt(full, 16)
-  if (Number.isNaN(n)) return [0.96, 0.96, 0.96]
-  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]
-}
-
-function compile(gl: WebGLRenderingContext, type: number, source: string) {
-  const shader = gl.createShader(type)
-  if (!shader) return null
-  gl.shaderSource(shader, source)
-  gl.compileShader(shader)
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    if (process.env.NODE_ENV !== "production") {
-      console.warn(
-        "LiveOrb: shader failed to compile\n",
-        gl.getShaderInfoLog(shader)
-      )
-    }
-    gl.deleteShader(shader)
-    return null
-  }
-  return shader
-}
-
-function resolveVariant(
-  variant: LiveOrbVariant,
-  color?: string,
-  eyeColor?: string,
-  colors?: string[]
-) {
-  if (variant === "black") {
-    return {
-      body: BLACK.color,
-      eye: BLACK.eyeColor,
-      mode: 0,
-      palette: WEBGL_COLORS,
-    }
-  }
-  if (variant === "webgl") {
-    return {
-      body: WHITE.color,
-      eye: "#0C0C10",
-      mode: 1,
-      palette: colors && colors.length > 0 ? colors : WEBGL_COLORS,
-    }
-  }
-  if (variant === "custom") {
-    return {
-      body: color ?? CUSTOM_DEFAULT.color,
-      eye: eyeColor ?? CUSTOM_DEFAULT.eyeColor,
-      mode: 0,
-      palette: WEBGL_COLORS,
-    }
-  }
-  return {
-    body: WHITE.color,
-    eye: WHITE.eyeColor,
-    mode: 0,
-    palette: WEBGL_COLORS,
-  }
-}
-
-function mixHex(hex: string, toward: string, t: number) {
-  const a = hexToRgb(hex)
-  const b = hexToRgb(toward)
-  const m = (i: number) =>
-    Math.round((a[i]! * (1 - t) + b[i]! * t) * 255)
-      .toString(16)
-      .padStart(2, "0")
-  return `#${m(0)}${m(1)}${m(2)}`
 }
 
 /**
@@ -271,221 +45,42 @@ export function LiveOrb({
   blink = true,
 }: LiveOrbProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const lookRef = useRef({ x: 0, y: 0.08 })
-  const targetLookRef = useRef({ x: 0, y: 0.08 })
-  const reduceRef = useRef(false)
+  const instanceRef = useRef<LiveOrbInstance | null>(null)
   const [hasGl, setHasGl] = useState(false)
-  const propsRef = useRef({
-    variant,
-    color,
-    eyeColor,
-    colors,
-    interactive,
-    blink,
-  })
-
-  const resolved = resolveVariant(variant, color, eyeColor, colors)
-
-  useLayoutEffect(() => {
-    propsRef.current = { variant, color, eyeColor, colors, interactive, blink }
-  }, [variant, color, eyeColor, colors, interactive, blink])
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
-    reduceRef.current = mq.matches
-    const onChange = () => {
-      reduceRef.current = mq.matches
-    }
-    mq.addEventListener("change", onChange)
-    return () => mq.removeEventListener("change", onChange)
-  }, [])
-
-  useEffect(() => {
-    const onMove = (e: PointerEvent) => {
-      if (!propsRef.current.interactive) return
-      const canvas = canvasRef.current
-      const parent = canvas?.parentElement
-      if (!parent) return
-      const rect = parent.getBoundingClientRect()
-      if (rect.width <= 0 || rect.height <= 0) return
-      const dx = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2)
-      const dy = (rect.top + rect.height / 2 - e.clientY) / (rect.height / 2)
-      targetLookRef.current = {
-        x: Math.min(1, Math.max(-1, dx)),
-        y: Math.min(1, Math.max(-1, dy)),
-      }
-    }
-    window.addEventListener("pointermove", onMove, { passive: true })
-    return () => window.removeEventListener("pointermove", onMove)
-  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-
-    const gl = canvas.getContext("webgl", {
-      alpha: true,
-      antialias: false,
-      depth: false,
-      stencil: false,
-      premultipliedAlpha: false,
-      powerPreference: "high-performance",
+    instanceRef.current = createLiveOrb(canvas, {
+      variant,
+      color,
+      eyeColor,
+      colors,
+      interactive,
+      blink,
+      onHasGl: setHasGl,
     })
-    if (!gl) return
-
-    const vs = compile(gl, gl.VERTEX_SHADER, VERT)
-    const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
-    if (!vs || !fs) return
-
-    const program = gl.createProgram()
-    if (!program) return
-    gl.attachShader(program, vs)
-    gl.attachShader(program, fs)
-    gl.linkProgram(program)
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn(
-          "LiveOrb: program failed to link\n",
-          gl.getProgramInfoLog(program)
-        )
-      }
-      return
-    }
-    gl.useProgram(program)
-    setHasGl(true)
-
-    const buf = gl.createBuffer()
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf)
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-      gl.STATIC_DRAW
-    )
-    const loc = gl.getAttribLocation(program, "a_position")
-    gl.enableVertexAttribArray(loc)
-    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
-
-    const uResolution = gl.getUniformLocation(program, "u_resolution")
-    const uTime = gl.getUniformLocation(program, "u_time")
-    const uSpeed = gl.getUniformLocation(program, "u_speed")
-    const uLook = gl.getUniformLocation(program, "u_look")
-    const uBlink = gl.getUniformLocation(program, "u_blink")
-    const uMode = gl.getUniformLocation(program, "u_mode")
-    const uBody = gl.getUniformLocation(program, "u_body")
-    const uEye = gl.getUniformLocation(program, "u_eye")
-    const uC1 = gl.getUniformLocation(program, "u_c1")
-    const uC2 = gl.getUniformLocation(program, "u_c2")
-    const uC3 = gl.getUniformLocation(program, "u_c3")
-
-    gl.enable(gl.BLEND)
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-
-    let raf = 0
-    let running = true
-    const start = performance.now()
-    let nextBlink = start + 1800 + Math.random() * 2400
-    let blinkAt = -10_000
-
-    const resize = () => {
-      const parent = canvas.parentElement
-      if (!parent) return
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
-      const w = parent.clientWidth
-      const h = parent.clientHeight
-      if (w <= 0 || h <= 0) return
-      canvas.width = Math.max(1, Math.floor(w * dpr))
-      canvas.height = Math.max(1, Math.floor(h * dpr))
-      canvas.style.width = `${w}px`
-      canvas.style.height = `${h}px`
-      gl.viewport(0, 0, canvas.width, canvas.height)
-    }
-
-    resize()
-    const ro = new ResizeObserver(resize)
-    if (canvas.parentElement) ro.observe(canvas.parentElement)
-
-    const tick = (now: number) => {
-      if (!running) return
-
-      const {
-        variant: v,
-        color: c,
-        eyeColor: e,
-        colors: pal,
-        interactive: on,
-        blink: doBlink,
-      } = propsRef.current
-      const look = resolveVariant(v, c, e, pal)
-      const time = (now - start) / 1000
-      const reduce = reduceRef.current
-
-      const tm = targetLookRef.current
-      const m = lookRef.current
-      if (on) {
-        m.x += (tm.x - m.x) * 0.16
-        m.y += (tm.y - m.y) * 0.16
-      } else {
-        m.x += (0 - m.x) * 0.12
-        m.y += (0.08 - m.y) * 0.12
-      }
-
-      if (!reduce && doBlink && now >= nextBlink) {
-        blinkAt = now
-        nextBlink = now + 2200 + Math.random() * 3800
-      }
-      const bt = (now - blinkAt) / 1000
-      let b = 0
-      if (!reduce && doBlink) {
-        if (bt < 0.055) b = bt / 0.055
-        else if (bt < 0.1) b = 1
-        else if (bt < 0.18) b = 1 - (bt - 0.1) / 0.08
-      }
-      const body = hexToRgb(look.body)
-      const eye = hexToRgb(look.eye)
-      const palette = [0, 1, 2].map((i) =>
-        hexToRgb(look.palette[i % look.palette.length] ?? WEBGL_COLORS[i]!)
-      )
-
-      gl.clearColor(0, 0, 0, 0)
-      gl.clear(gl.COLOR_BUFFER_BIT)
-      gl.uniform2f(uResolution, canvas.width, canvas.height)
-      gl.uniform1f(uTime, reduce ? 0 : time)
-      gl.uniform1f(uSpeed, reduce ? 0 : 0.55)
-      gl.uniform2f(uLook, m.x, m.y)
-      gl.uniform1f(uBlink, b)
-      gl.uniform1f(uMode, look.mode)
-      gl.uniform3f(uBody, body[0], body[1], body[2])
-      gl.uniform3f(uEye, eye[0], eye[1], eye[2])
-      gl.uniform3f(uC1, palette[0]![0], palette[0]![1], palette[0]![2])
-      gl.uniform3f(uC2, palette[1]![0], palette[1]![1], palette[1]![2])
-      gl.uniform3f(uC3, palette[2]![0], palette[2]![1], palette[2]![2])
-
-      gl.drawArrays(gl.TRIANGLES, 0, 6)
-      raf = requestAnimationFrame(tick)
-    }
-
-    raf = requestAnimationFrame(tick)
-
     return () => {
-      running = false
-      cancelAnimationFrame(raf)
-      ro.disconnect()
-      setHasGl(false)
-      gl.deleteProgram(program)
-      gl.deleteShader(vs)
-      gl.deleteShader(fs)
-      gl.deleteBuffer(buf)
+      instanceRef.current?.destroy()
+      instanceRef.current = null
     }
+    // Engine reads live options via setOptions; mount once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const highlight =
-    resolved.mode === 1
-      ? mixHex(resolved.palette[1] ?? WEBGL_COLORS[1]!, "#FFFFFF", 0.35)
-      : mixHex(resolved.body, "#FFFFFF", 0.42)
-  const shade =
-    resolved.mode === 1
-      ? mixHex(resolved.palette[0] ?? WEBGL_COLORS[0]!, "#0A0A0B", 0.45)
-      : mixHex(resolved.body, "#09090B", 0.22)
+  useEffect(() => {
+    instanceRef.current?.setOptions({
+      variant,
+      color,
+      eyeColor,
+      colors,
+      interactive,
+      blink,
+      onHasGl: setHasGl,
+    })
+  }, [variant, color, eyeColor, colors, interactive, blink])
+
+  const resolved = resolveVariant(variant, color, eyeColor, colors)
 
   return (
     <div
@@ -500,7 +95,7 @@ export function LiveOrb({
           aria-hidden
           className="absolute inset-[7%] overflow-hidden rounded-full"
           style={{
-            backgroundImage: `radial-gradient(circle at 38% 30%, ${highlight} 0%, ${resolved.body} 52%, ${shade} 100%)`,
+            backgroundImage: `radial-gradient(circle at 38% 30%, ${resolved.highlight} 0%, ${resolved.body} 52%, ${resolved.shade} 100%)`,
           }}
         >
           <span

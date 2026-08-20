@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { existsSync, readFileSync } from "node:fs"
+import { existsSync } from "node:fs"
 import { join, basename } from "node:path"
 
 import {
@@ -13,8 +13,12 @@ import {
   readRootRegistry,
   readJson,
   composeRootRegistry,
+  isSvelteItem,
+  makeStandalone,
   manifestDir,
   normalizeEol,
+  publishedFileContent,
+  svelteTarget,
 } from "../scripts/registry-lib.mjs"
 
 const rootRegistry = readRootRegistry()
@@ -69,13 +73,71 @@ test("every included manifest exists and is valid JSON with items", () => {
   }
 })
 
-test("item names are unique across the whole registry", () => {
-  const names = items.map(({ item }) => item.name)
-  assert.equal(
-    new Set(names).size,
-    names.length,
-    `duplicate item names: ${names.join(", ")}`
+test("every React item has a matching Svelte port", () => {
+  const names = new Set(items.map(({ item }) => item.name))
+  const reactNames = items
+    .map(({ item }) => item.name)
+    .filter((name) => !name.endsWith("-svelte"))
+  const missing = reactNames.filter((name) => !names.has(`${name}-svelte`))
+  assert.deepEqual(missing, [], `missing svelte ports: ${missing.join(", ")}`)
+})
+
+test("makeStandalone inlines a vanilla engine into a React wrapper", () => {
+  const out = makeStandalone(
+    `"use client"\n\nimport { createFoo } from "./foo-vanilla"\n\nexport { LIGHT } from "./foo-vanilla"\n\nexport function Foo() {\n  createFoo()\n}\n`,
+    `export const LIGHT = "#fff"\nexport function createFoo() {}\n`,
+    "react"
   )
+  assert.match(out, /export function createFoo/)
+  assert.match(out, /export const LIGHT/)
+  assert.doesNotMatch(out, /foo-vanilla/)
+  assert.match(out, /^"use client"/)
+  assert.ok(
+    out.indexOf("export const LIGHT") < out.indexOf("export function Foo"),
+    "engine body should follow imports and precede the wrapper"
+  )
+})
+
+test("makeStandalone react emits wrapper imports after use client", () => {
+  const out = makeStandalone(
+    `"use client"\n\nimport { createFoo } from "./foo-vanilla"\nimport { useEffect } from "react"\n\nexport function Foo() {\n  createFoo()\n}\n`,
+    `export function createFoo() {}\n`,
+    "react"
+  )
+  assert.match(out, /^"use client"\s*\n\s*import \{ useEffect \} from "react"/)
+  const client = out.indexOf("use client")
+  const imp = out.indexOf('import { useEffect } from "react"')
+  const engine = out.indexOf("export function createFoo")
+  assert.ok(client >= 0 && imp > client && engine > imp)
+})
+
+test("makeStandalone injects the engine into a Svelte module script", () => {
+  const out = makeStandalone(
+    `<script module>\n</script>\n\n<script>\n  import { createFoo } from "./foo-vanilla"\n  createFoo()\n</script>\n`,
+    `export function createFoo() {}\n`,
+    "svelte"
+  )
+  assert.match(out, /<script module lang="ts">/)
+  assert.match(out, /<script lang="ts">/)
+  assert.equal(
+    (out.match(/<script\b[^>]*\bmodule\b/g) || []).length,
+    1,
+    "exactly one module script"
+  )
+  assert.match(out, /export function createFoo/)
+  assert.doesNotMatch(out, /from "\.\/foo-vanilla"/)
+})
+
+test("makeStandalone svelte preserves existing script attributes", () => {
+  const out = makeStandalone(
+    `<script module lang="ts">\n</script>\n\n<script lang="ts">\n  import { createFoo } from "./foo-vanilla"\n  createFoo()\n</script>\n`,
+    `export function createFoo() {}\n`,
+    "svelte"
+  )
+  assert.match(out, /<script module lang="ts">/)
+  assert.match(out, /<script lang="ts">/)
+  assert.equal((out.match(/\blang=["']ts["']/g) || []).length, 2)
+  assert.equal((out.match(/<script\b[^>]*\bmodule\b/g) || []).length, 1)
 })
 
 for (const { include, dir, item } of items) {
@@ -117,6 +179,20 @@ for (const { include, dir, item } of items) {
       assert.ok(existsSync(abs), `missing source file: ${file.path} (in ${include})`)
     }
   })
+
+  if (isSvelteItem(item)) {
+    test(`${label}: svelte files target $lib/components/ui`, () => {
+      for (const file of item.files) {
+        if (!file.path.endsWith(".svelte")) continue
+        assert.equal(file.type, "registry:file")
+        assert.equal(
+          file.target,
+          svelteTarget(file.path),
+          `${item.name}: svelte target must be ${svelteTarget(file.path)}`
+        )
+      }
+    })
+  }
 }
 
 test("built output directory exists", () => {
@@ -168,14 +244,42 @@ for (const { dir, item } of items) {
       const builtFile = built.files.find(
         (f) => basename(f.path) === basename(sourceFile.path)
       )
-      const diskContent = normalizeEol(
-        readFileSync(join(dir, sourceFile.path), "utf8")
-      )
+      const expected = publishedFileContent(dir, sourceFile.path)
       assert.equal(
         normalizeEol(builtFile.content),
-        diskContent,
+        expected,
         `${item.name}: built content is stale for ${sourceFile.path} — run \`pnpm registry:build\``
       )
     }
   })
 }
+
+test("built svelte payloads that contain TypeScript declare it on both script tags", () => {
+  for (const { item } of items) {
+    if (!isSvelteItem(item)) continue
+    const built = readJson(join(BUILD_DIR, `${item.name}.json`))
+    for (const file of built.files ?? []) {
+      if (!file.path?.endsWith(".svelte")) continue
+      const content = file.content ?? ""
+      const looksLikeTs =
+        /\b(?:interface|type|as const|\$props\s*<)\b/.test(content) ||
+        /<script\b[^>]*\blang=["']ts["']/.test(content)
+      if (!looksLikeTs) continue
+      assert.match(
+        content,
+        /<script\b[^>]*\bmodule\b[^>]*\blang=["']ts["']|<script\b[^>]*\blang=["']ts["'][^>]*\bmodule\b/,
+        `${item.name}: TypeScript payload must declare lang="ts" on the module script`
+      )
+      assert.match(
+        content,
+        /<script lang="ts">/,
+        `${item.name}: TypeScript payload must declare lang="ts" on the instance script`
+      )
+      assert.equal(
+        (content.match(/<script\b[^>]*\bmodule\b/g) || []).length,
+        1,
+        `${item.name}: exactly one module script`
+      )
+    }
+  }
+})

@@ -48,14 +48,20 @@ Most kits hand you every option. 23rd picks a direction: spacing, motion, and in
 
 - **shadcn-native** — install with the CLI, own the source in your repo
 - **Opinionated defaults** — less boilerplate, clearer decisions
-- **Built to ship** — React, Tailwind, Motion where it earns its keep
+- **React and Svelte 5** — every published registry item ships for both; pick a framework on the install command
 
 ## Quick start
 
-Install a component:
+Install a component (React):
 
 ```bash
 pnpm dlx shadcn@latest add @23rd/gooey-color-picker
+```
+
+Svelte 5 (lands in `src/lib/components/ui/`):
+
+```bash
+pnpm dlx shadcn@latest add @23rd/gooey-color-picker-svelte
 ```
 
 Or pull straight from GitHub:
@@ -74,7 +80,6 @@ pnpm dlx shadcn@latest add radiumcoders/23rd.dev/gooey-color-picker
 | [Radiant Lines](https://23rd.dev/docs/components/radiant-lines)           | `@23rd/radiant-lines`      | Hyperspace starfield background; warp speed driven by scroll                      |
 | [Shader Fire](https://23rd.dev/docs/components/shader-fire)               | `@23rd/shader-fire`        | Sparse 2D fire wash — tongues rise from the bottom behind a landing hero          |
 | [Shader Gradient](https://23rd.dev/docs/components/shader-gradient)       | `@23rd/shader-gradient`    | Quiet WebGL wash behind landing heroes, empty states, and marketing sections      |
-| [Shader Grass](https://23rd.dev/docs/components/shader-grass)             | `@23rd/shader-grass`       | Raymarched rolling meadow under an open sky, with wind moving through the grass   |
 | [Stretchy Footer](https://23rd.dev/docs/components/stretchy-footer)       | `@23rd/stretchy-footer`    | Dia-style rubber overscroll; aurora stretches past the bottom, then snaps back    |
 | [Tangle Footer](https://23rd.dev/docs/components/tangle-footer)           | `@23rd/tangle-footer`      | Nested SVG text ribbons as a footer                                               |
 
@@ -89,6 +94,19 @@ export function Example() {
     />
   )
 }
+```
+
+Svelte:
+
+```svelte
+<script>
+  import GooeyColorPicker from "$lib/components/ui/gooey-color-picker.svelte"
+</script>
+
+<GooeyColorPicker
+  defaultValue={{ h: 210, s: 90, l: 55, a: 1 }}
+  onChange={(color, css) => console.log(color, css)}
+/>
 ```
 
 ## Develop locally
@@ -124,7 +142,7 @@ Connect the repo in the [Cloudflare dashboard](https://dash.cloudflare.com/) (Wo
 
 ## Contributing
 
-New components live under `registry/<name>/` with a `registry.json`, then get documented in `content/docs/components/`. Run `pnpm registry:build` before shipping registry changes.
+New components live under `registry/<name>/` with a vanilla engine, React/Svelte wrappers, and a `registry.json` (React item plus `<name>-svelte`), then get documented in `content/docs/components/`. Run `pnpm registry:build` before shipping registry changes.
 
 PRs that sharpen defaults, fix edge cases, or add tasteful components are welcome.
 

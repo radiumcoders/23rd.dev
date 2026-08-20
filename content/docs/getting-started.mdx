@@ -3,27 +3,24 @@ title: Getting Started
 description: Install 23rd components into a shadcn project with the CLI.
 ---
 
-23rd is a [shadcn/ui](https://ui.shadcn.com) registry. After install you own the source — same as any other registry item.
+23rd is a [shadcn/ui](https://ui.shadcn.com) registry. After install you own the source — same as any other registry item. Every component ships for **React** and **Svelte 5**; pick a framework on the install command and the rest of the docs follow.
 
 ## Install a component
 
-<CliCommand command="shadcn@latest add @23rd/shader-gradient" />
+<CliCommand item="shader-gradient" />
 
 Or pull straight from the public GitHub source registry:
 
-<CliCommand
-  npm="npx shadcn@latest add radiumcoders/23rd.dev/shader-gradient"
-  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/shader-gradient"
-  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/shader-gradient"
-  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/shader-gradient"
-/>
+<CliCommand item="shader-gradient" github />
 
-Swap `shader-gradient` for any item name — `shader-fire`, `live-orb`, `ascii-logo`, `radiant-lines`, `dithered-404`, `tangle-footer`, and so on.
+Swap `shader-gradient` for any item name — `shader-fire`, `live-orb`, `ascii-logo`, `radiant-lines`, `dithered-404`, `tangle-footer`, and so on. Svelte installs as `@23rd/<name>-svelte` and lands in `src/lib/components/ui/` so `$lib` imports resolve.
 
 ## Use a background or shader
 
 Place the component behind content in a relatively positioned container. Keep the UI in a later stacking context.
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -38,6 +35,20 @@ export function Hero() {
   )
 }
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import ShaderGradient from "$lib/components/ui/shader-gradient.svelte"
+</script>
+
+<section class="relative isolate min-h-svh overflow-hidden bg-background">
+  <ShaderGradient />
+  <div class="relative z-10 p-10">Your content</div>
+</section>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 Shaders such as [Shader Gradient](/docs/components/shader-gradient) and [Shader Fire](/docs/components/shader-fire) are atmosphere, not the page.
 

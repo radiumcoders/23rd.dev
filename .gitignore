@@ -27,6 +27,9 @@
 # production
 /build
 
+# inlined registry snapshot used by `pnpm registry:build`
+.registry-standalone
+
 # misc
 .DS_Store
 *.pem

@@ -8,6 +8,7 @@ import { DocsSidebarTrigger } from "@/components/docs-sidebar-trigger"
 import { GithubStars } from "@/components/github-stars"
 import { Logo } from "@/components/logo"
 import { SearchTrigger } from "@/components/search-trigger"
+import { FrameworkProvider } from "@/lib/framework"
 import {
   Sidebar,
   SidebarContent,
@@ -52,40 +53,39 @@ export function DocsShell({
   githubStars?: number | null
 }) {
   return (
-    <SidebarProvider
-      style={sidebarTokens}
-      className="[&_[data-slot=sidebar-gap]]:w-0!"
-    >
-      <Sidebar
-        id="docs-sidebar"
-        aria-label="Documentation"
-        variant="floating"
-        collapsible="offcanvas"
-      >
-        <SidebarHeader className="flex flex-row items-center gap-2 px-4 pt-5 pb-2">
-          <Link
-            href="/docs"
-            className="flex min-w-0 items-center gap-2 text-sm font-medium"
-          >
-            <Logo className="size-6 shrink-0" cornerRadius={4} />
-            <span className="truncate">23rd</span>
-          </Link>
-          <DocsSidebarTrigger className="ml-auto shrink-0" />
-        </SidebarHeader>
-        <SidebarContent>
-          <DocsSidebar tree={tree} embedded />
-        </SidebarContent>
-      </Sidebar>
-      <SidebarInset className="min-w-0">
-        <header className="flex h-14 w-full items-center gap-3 px-6 transition-[padding] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] md:group-has-[[data-slot=sidebar][data-state=expanded]]/sidebar-wrapper:ps-[calc(var(--sidebar-width)+1.5rem)]">
-          <DocsSidebarTrigger showWhenCollapsed />
-          <div className="ml-auto flex items-center gap-1">
-            <GithubStars stars={githubStars} />
-            <SearchTrigger />
-          </div>
-        </header>
-        <div className="flex flex-1 flex-col">{children}</div>
-      </SidebarInset>
-    </SidebarProvider>
+    <FrameworkProvider>
+      <SidebarProvider style={sidebarTokens}>
+        <Sidebar
+          id="docs-sidebar"
+          aria-label="Documentation"
+          variant="floating"
+          collapsible="offcanvas"
+        >
+          <SidebarHeader className="flex flex-row items-center gap-2 px-4 pt-5 pb-2">
+            <Link
+              href="/docs"
+              className="flex min-w-0 items-center gap-2 text-sm font-medium"
+            >
+              <Logo className="size-6 shrink-0" cornerRadius={4} />
+              <span className="truncate">23rd</span>
+            </Link>
+            <DocsSidebarTrigger className="ml-auto shrink-0" />
+          </SidebarHeader>
+          <SidebarContent>
+            <DocsSidebar tree={tree} embedded />
+          </SidebarContent>
+        </Sidebar>
+        <SidebarInset className="min-w-0">
+          <header className="flex h-14 w-full items-center gap-3 px-6">
+            <DocsSidebarTrigger showWhenCollapsed />
+            <div className="ml-auto flex items-center gap-1">
+              <GithubStars stars={githubStars} />
+              <SearchTrigger />
+            </div>
+          </header>
+          <div className="flex flex-1 flex-col">{children}</div>
+        </SidebarInset>
+      </SidebarProvider>
+    </FrameworkProvider>
   )
 }

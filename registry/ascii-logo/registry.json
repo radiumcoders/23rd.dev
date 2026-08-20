@@ -13,6 +13,19 @@
           "target": "components/ui/ascii-logo.tsx"
         }
       ]
+    },
+    {
+      "name": "ascii-logo-svelte",
+      "type": "registry:ui",
+      "title": "ASCII Logo",
+      "description": "Interactive ASCII wordmark — glyphs shove away from the cursor, then click-cycle through scatter, gravity drop, and reassemble. Zero deps.",
+      "files": [
+        {
+          "path": "ascii-logo.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/ascii-logo.svelte"
+        }
+      ]
     }
   ]
 }

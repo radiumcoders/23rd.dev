@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useSyncExternalStore } from "react"
 
 import { CopyButton } from "@/components/copy-button"
+import { FrameworkSelect } from "@/components/framework-select"
 import {
   BunIcon,
   NpmIcon,
@@ -17,9 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { registryItemName, useFramework } from "@/lib/framework"
 import { cn } from "@/lib/utils"
 
 const STORAGE_KEY = "23rd:package-manager"
+const MANAGER_EVENT = "23rd:package-manager-change"
 
 export type PackageManager = "npm" | "pnpm" | "yarn" | "bun"
 
@@ -68,12 +71,38 @@ function isPackageManager(value: string): value is PackageManager {
   return PACKAGE_MANAGERS.some((manager) => manager.value === value)
 }
 
+function readStoredManager(): PackageManager | null {
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY)
+    if (stored && isPackageManager(stored)) return stored
+  } catch {
+    // ignore
+  }
+  return null
+}
+
+function subscribeManager(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange)
+  window.addEventListener(MANAGER_EVENT, onStoreChange)
+  return () => {
+    window.removeEventListener("storage", onStoreChange)
+    window.removeEventListener(MANAGER_EVENT, onStoreChange)
+  }
+}
+
 export interface CliCommandProps {
   /**
    * Command body after the package runner.
    * Example: `"shadcn@latest add button"` → `pnpm dlx shadcn@latest add button`
    */
   command?: string
+  /**
+   * Registry item name without a framework suffix, e.g. `"shader-gradient"`.
+   * The active framework picker appends `-svelte` when Svelte is selected.
+   */
+  item?: string
+  /** Install from GitHub (`radiumcoders/23rd.dev/<item>`) instead of `@23rd/<item>`. */
+  github?: boolean
   /** Full command overrides per package manager */
   npm?: string
   pnpm?: string
@@ -84,8 +113,17 @@ export interface CliCommandProps {
   className?: string
 }
 
+function commandForItem(item: string, github: boolean, svelte: boolean) {
+  const name = registryItemName(item, svelte ? "svelte" : "react")
+  return github
+    ? `shadcn@latest add radiumcoders/23rd.dev/${name}`
+    : `shadcn@latest add @23rd/${name}`
+}
+
 export function CliCommand({
   command,
+  item,
+  github = false,
   npm,
   pnpm,
   yarn,
@@ -93,20 +131,18 @@ export function CliCommand({
   defaultManager = "pnpm",
   className,
 }: CliCommandProps) {
-  const [manager, setManager] = useState<PackageManager>(defaultManager)
+  const { framework } = useFramework()
+  const manager = useSyncExternalStore(
+    subscribeManager,
+    () => readStoredManager() ?? defaultManager,
+    () => defaultManager
+  )
 
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY)
-      if (stored && isPackageManager(stored)) {
-        setManager(stored)
-      }
-    } catch {
-      // ignore
-    }
-  }, [])
+  const resolvedCommand =
+    command ??
+    (item ? commandForItem(item, github, framework === "svelte") : "")
 
-  const fromCommand = command ? buildCommands(command) : null
+  const fromCommand = resolvedCommand ? buildCommands(resolvedCommand) : null
   const commands: Record<PackageManager, string> = {
     npm: npm ?? fromCommand?.npm ?? "",
     pnpm: pnpm ?? fromCommand?.pnpm ?? "",
@@ -114,18 +150,18 @@ export function CliCommand({
     bun: bun ?? fromCommand?.bun ?? "",
   }
 
-  const active = PACKAGE_MANAGERS.find((item) => item.value === manager)!
+  const active = PACKAGE_MANAGERS.find((entry) => entry.value === manager)!
   const ActiveIcon = active.Icon
   const activeCommand = commands[manager]
 
   function onManagerChange(value: string | null) {
     if (!value || !isPackageManager(value)) return
-    setManager(value)
     try {
       window.localStorage.setItem(STORAGE_KEY, value)
     } catch {
       // ignore
     }
+    window.dispatchEvent(new Event(MANAGER_EVENT))
   }
 
   return (
@@ -145,28 +181,31 @@ export function CliCommand({
           <ActiveIcon className={cn("size-4", active.colorClass)} />
         </div>
 
-        <Select
-          value={manager}
-          onValueChange={onManagerChange}
-          items={SELECT_ITEMS}
-        >
-          <SelectTrigger
-            size="sm"
-            aria-label="Package manager"
-            className="h-auto min-h-0 w-auto justify-start gap-0.5 border-transparent bg-transparent px-0 py-0 text-sm font-medium text-foreground/90 shadow-none hover:bg-transparent focus-visible:border-transparent focus-visible:ring-0"
+        <div className="flex items-center gap-3">
+          {item ? <FrameworkSelect /> : null}
+          <Select
+            value={manager}
+            onValueChange={onManagerChange}
+            items={SELECT_ITEMS}
           >
-            <SelectValue className="flex-none" />
-          </SelectTrigger>
-          <SelectContent align="end" alignItemWithTrigger={false}>
-            <SelectGroup>
-              {PACKAGE_MANAGERS.map(({ value, label }) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+            <SelectTrigger
+              size="sm"
+              aria-label="Package manager"
+              className="h-auto min-h-0 w-auto justify-start gap-0.5 border-transparent bg-transparent px-0 py-0 text-sm font-medium text-foreground/90 shadow-none hover:bg-transparent focus-visible:border-transparent focus-visible:ring-0"
+            >
+              <SelectValue className="flex-none" />
+            </SelectTrigger>
+            <SelectContent align="end" alignItemWithTrigger={false}>
+              <SelectGroup>
+                {PACKAGE_MANAGERS.map(({ value, label }) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="p-1 pt-0">
