@@ -4,7 +4,16 @@ import { notFound } from "next/navigation"
 
 import { DocsPager } from "@/components/docs-pager"
 import { DocsToc } from "@/components/docs-toc"
+import { JsonLd } from "@/components/json-ld"
 import { getMDXComponents } from "@/components/mdx"
+import {
+  buildPageMetadata,
+  docsJsonLd,
+  docsPath,
+  isComponentPage,
+  isDocsIndex,
+  SITE_TITLE,
+} from "@/lib/seo"
 import { source } from "@/lib/source"
 
 export default async function Page(props: {
@@ -24,6 +33,14 @@ export default async function Page(props: {
       {...(isStretchyFooter ? { "data-stretchy-page": "" } : {})}
     >
       <article className="mx-auto w-full max-w-2xl">
+        <JsonLd
+          data={docsJsonLd({
+            title: page.data.title,
+            description: page.data.description,
+            path: docsPath(params.slug),
+            slug: params.slug,
+          })}
+        />
         <h1 className="text-3xl font-semibold tracking-tight">
           {page.data.title}
         </h1>
@@ -57,8 +74,17 @@ export async function generateMetadata(props: {
   const page = source.getPage(params.slug)
   if (!page) notFound()
 
-  return {
-    title: page.data.title,
+  const path = docsPath(params.slug)
+  const extraKeywords = isComponentPage(params.slug)
+    ? [page.data.title, "shadcn component", "React component"]
+    : [page.data.title]
+
+  return buildPageMetadata({
+    title: isDocsIndex(params.slug) ? SITE_TITLE : page.data.title,
     description: page.data.description,
-  }
+    path,
+    keywords: extraKeywords,
+    type: "article",
+    absoluteTitle: isDocsIndex(params.slug),
+  })
 }
