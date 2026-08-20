@@ -101,8 +101,9 @@
 
   const bars = $derived.by(() => {
     const count = Math.max(8, Math.min(96, Math.floor(columns)))
+    const palette = colors.length > 0 ? colors : DEFAULT_COLORS
     return Array.from({ length: count }, (_, i) => {
-      const color = colors[i % colors.length]!
+      const color = palette[i % palette.length]!
       const heightPct = Math.max(28, columnScale(i, count) * 100).toFixed(2)
       return {
         key: i,
@@ -234,15 +235,18 @@
   $effect(() => {
     if (reduceMotion) return
 
-    let target: { kind: "window" } | { kind: "element"; el: HTMLElement } | null =
-      null
+    let candidate:
+      | { kind: "window" }
+      | { kind: "element"; el: HTMLElement }
+      | null = null
     if (windowScroll) {
-      target = { kind: "window" }
+      candidate = { kind: "window" }
     } else {
       const el = scrollEl ?? internalEl
-      if (el) target = { kind: "element", el }
+      if (el) candidate = { kind: "element", el }
     }
-    if (!target) return
+    if (!candidate) return
+    const target = candidate
 
     const prevOverscroll =
       target.kind === "window"

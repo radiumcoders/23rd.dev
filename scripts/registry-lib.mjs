@@ -80,7 +80,7 @@ export function normalizeEol(text) {
 
 /** Import of a sibling `*-vanilla` module, including multiline named imports. */
 const VANILLA_IMPORT_RE =
-  /^[ \t]*import\s+(?:type\s+)?(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)\s+from\s+["']\.\/([^"']+-vanilla)["']\s*;?\r?\n?/m
+  /^[ \t]*import\s+(?:type\s+)?(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)\s+from\s+["']\.\/([^"']+-vanilla)["'][ \t]*;?[ \t]*(?:\r?\n|$)/m
 
 const VANILLA_EXPORT_RE =
   /^[ \t]*export\s+(?:type\s+)?\{[^}]*\}\s+from\s+["']\.\/[^"']+-vanilla["']\s*;?\r?\n?/gm
