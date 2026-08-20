@@ -1,15 +1,17 @@
-<script module>
+<script module lang="ts">
 </script>
 
-<script>
+<script lang="ts">
   import { onMount } from "svelte"
-
-  import { cn } from "$lib/utils"
   import {
     createDithered404,
     type Dithered404Instance,
     type Dithered404Options,
   } from "./dithered-404-vanilla"
+
+  function cn(...parts: Array<string | false | null | undefined>) {
+    return parts.filter(Boolean).join(" ")
+  }
 
   interface Props extends Dithered404Options {
     class?: string

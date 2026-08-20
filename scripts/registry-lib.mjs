@@ -105,6 +105,84 @@ function stripVanillaBindings(wrapper) {
     .replace(VANILLA_EXPORT_RE, "")
 }
 
+function withLangTs(attrs) {
+  if (/\blang\s*=/.test(attrs)) return attrs
+  return `${attrs} lang="ts"`
+}
+
+function standaloneSvelte(stripped, body) {
+  const moduleRe = /<script\b([^>]*\bmodule\b[^>]*)>/
+  const match = moduleRe.exec(stripped)
+  let out
+  if (match) {
+    const open = `<script${withLangTs(match[1])}>`
+    out =
+      stripped.slice(0, match.index) +
+      `${open}\n${body}\n` +
+      stripped.slice(match.index + match[0].length)
+  } else {
+    out = `<script module lang="ts">\n${body}\n</script>\n\n${stripped}`
+  }
+
+  return out.replace(/<script\b([^>]*)>/g, (_full, attrs) => {
+    return `<script${withLangTs(attrs)}>`
+  })
+}
+
+const IMPORT_LINE_RE =
+  /^import\b[\s\S]*?["'][^"']+["']\s*;?[ \t]*(?:\r?\n|$)/
+
+function peelLeadingImports(source) {
+  const imports = []
+  let rest = source.replace(/^\uFEFF/, "")
+  while (true) {
+    const wsMatch = rest.match(/^\s*/)
+    const ws = wsMatch ? wsMatch[0] : ""
+    const next = rest.slice(ws.length)
+    const match = next.match(IMPORT_LINE_RE)
+    if (!match) {
+      rest = `${ws}${next}`
+      break
+    }
+    imports.push(match[0].trim())
+    rest = next.slice(match[0].length)
+  }
+  return { imports, rest }
+}
+
+function uniqueImports(list) {
+  const seen = new Set()
+  const out = []
+  for (const item of list) {
+    const key = item.replace(/\s+/g, " ")
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(item)
+  }
+  return out
+}
+
+function standaloneReact(stripped, body) {
+  const useClientMatch = stripped.match(/^["']use client["']\s*;?\r?\n/)
+  const wrapperNoClient = useClientMatch
+    ? stripped.slice(useClientMatch[0].length)
+    : stripped
+  const wrapperParts = peelLeadingImports(wrapperNoClient)
+  const engineParts = peelLeadingImports(body)
+  const imports = uniqueImports([
+    ...wrapperParts.imports,
+    ...engineParts.imports,
+  ])
+  const importBlock = imports.length > 0 ? `${imports.join("\n")}\n\n` : ""
+  const header = useClientMatch
+    ? `${useClientMatch[0].replace(/\s*$/, "")}\n\n`
+    : ""
+  const engineRest = engineParts.rest.trim()
+  const wrapperRest = wrapperParts.rest.trimStart()
+  if (!engineRest) return `${header}${importBlock}${wrapperRest}`
+  return `${header}${importBlock}${engineRest}\n\n${wrapperRest}`
+}
+
 /**
  * Inline a vanilla engine into a framework wrapper so the published registry
  * item is a single standalone file (Canvas UI `makeStandalone`).
@@ -118,18 +196,10 @@ export function makeStandalone(wrapper, engine, kind) {
   const stripped = stripVanillaBindings(wrapper)
 
   if (kind === "svelte") {
-    const moduleTag = "<script module>"
-    if (stripped.includes(moduleTag)) {
-      return stripped.replace(moduleTag, `${moduleTag}\n${body}\n`)
-    }
-    return `<script module>\n${body}\n</script>\n\n${stripped}`
+    return standaloneSvelte(stripped, body)
   }
 
-  const useClient = /^["']use client["']\s*;?\r?\n/
-  if (useClient.test(stripped)) {
-    return stripped.replace(useClient, (m) => `${m}\n${body}\n\n`)
-  }
-  return `${body}\n\n${stripped}`
+  return standaloneReact(stripped, body)
 }
 
 function kindFromPath(filePath) {

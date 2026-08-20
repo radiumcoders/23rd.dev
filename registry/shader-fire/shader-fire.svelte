@@ -1,19 +1,22 @@
-<script module>
+<script module lang="ts">
 </script>
 
-<script>
+<script lang="ts">
   import { onMount } from "svelte"
-
-  import { cn } from "$lib/utils"
   import {
     createShaderFire,
     DARK_FALLBACK,
     LIGHT_FALLBACK,
+    resolveDark,
     type ShaderFireInstance,
     type ShaderFireOptions,
   } from "./shader-fire-vanilla"
 
-  interface Props extends ShaderFireOptions {
+  function cn(...parts: Array<string | false | null | undefined>) {
+    return parts.filter(Boolean).join(" ")
+  }
+
+  interface Props extends Omit<ShaderFireOptions, "onThemeChange"> {
     class?: string
   }
 
@@ -34,7 +37,24 @@
   let instance: ShaderFireInstance | null = null
 
   onMount(() => {
-    if (!canvas) return
+    const sync = () => {
+      isDark = resolveDark(theme)
+    }
+    sync()
+    const mo = new MutationObserver(sync)
+    mo.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme"],
+    })
+    const mq = window.matchMedia("(prefers-color-scheme: dark)")
+    mq.addEventListener("change", sync)
+
+    if (!canvas) {
+      return () => {
+        mo.disconnect()
+        mq.removeEventListener("change", sync)
+      }
+    }
     instance = createShaderFire(canvas, {
       colors,
       speed,
@@ -49,9 +69,15 @@
       },
     })
     return () => {
+      mo.disconnect()
+      mq.removeEventListener("change", sync)
       instance?.destroy()
       instance = null
     }
+  })
+
+  $effect(() => {
+    isDark = resolveDark(theme)
   })
 
   $effect(() => {

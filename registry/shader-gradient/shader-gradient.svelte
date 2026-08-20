@@ -1,19 +1,22 @@
-<script module>
+<script module lang="ts">
 </script>
 
-<script>
+<script lang="ts">
   import { onMount } from "svelte"
-
-  import { cn } from "$lib/utils"
   import {
     createShaderGradient,
     DARK_FALLBACK,
     LIGHT_FALLBACK,
+    resolveDark,
     type ShaderGradientInstance,
     type ShaderGradientOptions,
   } from "./shader-gradient-vanilla"
 
-  interface Props extends ShaderGradientOptions {
+  function cn(...parts: Array<string | false | null | undefined>) {
+    return parts.filter(Boolean).join(" ")
+  }
+
+  interface Props extends Omit<ShaderGradientOptions, "onThemeChange"> {
     class?: string
   }
 
@@ -32,7 +35,24 @@
   let instance: ShaderGradientInstance | null = null
 
   onMount(() => {
-    if (!canvas) return
+    const sync = () => {
+      isDark = resolveDark(theme)
+    }
+    sync()
+    const mo = new MutationObserver(sync)
+    mo.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme"],
+    })
+    const mq = window.matchMedia("(prefers-color-scheme: dark)")
+    mq.addEventListener("change", sync)
+
+    if (!canvas) {
+      return () => {
+        mo.disconnect()
+        mq.removeEventListener("change", sync)
+      }
+    }
     instance = createShaderGradient(canvas, {
       colors,
       speed,
@@ -45,9 +65,15 @@
       },
     })
     return () => {
+      mo.disconnect()
+      mq.removeEventListener("change", sync)
       instance?.destroy()
       instance = null
     }
+  })
+
+  $effect(() => {
+    isDark = resolveDark(theme)
   })
 
   $effect(() => {

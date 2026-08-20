@@ -1,16 +1,18 @@
-<script module>
+<script module lang="ts">
 </script>
 
-<script>
+<script lang="ts">
   import { onMount } from "svelte"
-
-  import { cn } from "$lib/utils"
   import {
     createRadiantLines,
     DEFAULT_COLORS,
     type RadiantLinesInstance,
     type RadiantLinesOptions,
   } from "./radiant-lines-vanilla"
+
+  function cn(...parts: Array<string | false | null | undefined>) {
+    return parts.filter(Boolean).join(" ")
+  }
 
   interface Props extends Omit<RadiantLinesOptions, "container"> {
     class?: string

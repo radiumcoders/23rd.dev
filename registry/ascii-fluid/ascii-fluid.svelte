@@ -1,16 +1,18 @@
-<script module>
+<script module lang="ts">
 </script>
 
-<script>
+<script lang="ts">
   import { onMount } from "svelte"
-
-  import { cn } from "$lib/utils"
   import {
     createAsciiFluid,
     DEFAULT_CHARSET,
     type AsciiFluidInstance,
     type AsciiFluidOptions,
   } from "./ascii-fluid-vanilla"
+
+  function cn(...parts: Array<string | false | null | undefined>) {
+    return parts.filter(Boolean).join(" ")
+  }
 
   interface Props extends AsciiFluidOptions {
     class?: string

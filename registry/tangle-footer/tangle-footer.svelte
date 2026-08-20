@@ -1,15 +1,17 @@
-<script module>
+<script module lang="ts">
 </script>
 
-<script>
+<script lang="ts">
   import { onMount } from "svelte"
-
-  import { cn } from "$lib/utils"
   import {
     buildRings,
     DEFAULT_LINES,
     type TangleFooterOptions,
   } from "./tangle-footer-vanilla"
+
+  function cn(...parts: Array<string | false | null | undefined>) {
+    return parts.filter(Boolean).join(" ")
+  }
 
   interface Props extends TangleFooterOptions {
     class?: string
@@ -38,7 +40,6 @@
       ? buildRings(width, bandHeight, lines, seed)
       : []
   )
-  const spinName = $derived(uid ? `tangle-spin-${uid}` : "")
   const showSvg = $derived(uid !== "" && width > 0 && bandHeight > 0)
 
   onMount(() => {
@@ -96,10 +97,6 @@
   style:height={bandHeight > 0 ? `${bandHeight}px` : undefined}
   style:aspect-ratio={height == null ? "2 / 1" : undefined}
 >
-  {#if spinName}
-    {@html `<style>@keyframes ${spinName}{to{transform:rotate(360deg)}}</style>`}
-  {/if}
-
   {#if showSvg}
     <svg
       class="absolute inset-0 size-full"
@@ -119,7 +116,7 @@
         <g
           style={reduce
             ? undefined
-            : `transform-box: view-box; transform-origin: ${ring.cx}px ${ring.cy}px; animation: ${spinName} ${ring.duration}s linear infinite; animation-direction: ${ring.reverse ? "reverse" : "normal"}; animation-delay: ${-ring.phase * ring.duration}s; animation-play-state: ${paused ? "paused" : "running"}; will-change: transform;`}
+            : `transform-box: view-box; transform-origin: ${ring.cx}px ${ring.cy}px; animation: tangle-spin ${ring.duration}s linear infinite; animation-direction: ${ring.reverse ? "reverse" : "normal"}; animation-delay: ${-ring.phase * ring.duration}s; animation-play-state: ${paused ? "paused" : "running"}; will-change: transform;`}
         >
           <use
             href="#{pathId}"
@@ -151,6 +148,12 @@
 </footer>
 
 <style>
+  @keyframes tangle-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
   @keyframes tangle-enter {
     from {
       opacity: 0;

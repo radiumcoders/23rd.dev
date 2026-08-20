@@ -1,10 +1,8 @@
-<script module>
+<script module lang="ts">
 </script>
 
-<script>
+<script lang="ts">
   import { onMount } from "svelte"
-
-  import { cn } from "$lib/utils"
   import {
     createLiveOrb,
     resolveVariant,
@@ -12,7 +10,11 @@
     type LiveOrbOptions,
   } from "./live-orb-vanilla"
 
-  interface Props extends LiveOrbOptions {
+  function cn(...parts: Array<string | false | null | undefined>) {
+    return parts.filter(Boolean).join(" ")
+  }
+
+  interface Props extends Omit<LiveOrbOptions, "onHasGl"> {
     class?: string
     /** Edge length in CSS pixels. Default `280`. */
     size?: number

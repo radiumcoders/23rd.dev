@@ -4,9 +4,8 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react"
 
@@ -43,6 +42,15 @@ function writeStoredFramework(value: Framework) {
   window.dispatchEvent(new Event(EVENT))
 }
 
+function subscribeFramework(onStoreChange: () => void) {
+  window.addEventListener(EVENT, onStoreChange)
+  window.addEventListener("storage", onStoreChange)
+  return () => {
+    window.removeEventListener(EVENT, onStoreChange)
+    window.removeEventListener("storage", onStoreChange)
+  }
+}
+
 type FrameworkContextValue = {
   framework: Framework
   setFramework: (value: Framework) => void
@@ -57,26 +65,13 @@ export function FrameworkProvider({
   children: ReactNode
   defaultFramework?: Framework
 }) {
-  const [framework, setFrameworkState] = useState<Framework>(defaultFramework)
-
-  useEffect(() => {
-    const stored = readStoredFramework()
-    if (stored) setFrameworkState(stored)
-
-    function onChange() {
-      const next = readStoredFramework()
-      if (next) setFrameworkState(next)
-    }
-    window.addEventListener(EVENT, onChange)
-    window.addEventListener("storage", onChange)
-    return () => {
-      window.removeEventListener(EVENT, onChange)
-      window.removeEventListener("storage", onChange)
-    }
-  }, [])
+  const framework = useSyncExternalStore(
+    subscribeFramework,
+    () => readStoredFramework() ?? defaultFramework,
+    () => defaultFramework
+  )
 
   const setFramework = useCallback((value: Framework) => {
-    setFrameworkState(value)
     writeStoredFramework(value)
   }, [])
 

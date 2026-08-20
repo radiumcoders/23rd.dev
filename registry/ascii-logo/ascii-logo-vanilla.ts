@@ -381,7 +381,28 @@ export function createAsciiLogo(
       src: image ? options.src : undefined,
     }
     sampleSource(samplerCtx, cols, rows, image, snapshot)
-    const data = samplerCtx.getImageData(0, 0, cols, rows)
+    let data: ImageData | null = null
+    try {
+      data = samplerCtx.getImageData(0, 0, cols, rows)
+    } catch {
+      data = null
+    }
+    if (!data && image) {
+      sampleSource(samplerCtx, cols, rows, null, {
+        ...snapshot,
+        src: undefined,
+      })
+      try {
+        data = samplerCtx.getImageData(0, 0, cols, rows)
+      } catch {
+        lastKey = ""
+        return
+      }
+    }
+    if (!data) {
+      lastKey = ""
+      return
+    }
     cells = buildFromImageData(data, cols, rows, snapshot)
     gridRows = rows
     setPhase("logo")

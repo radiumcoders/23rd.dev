@@ -23,6 +23,11 @@ export function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n))
 }
 
+export function isHexColor(value: string) {
+  const hex = value.trim().replace(/^#/, "")
+  return /^(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(hex)
+}
+
 export function toCss(color: GooeyColor) {
   return `hsla(${Math.round(color.h)} ${Math.round(color.s)}% ${Math.round(color.l)}% / ${Number(color.a.toFixed(3))})`
 }
@@ -112,7 +117,7 @@ export function parseColor(input?: GooeyColor | string): GooeyColor {
   }
 
   const hex = input.trim().replace("#", "")
-  if (/^[0-9a-f]{3,8}$/i.test(hex)) {
+  if (isHexColor(hex)) {
     const full =
       hex.length === 3 || hex.length === 4
         ? hex

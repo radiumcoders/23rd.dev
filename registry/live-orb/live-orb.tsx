@@ -24,7 +24,7 @@ export type {
   LiveOrbVariant,
 } from "./live-orb-vanilla"
 
-export type LiveOrbProps = LiveOrbOptions & {
+export type LiveOrbProps = Omit<LiveOrbOptions, "onHasGl"> & {
   className?: string
   /** Edge length in CSS pixels. Default `280`. */
   size?: number

@@ -8,6 +8,7 @@ import {
   createShaderFire,
   DARK_FALLBACK,
   LIGHT_FALLBACK,
+  resolveDark,
   type ShaderFireInstance,
   type ShaderFireOptions,
 } from "./shader-fire-vanilla"
@@ -24,7 +25,7 @@ export type {
   ShaderFireTheme,
 } from "./shader-fire-vanilla"
 
-export type ShaderFireProps = ShaderFireOptions & {
+export type ShaderFireProps = Omit<ShaderFireOptions, "onThemeChange"> & {
   className?: string
 }
 
@@ -46,6 +47,22 @@ export function ShaderFire({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const instanceRef = useRef<ShaderFireInstance | null>(null)
   const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    const sync = () => setIsDark(resolveDark(theme))
+    sync()
+    const mo = new MutationObserver(sync)
+    mo.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme"],
+    })
+    const mq = window.matchMedia("(prefers-color-scheme: dark)")
+    mq.addEventListener("change", sync)
+    return () => {
+      mo.disconnect()
+      mq.removeEventListener("change", sync)
+    }
+  }, [theme])
 
   useEffect(() => {
     const canvas = canvasRef.current

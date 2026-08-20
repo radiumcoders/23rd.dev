@@ -92,6 +92,23 @@ test("makeStandalone inlines a vanilla engine into a React wrapper", () => {
   assert.match(out, /export const LIGHT/)
   assert.doesNotMatch(out, /foo-vanilla/)
   assert.match(out, /^"use client"/)
+  assert.ok(
+    out.indexOf("export const LIGHT") < out.indexOf("export function Foo"),
+    "engine body should follow imports and precede the wrapper"
+  )
+})
+
+test("makeStandalone react emits wrapper imports after use client", () => {
+  const out = makeStandalone(
+    `"use client"\n\nimport { createFoo } from "./foo-vanilla"\nimport { useEffect } from "react"\n\nexport function Foo() {\n  createFoo()\n}\n`,
+    `export function createFoo() {}\n`,
+    "react"
+  )
+  assert.match(out, /^"use client"\s*\n\s*import \{ useEffect \} from "react"/)
+  const client = out.indexOf("use client")
+  const imp = out.indexOf('import { useEffect } from "react"')
+  const engine = out.indexOf("export function createFoo")
+  assert.ok(client >= 0 && imp > client && engine > imp)
 })
 
 test("makeStandalone injects the engine into a Svelte module script", () => {
@@ -100,8 +117,27 @@ test("makeStandalone injects the engine into a Svelte module script", () => {
     `export function createFoo() {}\n`,
     "svelte"
   )
-  assert.match(out, /<script module>\nexport function createFoo/)
+  assert.match(out, /<script module lang="ts">/)
+  assert.match(out, /<script lang="ts">/)
+  assert.equal(
+    (out.match(/<script\b[^>]*\bmodule\b/g) || []).length,
+    1,
+    "exactly one module script"
+  )
+  assert.match(out, /export function createFoo/)
   assert.doesNotMatch(out, /from "\.\/foo-vanilla"/)
+})
+
+test("makeStandalone svelte preserves existing script attributes", () => {
+  const out = makeStandalone(
+    `<script module lang="ts">\n</script>\n\n<script lang="ts">\n  import { createFoo } from "./foo-vanilla"\n  createFoo()\n</script>\n`,
+    `export function createFoo() {}\n`,
+    "svelte"
+  )
+  assert.match(out, /<script module lang="ts">/)
+  assert.match(out, /<script lang="ts">/)
+  assert.equal((out.match(/\blang=["']ts["']/g) || []).length, 2)
+  assert.equal((out.match(/<script\b[^>]*\bmodule\b/g) || []).length, 1)
 })
 
 for (const { include, dir, item } of items) {
@@ -217,3 +253,33 @@ for (const { dir, item } of items) {
     }
   })
 }
+
+test("built svelte payloads that contain TypeScript declare it on both script tags", () => {
+  for (const { item } of items) {
+    if (!isSvelteItem(item)) continue
+    const built = readJson(join(BUILD_DIR, `${item.name}.json`))
+    for (const file of built.files ?? []) {
+      if (!file.path?.endsWith(".svelte")) continue
+      const content = file.content ?? ""
+      const looksLikeTs =
+        /\b(?:interface|type|as const|\$props\s*<)\b/.test(content) ||
+        /<script\b[^>]*\blang=["']ts["']/.test(content)
+      if (!looksLikeTs) continue
+      assert.match(
+        content,
+        /<script\b[^>]*\bmodule\b[^>]*\blang=["']ts["']|<script\b[^>]*\blang=["']ts["'][^>]*\bmodule\b/,
+        `${item.name}: TypeScript payload must declare lang="ts" on the module script`
+      )
+      assert.match(
+        content,
+        /<script lang="ts">/,
+        `${item.name}: TypeScript payload must declare lang="ts" on the instance script`
+      )
+      assert.equal(
+        (content.match(/<script\b[^>]*\bmodule\b/g) || []).length,
+        1,
+        `${item.name}: exactly one module script`
+      )
+    }
+  }
+})

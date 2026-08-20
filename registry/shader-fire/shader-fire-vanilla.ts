@@ -309,10 +309,18 @@ export function createShaderFire(
 
   const vs = compile(gl, gl.VERTEX_SHADER, VERT)
   const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
-  if (!vs || !fs) return null
+  if (!vs || !fs) {
+    if (vs) gl.deleteShader(vs)
+    if (fs) gl.deleteShader(fs)
+    return null
+  }
 
   const program = gl.createProgram()
-  if (!program) return null
+  if (!program) {
+    gl.deleteShader(vs)
+    gl.deleteShader(fs)
+    return null
+  }
   gl.attachShader(program, vs)
   gl.attachShader(program, fs)
   gl.linkProgram(program)
@@ -323,6 +331,9 @@ export function createShaderFire(
         gl.getProgramInfoLog(program)
       )
     }
+    gl.deleteProgram(program)
+    gl.deleteShader(vs)
+    gl.deleteShader(fs)
     return null
   }
   gl.useProgram(program)

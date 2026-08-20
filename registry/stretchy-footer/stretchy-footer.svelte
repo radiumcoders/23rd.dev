@@ -1,14 +1,11 @@
-<script module>
+<script module lang="ts">
 </script>
 
-<script>
+<script lang="ts">
   import { onMount } from "svelte"
-
-  import { cn } from "$lib/utils"
   import {
     applyResistance,
     columnScale,
-    createSpring,
     DEFAULT_COLORS,
     DEFAULT_COLUMNS,
     elementAtBottom,
@@ -19,8 +16,12 @@
     WHEEL_IDLE_MS,
     windowAtBottom,
     type StretchyFooterPlayDetail,
-    type Spring,
   } from "./stretchy-footer-vanilla"
+  import { createSpring, type Spring } from "./stretchy-footer-spring-vanilla"
+
+  function cn(...parts: Array<string | false | null | undefined>) {
+    return parts.filter(Boolean).join(" ")
+  }
 
   interface Props {
     class?: string
@@ -161,11 +162,21 @@
     }
   })
 
+  function portalToBody(node: HTMLElement) {
+    document.body.appendChild(node)
+    return {
+      destroy() {
+        node.remove()
+      },
+    }
+  }
+
   $effect(() => {
     const s = createSpring({
       stiffness,
       damping,
       mass: 0.35,
+      initial: pull,
     })
     spring = s
     const unsub = s.onChange((v) => {
@@ -403,19 +414,18 @@
 
 {#if windowScroll}
   {#if mounted}
-    <svelte:body>
-      <div
-        data-slot="stretchy-footer"
-        aria-label={label}
-        class={cn(
-          "pointer-events-none fixed inset-x-0 bottom-0 z-50",
-          className
-        )}
-        style="height: {maxStretch}px;"
-      >
-        {@render aurora()}
-      </div>
-    </svelte:body>
+    <div
+      use:portalToBody
+      data-slot="stretchy-footer"
+      aria-label={label}
+      class={cn(
+        "pointer-events-none fixed inset-x-0 bottom-0 z-50",
+        className
+      )}
+      style="height: {maxStretch}px;"
+    >
+      {@render aurora()}
+    </div>
   {/if}
 {:else if scrollEl}
   <div

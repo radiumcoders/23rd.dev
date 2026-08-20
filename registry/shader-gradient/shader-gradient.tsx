@@ -8,6 +8,7 @@ import {
   createShaderGradient,
   DARK_FALLBACK,
   LIGHT_FALLBACK,
+  resolveDark,
   type ShaderGradientInstance,
   type ShaderGradientOptions,
 } from "./shader-gradient-vanilla"
@@ -24,7 +25,10 @@ export type {
   ShaderGradientTheme,
 } from "./shader-gradient-vanilla"
 
-export type ShaderGradientProps = ShaderGradientOptions & {
+export type ShaderGradientProps = Omit<
+  ShaderGradientOptions,
+  "onThemeChange"
+> & {
   className?: string
 }
 
@@ -44,6 +48,22 @@ export function ShaderGradient({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const instanceRef = useRef<ShaderGradientInstance | null>(null)
   const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    const sync = () => setIsDark(resolveDark(theme))
+    sync()
+    const mo = new MutationObserver(sync)
+    mo.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme"],
+    })
+    const mq = window.matchMedia("(prefers-color-scheme: dark)")
+    mq.addEventListener("change", sync)
+    return () => {
+      mo.disconnect()
+      mq.removeEventListener("change", sync)
+    }
+  }, [theme])
 
   useEffect(() => {
     const canvas = canvasRef.current

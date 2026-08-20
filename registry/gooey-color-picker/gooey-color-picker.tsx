@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils"
 import {
   CLOSE_PATHS,
   clamp,
+  isHexColor,
   PALETTE_PATHS,
   parseColor,
   toCss,
@@ -212,7 +213,7 @@ export function GooeyColorPicker({
   function commitHex(raw: string) {
     const next = parseColor(raw.startsWith("#") ? raw : `#${raw}`)
     const normalized = toHex(next)
-    if (/^#?[0-9a-f]{3,8}$/i.test(raw.trim())) {
+    if (isHexColor(raw.trim())) {
       setColor({ ...next })
       setHexDraft(normalized)
       return

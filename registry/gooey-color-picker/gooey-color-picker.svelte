@@ -1,19 +1,22 @@
-<script module>
+<script module lang="ts">
 </script>
 
-<script>
+<script lang="ts">
   import { onMount } from "svelte"
-
-  import { cn } from "$lib/utils"
   import {
     CLOSE_PATHS,
     clamp,
+    isHexColor,
     PALETTE_PATHS,
     parseColor,
     toCss,
     toHex,
     type GooeyColor,
   } from "./gooey-color-picker-vanilla"
+
+  function cn(...parts: Array<string | false | null | undefined>) {
+    return parts.filter(Boolean).join(" ")
+  }
 
   /** Minimal typing for the (still non-standard) EyeDropper API. */
   type EyeDropperResult = { sRGBHex: string }
@@ -72,7 +75,7 @@
       if (event.key === "Escape") open = false
     }
     function onPointerDown(event: PointerEvent) {
-      if (!rootEl?.contains(event.target)) {
+      if (event.target instanceof Node && !rootEl?.contains(event.target)) {
         open = false
       }
     }
@@ -146,7 +149,7 @@
   function commitHex(raw: string) {
     const next = parseColor(raw.startsWith("#") ? raw : `#${raw}`)
     const normalized = toHex(next)
-    if (/^#?[0-9a-f]{3,8}$/i.test(raw.trim())) {
+    if (isHexColor(raw.trim())) {
       setColor({ ...next })
       hexDraft = normalized
       return
@@ -198,11 +201,11 @@
 
   function onHexKeyDown(event: KeyboardEvent) {
     if (event.key === "Enter") {
-      event.currentTarget.blur()
+      if (event.currentTarget instanceof HTMLElement) event.currentTarget.blur()
     }
     if (event.key === "Escape") {
       hexDraft = hex
-      event.currentTarget.blur()
+      if (event.currentTarget instanceof HTMLElement) event.currentTarget.blur()
     }
   }
 </script>
@@ -219,7 +222,7 @@
   <div
     data-gcp-panel
     aria-hidden={!open}
-    class="absolute bottom-15 left-1/2 z-10 flex w-48 flex-col items-center overflow-hidden border border-white/15 bg-black p-3 shadow-[0_18px_50px_-20px_rgba(0,0,0,0.65)] transition-[opacity,translate,scale,filter] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+    class="absolute bottom-15 left-1/2 z-10 flex w-48 flex-col items-center overflow-hidden border border-white/15 bg-black p-3 shadow-[0_18px_50px_-20px_rgba(0,0,0,0.65)]"
     style="border-radius: 6rem 6rem 1.35rem 1.35rem; transform-origin: bottom center; translate: -50% {open
       ? 0
       : 12}px; scale: {open
@@ -233,6 +236,9 @@
       role="slider"
       tabindex={open ? 0 : -1}
       aria-label="Color"
+      aria-valuemin={0}
+      aria-valuemax={360}
+      aria-valuenow={Math.round(color.h)}
       aria-valuetext="hue {Math.round(color.h)}, saturation {Math.round(color.s)}"
       class={cn(
         "relative size-40 shrink-0 touch-none rounded-full outline-none",

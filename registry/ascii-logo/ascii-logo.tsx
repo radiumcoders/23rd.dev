@@ -155,8 +155,9 @@ export function AsciiLogo({
       aria-label={aria}
       tabIndex={interactive ? 0 : undefined}
       className={cn(
-        "relative size-full overflow-hidden outline-none",
-        interactive && "cursor-pointer",
+        "relative size-full overflow-hidden",
+        interactive &&
+          "cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none",
         className
       )}
     >

@@ -198,7 +198,7 @@ export function createRadiantLines(
     for (let i = 0; i < stars.length; i++) {
       const star = stars[i]!
       star.pz = star.z
-      star.z -= dir * warp * 2.4
+      star.z -= dir * warp * 2.4 * dt
 
       if (star.z <= 1) {
         star.z = DEPTH

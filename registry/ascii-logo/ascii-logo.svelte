@@ -1,16 +1,18 @@
-<script module>
+<script module lang="ts">
 </script>
 
-<script>
+<script lang="ts">
   import { onMount } from "svelte"
-
-  import { cn } from "$lib/utils"
   import {
     createAsciiLogo,
     DEFAULT_CHARSET,
     type AsciiLogoInstance,
     type AsciiLogoOptions,
   } from "./ascii-logo-vanilla"
+
+  function cn(...parts: Array<string | false | null | undefined>) {
+    return parts.filter(Boolean).join(" ")
+  }
 
   interface Props extends AsciiLogoOptions {
     class?: string
@@ -118,8 +120,9 @@
   aria-label={aria}
   tabindex={interactive ? 0 : undefined}
   class={cn(
-    "relative size-full overflow-hidden outline-none",
-    interactive && "cursor-pointer",
+    "relative size-full overflow-hidden",
+    interactive &&
+      "cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none",
     className
   )}
 >

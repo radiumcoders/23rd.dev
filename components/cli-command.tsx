@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useSyncExternalStore } from "react"
 
 import { CopyButton } from "@/components/copy-button"
 import { FrameworkSelect } from "@/components/framework-select"
@@ -22,6 +22,7 @@ import { registryItemName, useFramework } from "@/lib/framework"
 import { cn } from "@/lib/utils"
 
 const STORAGE_KEY = "23rd:package-manager"
+const MANAGER_EVENT = "23rd:package-manager-change"
 
 export type PackageManager = "npm" | "pnpm" | "yarn" | "bun"
 
@@ -70,6 +71,25 @@ function isPackageManager(value: string): value is PackageManager {
   return PACKAGE_MANAGERS.some((manager) => manager.value === value)
 }
 
+function readStoredManager(): PackageManager | null {
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY)
+    if (stored && isPackageManager(stored)) return stored
+  } catch {
+    // ignore
+  }
+  return null
+}
+
+function subscribeManager(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange)
+  window.addEventListener(MANAGER_EVENT, onStoreChange)
+  return () => {
+    window.removeEventListener("storage", onStoreChange)
+    window.removeEventListener(MANAGER_EVENT, onStoreChange)
+  }
+}
+
 export interface CliCommandProps {
   /**
    * Command body after the package runner.
@@ -111,19 +131,12 @@ export function CliCommand({
   defaultManager = "pnpm",
   className,
 }: CliCommandProps) {
-  const [manager, setManager] = useState<PackageManager>(defaultManager)
   const { framework } = useFramework()
-
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY)
-      if (stored && isPackageManager(stored)) {
-        setManager(stored)
-      }
-    } catch {
-      // ignore
-    }
-  }, [])
+  const manager = useSyncExternalStore(
+    subscribeManager,
+    () => readStoredManager() ?? defaultManager,
+    () => defaultManager
+  )
 
   const resolvedCommand =
     command ??
@@ -143,12 +156,12 @@ export function CliCommand({
 
   function onManagerChange(value: string | null) {
     if (!value || !isPackageManager(value)) return
-    setManager(value)
     try {
       window.localStorage.setItem(STORAGE_KEY, value)
     } catch {
       // ignore
     }
+    window.dispatchEvent(new Event(MANAGER_EVENT))
   }
 
   return (
