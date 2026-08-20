@@ -148,7 +148,7 @@
 </footer>
 
 <style>
-  @keyframes tangle-spin {
+  @keyframes -global-tangle-spin {
     to {
       transform: rotate(360deg);
     }

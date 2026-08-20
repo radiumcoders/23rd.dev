@@ -9,6 +9,7 @@ import {
   REGISTRY_SCHEMA,
   REGISTRY_ITEM_SCHEMA,
   REGISTRY_ITEM_TYPES,
+  detectVanillaImports,
   discoverIncludes,
   readRootRegistry,
   readJson,
@@ -109,6 +110,26 @@ test("makeStandalone react emits wrapper imports after use client", () => {
   const imp = out.indexOf('import { useEffect } from "react"')
   const engine = out.indexOf("export function createFoo")
   assert.ok(client >= 0 && imp > client && engine > imp)
+})
+
+test("detectVanillaImports finds consecutive sibling engines", () => {
+  const source = `import {\n  createFoo\n} from "./foo-vanilla"\nimport { createSpring } from "./foo-spring-vanilla"\n`
+  assert.deepEqual(detectVanillaImports(source), [
+    "foo-vanilla",
+    "foo-spring-vanilla",
+  ])
+})
+
+test("makeStandalone svelte inlines every sibling vanilla import", () => {
+  const out = makeStandalone(
+    `<script module lang="ts">\n</script>\n\n<script lang="ts">\n  import {\n    createFoo\n  } from "./foo-vanilla"\n  import { createSpring } from "./foo-spring-vanilla"\n  createFoo()\n  createSpring()\n</script>\n`,
+    `export function createFoo() {}\n\nexport function createSpring() {}\n`,
+    "svelte"
+  )
+  assert.match(out, /export function createFoo/)
+  assert.match(out, /export function createSpring/)
+  assert.doesNotMatch(out, /from "\.\/foo-vanilla"/)
+  assert.doesNotMatch(out, /from "\.\/foo-spring-vanilla"/)
 })
 
 test("makeStandalone injects the engine into a Svelte module script", () => {
@@ -253,6 +274,21 @@ for (const { dir, item } of items) {
     }
   })
 }
+
+test("built svelte payloads do not retain sibling vanilla imports", () => {
+  for (const { item } of items) {
+    if (!isSvelteItem(item)) continue
+    const built = readJson(join(BUILD_DIR, `${item.name}.json`))
+    for (const file of built.files ?? []) {
+      if (!file.path?.endsWith(".svelte")) continue
+      assert.doesNotMatch(
+        file.content ?? "",
+        /from ["']\.\/[^"']+-vanilla["']/,
+        `${item.name}: installed Svelte file still imports a sibling vanilla module`
+      )
+    }
+  }
+})
 
 test("built svelte payloads that contain TypeScript declare it on both script tags", () => {
   for (const { item } of items) {

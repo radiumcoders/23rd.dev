@@ -116,7 +116,7 @@ export function parseColor(input?: GooeyColor | string): GooeyColor {
     }
   }
 
-  const hex = input.trim().replace("#", "")
+  const hex = input.trim().replace(/^#/, "")
   if (isHexColor(hex)) {
     const full =
       hex.length === 3 || hex.length === 4

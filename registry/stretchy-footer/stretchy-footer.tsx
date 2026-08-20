@@ -142,8 +142,9 @@ export function StretchyFooter({
 
   const bars = useMemo(() => {
     const count = Math.max(8, Math.min(96, Math.floor(columns)))
+    const palette = colors.length > 0 ? colors : DEFAULT_COLORS
     return Array.from({ length: count }, (_, i) => {
-      const color = colors[i % colors.length]!
+      const color = palette[i % palette.length]!
       const heightPct = Math.max(28, columnScale(i, count) * 100).toFixed(2)
       return {
         key: i,
