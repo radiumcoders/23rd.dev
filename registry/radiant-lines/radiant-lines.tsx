@@ -33,6 +33,7 @@ export function RadiantLines({
   className,
   colors,
   starCount = 420,
+  displacement = 1,
   containerRef,
 }: RadiantLinesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -44,6 +45,7 @@ export function RadiantLines({
     instanceRef.current = createRadiantLines(canvas, {
       colors,
       starCount,
+      displacement,
       container: containerRef?.current ?? null,
     })
     return () => {
@@ -58,9 +60,10 @@ export function RadiantLines({
     instanceRef.current?.setOptions({
       colors,
       starCount,
+      displacement,
       container: containerRef?.current ?? null,
     })
-  }, [colors, starCount, containerRef])
+  }, [colors, starCount, displacement, containerRef])
 
   return (
     <div

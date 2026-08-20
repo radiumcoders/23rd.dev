@@ -5,7 +5,7 @@ description: A hyperspace starfield background — colored streaks from the cent
 
 import { RadiantLinesDemo } from "@/registry/radiant-lines/radiant-lines-demo"
 
-Canvas starfield in the spirit of those GSAP hyperspace scroll demos: stars project from the center as streaks. Scroll velocity boosts warp; release and it eases back to a drift.
+Canvas starfield in the spirit of those GSAP hyperspace scroll demos: stars project from the center as streaks. Scroll velocity boosts warp; `displacement` scales how far each star jumps. Release and it eases back to a drift.
 
 <RadiantLinesDemo />
 
@@ -63,6 +63,7 @@ export function Hero() {
 | --- | --- | --- |
 | `colors` | `string[]` | coral / teal / amber / blue / pink / lime / slate |
 | `starCount` | `number` | `420` |
+| `displacement` | `number` | `1` — how far each star jumps on warp / scroll |
 | `containerRef` | `RefObject<HTMLElement \| null>` | React — window scroll |
 | `container` | `HTMLElement` | Svelte — window scroll |
 | `className` | `string` | React only |

@@ -13,6 +13,7 @@ import { RadiantLines } from "@/registry/radiant-lines/radiant-lines"
 
 const DEFAULTS = {
   starCount: 420,
+  displacement: 1,
   colors: [
     "#FF6B4A",
     "#2DD4BF",
@@ -55,12 +56,13 @@ export function RadiantLinesDemo() {
       >
         <div
           ref={scrollerRef}
-          className="no-scrollbar relative h-[56svh] w-full snap-y snap-mandatory overflow-y-auto overscroll-contain rounded-[inherit] bg-background"
+          className="relative no-scrollbar h-[56svh] w-full snap-y snap-mandatory overflow-y-auto overscroll-contain rounded-[inherit] bg-background"
         >
           <div className="pointer-events-none sticky top-0 h-[56svh]">
             <RadiantLines
               containerRef={scrollerRef}
               starCount={props.starCount}
+              displacement={props.displacement}
               colors={props.colors}
             />
           </div>
@@ -94,6 +96,7 @@ export function RadiantLinesDemo() {
         component="RadiantLines"
         snippetProps={{
           starCount: props.starCount,
+          displacement: props.displacement,
           colors: props.colors,
         }}
       >
@@ -139,6 +142,14 @@ export function RadiantLinesDemo() {
           max={900}
           step={20}
           onChange={(v) => updateProp("starCount", v)}
+        />
+        <ControlSlider
+          label="Displacement"
+          value={props.displacement}
+          min={0.2}
+          max={3}
+          step={0.1}
+          onChange={(v) => updateProp("displacement", v)}
         />
       </ComponentControls>
     </>
