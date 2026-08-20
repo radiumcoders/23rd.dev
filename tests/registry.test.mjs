@@ -15,6 +15,7 @@ import {
   composeRootRegistry,
   isSvelteItem,
   makeStandalone,
+  detectVanillaImports,
   manifestDir,
   normalizeEol,
   publishedFileContent,
@@ -126,6 +127,34 @@ test("makeStandalone injects the engine into a Svelte module script", () => {
   )
   assert.match(out, /export function createFoo/)
   assert.doesNotMatch(out, /from "\.\/foo-vanilla"/)
+})
+
+test("detectVanillaImports finds every sibling *-vanilla specifier", () => {
+  const src = `import {\n  a,\n  type B,\n} from "./foo-vanilla"\nimport { createSpring, type Spring } from "./foo-spring-vanilla"\n`
+  assert.deepEqual(detectVanillaImports(src), [
+    "foo-vanilla",
+    "foo-spring-vanilla",
+  ])
+})
+
+test("published stretchy-footer-svelte inlines both vanilla engines", () => {
+  const dir = join(ROOT, "registry/stretchy-footer")
+  const out = publishedFileContent(dir, "stretchy-footer.svelte")
+  assert.doesNotMatch(out, /from\s+["']\.\/[^"']+-vanilla["']/)
+  assert.match(out, /export function createSpring/)
+  assert.match(out, /export function applyResistance/)
+})
+
+test("makeStandalone keeps framework imports while dropping two vanilla engines", () => {
+  const out = makeStandalone(
+    `"use client"\n\nimport { useEffect } from "react"\nimport {\n  createFoo,\n} from "./foo-vanilla"\nimport { createSpring } from "./foo-spring-vanilla"\n\nexport function Foo() {\n  createFoo()\n}\n`,
+    `export function createFoo() {}\nexport function createSpring() {}\n`,
+    "react"
+  )
+  assert.match(out, /import \{ useEffect \} from "react"/)
+  assert.match(out, /export function createFoo/)
+  assert.match(out, /export function createSpring/)
+  assert.doesNotMatch(out, /foo-vanilla/)
 })
 
 test("makeStandalone svelte preserves existing script attributes", () => {
@@ -253,6 +282,19 @@ for (const { dir, item } of items) {
     }
   })
 }
+
+test("built payloads do not import sibling *-vanilla modules", () => {
+  for (const { item } of items) {
+    const built = readJson(join(BUILD_DIR, `${item.name}.json`))
+    for (const file of built.files ?? []) {
+      assert.doesNotMatch(
+        file.content ?? "",
+        /from\s+["']\.\/[^"']+-vanilla["']/,
+        `${item.name}: ${file.path} still imports a vanilla sibling — run \`pnpm registry:build\``
+      )
+    }
+  }
+})
 
 test("built svelte payloads that contain TypeScript declare it on both script tags", () => {
   for (const { item } of items) {

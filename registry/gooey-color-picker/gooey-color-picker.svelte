@@ -102,7 +102,8 @@
       event.preventDefault()
       const target = event.currentTarget
       if (!(target instanceof HTMLElement)) return
-      target.setPointerCapture(event.pointerId)
+      const el: HTMLElement = target
+      el.setPointerCapture(event.pointerId)
       onMove(event.clientX, event.clientY)
 
       function move(e: PointerEvent) {
@@ -112,7 +113,7 @@
         window.removeEventListener("pointermove", move)
         window.removeEventListener("pointerup", up)
         try {
-          target.releasePointerCapture(e.pointerId)
+          el.releasePointerCapture(e.pointerId)
         } catch {
           // ignore
         }
