@@ -48,10 +48,22 @@ export function isComponentPage(slug?: string[]): boolean {
   return slug?.[0] === "components" && (slug?.length ?? 0) > 1
 }
 
+export const OG_IMAGE_SIZE = { width: 1200, height: 630 } as const
+
+/** Catch-alls cannot host `opengraph-image`; pages point at `/og/docs/.../image.png`. */
+export function docsOgImageSegments(slug?: string[]): string[] {
+  return [...(slug ?? []), "image.png"]
+}
+
+export function docsOgImagePath(slug?: string[]): string {
+  return `/og/docs/${docsOgImageSegments(slug).join("/")}`
+}
+
 export function buildPageMetadata({
   title,
   description,
   path,
+  slug,
   keywords = [],
   type = "website",
   absoluteTitle = false,
@@ -59,12 +71,19 @@ export function buildPageMetadata({
   title: string
   description?: string
   path: string
+  slug?: string[]
   keywords?: string[]
   type?: "website" | "article"
   absoluteTitle?: boolean
 }): Metadata {
   const desc = description?.trim() || SITE_DESCRIPTION
   const ogTitle = absoluteTitle ? title : `${title} · ${SITE_NAME}`
+  const image = {
+    url: docsOgImagePath(slug),
+    width: OG_IMAGE_SIZE.width,
+    height: OG_IMAGE_SIZE.height,
+    alt: ogTitle,
+  }
 
   return {
     title: absoluteTitle ? { absolute: title } : title,
@@ -81,11 +100,13 @@ export function buildPageMetadata({
       siteName: SITE_NAME,
       locale: "en_US",
       type,
+      images: [image],
     },
     twitter: {
       card: "summary_large_image",
       title: ogTitle,
       description: desc,
+      images: [image.url],
     },
   }
 }

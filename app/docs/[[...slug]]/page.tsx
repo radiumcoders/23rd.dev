@@ -83,6 +83,7 @@ export async function generateMetadata(props: {
     title: isDocsIndex(params.slug) ? SITE_TITLE : page.data.title,
     description: page.data.description,
     path,
+    slug: params.slug,
     keywords: extraKeywords,
     type: "article",
     absoluteTitle: isDocsIndex(params.slug),

@@ -54,10 +54,7 @@ export function DocsShell({
 }) {
   return (
     <FrameworkProvider>
-      <SidebarProvider
-        style={sidebarTokens}
-        className="[&_[data-slot=sidebar-gap]]:w-0!"
-      >
+      <SidebarProvider style={sidebarTokens}>
         <Sidebar
           id="docs-sidebar"
           aria-label="Documentation"
@@ -79,7 +76,7 @@ export function DocsShell({
           </SidebarContent>
         </Sidebar>
         <SidebarInset className="min-w-0">
-          <header className="flex h-14 w-full items-center gap-3 px-6 transition-[padding] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] md:group-has-[[data-slot=sidebar][data-state=expanded]]/sidebar-wrapper:ps-[calc(var(--sidebar-width)+1.5rem)]">
+          <header className="flex h-14 w-full items-center gap-3 px-6">
             <DocsSidebarTrigger showWhenCollapsed />
             <div className="ml-auto flex items-center gap-1">
               <GithubStars stars={githubStars} />

@@ -2,33 +2,15 @@ import { ImageResponse } from "next/og"
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 
-import { SITE_NAME, SITE_TAGLINE } from "@/lib/seo"
-import { source } from "@/lib/source"
+import { OG_IMAGE_SIZE, SITE_NAME } from "@/lib/seo"
 
-export const alt = "23rd documentation"
-export const size = {
-  width: 1200,
-  height: 630,
-}
-export const contentType = "image/png"
-
-export function generateStaticParams() {
-  return source.generateParams()
-}
-
-export default async function Image({
-  params,
+export async function renderDocsOgImage({
+  title,
+  description,
 }: {
-  params: Promise<{ slug?: string[] }>
+  title: string
+  description: string
 }) {
-  const { slug } = await params
-  const page = source.getPage(slug)
-  const isIndex = !slug?.length
-  const title = isIndex ? SITE_NAME : (page?.data.title ?? SITE_NAME)
-  const description = isIndex
-    ? SITE_TAGLINE
-    : (page?.data.description ?? SITE_TAGLINE)
-
   const logo = await readFile(join(process.cwd(), "app/apple-icon.png"))
   const logoSrc = `data:image/png;base64,${logo.toString("base64")}`
 
@@ -119,6 +101,6 @@ export default async function Image({
         shadcn registry
       </div>
     </div>,
-    { ...size }
+    { ...OG_IMAGE_SIZE }
   )
 }

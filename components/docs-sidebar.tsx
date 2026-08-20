@@ -81,10 +81,67 @@ function SeparatorItem({ node }: { node: SeparatorNode }) {
   }
 
   return (
-    <SidebarGroupLabel className="mt-3 first:mt-0 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+    <SidebarGroupLabel className="mt-3 truncate text-[11px] font-medium tracking-wide text-muted-foreground uppercase first:mt-0">
       {node.name}
     </SidebarGroupLabel>
   )
+}
+
+function folderKey(node: FolderNode, index: number) {
+  return node.index?.url ?? `folder-${String(node.name)}-${index}`
+}
+
+function NavItems({
+  nodes,
+  pathname,
+  indented = false,
+}: {
+  nodes: TreeNode[]
+  pathname: string
+  indented?: boolean
+}) {
+  return nodes.map((node, i) => {
+    if (isPage(node)) {
+      return (
+        <PageItem
+          key={node.url}
+          node={node}
+          pathname={pathname}
+          indented={indented}
+        />
+      )
+    }
+
+    if (isSeparator(node)) {
+      return (
+        <SeparatorItem
+          key={`sep-${String(node.name ?? "")}-${i}`}
+          node={node}
+        />
+      )
+    }
+
+    if (isFolder(node)) {
+      const hasSectionedChildren = node.children.some(isSeparator)
+
+      return (
+        <React.Fragment key={folderKey(node, i)}>
+          {node.index ? (
+            <PageItem node={node.index} pathname={pathname} />
+          ) : hasSectionedChildren ? null : (
+            <SidebarGroupLabel>{node.name}</SidebarGroupLabel>
+          )}
+          <NavItems
+            nodes={node.children}
+            pathname={pathname}
+            indented={Boolean(node.index) || !hasSectionedChildren}
+          />
+        </React.Fragment>
+      )
+    }
+
+    return null
+  })
 }
 
 function NavList({
@@ -98,43 +155,7 @@ function NavList({
 }) {
   return (
     <SidebarMenu>
-      {nodes.map((node, i) => {
-        if (isPage(node)) {
-          return (
-            <PageItem
-              key={node.url ?? i}
-              node={node}
-              pathname={pathname}
-              indented={indented}
-            />
-          )
-        }
-
-        if (isSeparator(node)) {
-          return <SeparatorItem key={`sep-${i}`} node={node} />
-        }
-
-        if (isFolder(node)) {
-          const hasSectionedChildren = node.children.some(isSeparator)
-
-          return (
-            <React.Fragment key={i}>
-              {node.index ? (
-                <PageItem node={node.index} pathname={pathname} />
-              ) : hasSectionedChildren ? null : (
-                <SidebarGroupLabel>{node.name}</SidebarGroupLabel>
-              )}
-              <NavList
-                nodes={node.children}
-                pathname={pathname}
-                indented={Boolean(node.index) || !hasSectionedChildren}
-              />
-            </React.Fragment>
-          )
-        }
-
-        return null
-      })}
+      <NavItems nodes={nodes} pathname={pathname} indented={indented} />
     </SidebarMenu>
   )
 }
