@@ -126,6 +126,7 @@ Useful scripts:
 | `pnpm build`          | Build registry + production app                        |
 | `pnpm preview`        | Build with OpenNext and preview in the Workers runtime |
 | `pnpm cf:deploy`      | Build with OpenNext and deploy to Cloudflare Workers   |
+| `pnpm cf:upload`      | Build with OpenNext and upload a preview version       |
 | `pnpm registry:build` | Emit `public/r/*.json` from `registry/`                |
 | `pnpm test`           | Run registry tests                                     |
 | `pnpm typecheck`      | MDX + TypeScript check                                 |
@@ -138,7 +139,15 @@ Stack: Next.js 16, React 19, Fumadocs, Tailwind CSS 4, shadcn/ui (Base UI), Clou
 pnpm cf:deploy
 ```
 
-Connect the repo in the [Cloudflare dashboard](https://dash.cloudflare.com/) (Workers Builds) for Git-based deploys. Point `23rd.dev` DNS at the Worker when you're ready to cut over from Vercel.
+GitHub Actions deploys production on push to `main`. Opening a PR uploads a **preview version** (production is untouched) and comments a stable URL, the same idea as Vercel preview deployments:
+
+`https://pr-<number>-23rd-dev.<subdomain>.workers.dev`
+
+That alias stays put as you push more commits to the same PR. Preview URLs live on `workers.dev`; they are public unless you later put [Cloudflare Access](https://developers.cloudflare.com/workers/configuration/cloudflare-access/) in front of them.
+
+You can get the same PR comments from [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/) instead: connect the repo in the [Cloudflare dashboard](https://dash.cloudflare.com/), set the deploy command to `pnpm cf:deploy`, the non-production command to `pnpm cf:upload`, and enable **Builds for non-production branches**. Don’t run both Workers Builds and this GitHub Action for the same events or you’ll double-deploy.
+
+Point `23rd.dev` DNS at the Worker when you’re ready to cut over from Vercel.
 
 ## Contributing
 
