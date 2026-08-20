@@ -30,6 +30,9 @@
 # inlined registry snapshot used by `pnpm registry:build`
 .registry-standalone
 
+# local CLI install demos
+/tmp-demos
+
 # misc
 .DS_Store
 *.pem

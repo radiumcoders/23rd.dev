@@ -78,12 +78,13 @@ export function normalizeEol(text) {
   return text.replace(/\r\n/g, "\n")
 }
 
-/** Import of a sibling `*-vanilla` module, including multiline named imports. */
-const VANILLA_IMPORT_RE =
-  /^[ \t]*import\s+(?:type\s+)?(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)\s+from\s+["']\.\/([^"']+-vanilla)["']\s*;?\r?\n?/m
-
-const VANILLA_EXPORT_RE =
-  /^[ \t]*export\s+(?:type\s+)?\{[^}]*\}\s+from\s+["']\.\/[^"']+-vanilla["']\s*;?\r?\n?/gm
+/**
+ * Import of a sibling `*-vanilla` module, including multiline named imports.
+ * Detection uses the `from` specifier so a second engine is not missed after a
+ * multiline import. Stripping walks import blocks so `{[\s\S]*?}` cannot eat
+ * earlier `import { … } from "react"` lines while searching for `-vanilla`.
+ */
+const VANILLA_FROM_RE = /from\s+["']\.\/([^"']+-vanilla)["']/
 
 /**
  * Detect `./foo-vanilla` imports in a wrapper. Returns the specifiers
@@ -91,18 +92,56 @@ const VANILLA_EXPORT_RE =
  */
 export function detectVanillaImports(source) {
   const names = []
-  const re = new RegExp(VANILLA_IMPORT_RE.source, "gm")
+  const seen = new Set()
+  const re = new RegExp(VANILLA_FROM_RE.source, "g")
   let match
   while ((match = re.exec(source))) {
+    if (seen.has(match[1])) continue
+    seen.add(match[1])
     names.push(match[1])
   }
   return names
 }
 
+function isVanillaFromBlock(block) {
+  return VANILLA_FROM_RE.test(block)
+}
+
+/**
+ * Drop import / re-export statements that bind a sibling `*-vanilla` module.
+ * Walks line-by-line so a multiline named import does not swallow the next
+ * import, and so `from "react"` is never treated as part of a vanilla import.
+ */
 function stripVanillaBindings(wrapper) {
-  return wrapper
-    .replace(new RegExp(VANILLA_IMPORT_RE.source, "gm"), "")
-    .replace(VANILLA_EXPORT_RE, "")
+  const newline = wrapper.includes("\r\n") ? "\r\n" : "\n"
+  const lines = wrapper.split(/\r\n|\n|\r/)
+  const out = []
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    if (
+      !/^[ \t]*import\s/.test(line) &&
+      !/^[ \t]*export\s+(?:type\s+)?\{/.test(line)
+    ) {
+      out.push(line)
+      continue
+    }
+
+    let block = line
+    let end = i
+    while (end < lines.length && !/from\s+["'][^"']+["']/.test(block)) {
+      end += 1
+      if (end >= lines.length) break
+      block += newline + lines[end]
+    }
+
+    if (isVanillaFromBlock(block)) {
+      i = end
+      continue
+    }
+
+    out.push(line)
+  }
+  return out.join(newline)
 }
 
 function withLangTs(attrs) {
