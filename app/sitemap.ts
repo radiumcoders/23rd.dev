@@ -1,26 +1,33 @@
 import type { MetadataRoute } from "next"
 
+import { absoluteUrl, docsPath } from "@/lib/seo"
 import { source } from "@/lib/source"
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const params = source.generateParams()
+  const seen = new Set<string>()
+  const entries: MetadataRoute.Sitemap = []
 
-  return [
-    {
-      url: "https://23rd.dev/docs",
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-    ...params.map((param) => {
-      const slug = param.slug?.join("/") ?? ""
-      if (!slug) return null
-      return {
-        url: `https://23rd.dev/docs/${slug}`,
-        lastModified: new Date(),
-        changeFrequency: "weekly" as const,
-        priority: 0.6,
-      }
-    }).filter((entry): entry is NonNullable<typeof entry> => entry != null),
-  ]
+  const add = (
+    path: string,
+    priority: number,
+    changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] = "weekly"
+  ) => {
+    const url = absoluteUrl(path)
+    if (seen.has(url)) return
+    seen.add(url)
+    entries.push({ url, changeFrequency, priority })
+  }
+
+  add("/docs", 1)
+
+  for (const param of source.generateParams()) {
+    const page = source.getPage(param.slug)
+    const path = page?.url || docsPath(param.slug)
+    const isIndex = !param.slug?.length
+    const isComponent = param.slug?.[0] === "components"
+
+    add(path, isIndex ? 1 : isComponent ? 0.8 : 0.7)
+  }
+
+  return entries
 }
