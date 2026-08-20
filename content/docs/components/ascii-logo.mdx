@@ -11,21 +11,18 @@ A logo sampled onto a grid of letters and numbers. Move over it and the characte
 
 ## Installation
 
-<CliCommand command="shadcn@latest add @23rd/ascii-logo" />
+<CliCommand item="ascii-logo" />
 
 Or install straight from the public GitHub source registry:
 
-<CliCommand
-  npm="npx shadcn@latest add radiumcoders/23rd.dev/ascii-logo"
-  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/ascii-logo"
-  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/ascii-logo"
-  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/ascii-logo"
-/>
+<CliCommand item="ascii-logo" github />
 
 ## Usage
 
 Place it in a sized container. The canvas fills the parent.
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -39,12 +36,34 @@ export function FooterMark() {
   )
 }
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import AsciiLogo from "$lib/components/ui/ascii-logo.svelte"
+</script>
+
+<div class="relative h-64 w-full overflow-hidden bg-background">
+  <AsciiLogo text="23rd" />
+</div>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 Pass `src` to sample an image instead of text — any raster, or a same-origin SVG.
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 <AsciiLogo src="/logo.svg" />
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<AsciiLogo src="/logo.svg" />
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 Clicks cycle `logo → scattered → fallen → returning → logo`. Hover repulsion only runs in the resting `logo` phase.
 
@@ -75,4 +94,5 @@ Clicks cycle `logo → scattered → fallen → returning → logo`. Hover repul
 | `theme`           | `"light" \| "dark" \| "auto"` | `auto`                          |
 | `label`           | `string`                      | `text` or `"ASCII logo"`        |
 | `onPhaseChange`   | `(phase) => void`             | —                               |
-| `className`       | `string`                      | —                               |
+| `className`       | `string`                      | React only                      |
+| `class`           | `string`                      | Svelte only                     |

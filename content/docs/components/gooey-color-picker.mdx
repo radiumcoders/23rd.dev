@@ -13,19 +13,16 @@ A compact swatch that opens into a panel — circular color wheel, alpha slider,
 
 ## Installation
 
-<CliCommand command="shadcn@latest add @23rd/gooey-color-picker" />
+<CliCommand item="gooey-color-picker" />
 
 Or install straight from the public GitHub source registry:
 
-<CliCommand
-  npm="npx shadcn@latest add radiumcoders/23rd.dev/gooey-color-picker"
-  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/gooey-color-picker"
-  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/gooey-color-picker"
-  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/gooey-color-picker"
-/>
+<CliCommand item="gooey-color-picker" github />
 
 ## Usage
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 import { GooeyColorPicker } from "@/components/ui/gooey-color-picker"
 
@@ -40,6 +37,22 @@ export function Example() {
   )
 }
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import GooeyColorPicker from "$lib/components/ui/gooey-color-picker.svelte"
+</script>
+
+<GooeyColorPicker
+  defaultValue={{ h: 210, s: 90, l: 55, a: 1 }}
+  onChange={(color, css) => {
+    console.log(color, css)
+  }}
+/>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 ## Props
 
@@ -49,6 +62,7 @@ export function Example() {
 | `defaultValue` | `GooeyColor \| string` | `{ h: 210, s: 90, l: 55, a: 1 }` |
 | `onChange` | `(color: GooeyColor, css: string) => void` | — |
 | `label` | `string` | `"Color picker"` |
-| `className` | `string` | — |
+| `className` | `string` | React only |
+| `class` | `string` | Svelte only |
 
 `GooeyColor` is `{ h, s, l, a }` (hue 0–360, saturation/lightness 0–100, alpha 0–1). String values accept hex or `hsl`/`hsla`.

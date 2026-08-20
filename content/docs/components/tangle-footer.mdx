@@ -11,21 +11,18 @@ Five concentric rings as an **upper semicircle** — outer diameter spans the pa
 
 ## Installation
 
-<CliCommand command="shadcn@latest add @23rd/tangle-footer" />
+<CliCommand item="tangle-footer" />
 
 Or install straight from the public GitHub source registry:
 
-<CliCommand
-  npm="npx shadcn@latest add radiumcoders/23rd.dev/tangle-footer"
-  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/tangle-footer"
-  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/tangle-footer"
-  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/tangle-footer"
-/>
+<CliCommand item="tangle-footer" github />
 
 ## Usage
 
 Wrap in `max-w-7xl` (or any width constraint). The outer semicircle fills that width; pass phrases via `lines` (one per ring).
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -45,6 +42,25 @@ export function SiteFooter() {
   )
 }
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import TangleFooter from "$lib/components/ui/tangle-footer.svelte"
+</script>
+
+<div class="mx-auto w-full max-w-7xl">
+  <TangleFooter
+    lines={[
+      "Ship something opinionated — less boilerplate, clearer decisions.",
+      "Knows what’s going on. Can you check in with them and see what’s next.",
+      "The new timeline should be ready by Friday, although it’s probably going to slip.",
+    ]}
+  />
+</div>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 ## Props
 
@@ -57,4 +73,5 @@ export function SiteFooter() {
 | `height`     | `number`   | half of measured width (semicircle) |
 | `seed`       | `number`   | `23`                                |
 | `label`      | `string`   | `Site footer`                       |
-| `className`  | `string`   | —                                   |
+| `className`  | `string`   | React only                          |
+| `class`      | `string`   | Svelte only                         |

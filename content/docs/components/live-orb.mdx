@@ -11,19 +11,16 @@ A still orb. Two pill eyes ride the curve and look at the cursor. White is the d
 
 ## Installation
 
-<CliCommand command="shadcn@latest add @23rd/live-orb" />
+<CliCommand item="live-orb" />
 
 Or install straight from the public GitHub source registry:
 
-<CliCommand
-  npm="npx shadcn@latest add radiumcoders/23rd.dev/live-orb"
-  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/live-orb"
-  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/live-orb"
-  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/live-orb"
-/>
+<CliCommand item="live-orb" github />
 
 ## Usage
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -33,9 +30,22 @@ export function Mascot() {
   return <LiveOrb />
 }
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import LiveOrb from "$lib/components/ui/live-orb.svelte"
+</script>
+
+<LiveOrb />
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 Named variants set the material. `custom` reads `color` and `eyeColor`. `webgl` can take an optional three-stop `colors` palette.
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 <LiveOrb variant="white" />
 <LiveOrb variant="black" />
@@ -43,6 +53,17 @@ Named variants set the material. `custom` reads `color` and `eyeColor`. `webgl` 
 <LiveOrb variant="webgl" colors={["#7C6AF7", "#7DD3C7", "#E8B4D4"]} />
 <LiveOrb variant="custom" color="#7C5CFF" eyeColor="#FAFAFA" />
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<LiveOrb variant="white" />
+<LiveOrb variant="black" />
+<LiveOrb variant="webgl" />
+<LiveOrb variant="webgl" colors={["#7C6AF7", "#7DD3C7", "#E8B4D4"]} />
+<LiveOrb variant="custom" color="#7C5CFF" eyeColor="#FAFAFA" />
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 The orb does not follow the pointer — only the eyes do. Pass `interactive={false}` to park the gaze.
 
@@ -57,6 +78,7 @@ The orb does not follow the pointer — only the eyes do. Pass `interactive={fal
 | `colors`      | `string[]`                                  | violet / foam / dust-rose |
 | `interactive` | `boolean`                                   | `true`                    |
 | `blink`       | `boolean`                                   | `true`                    |
-| `className`   | `string`                                    | —                         |
+| `className`   | `string`                                    | React only                |
+| `class`       | `string`                                    | Svelte only               |
 
 `color` and `eyeColor` apply only when `variant="custom"`. `colors` applies only when `variant="webgl"`.

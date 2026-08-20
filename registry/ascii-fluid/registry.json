@@ -13,6 +13,19 @@
           "target": "components/ui/ascii-fluid.tsx"
         }
       ]
+    },
+    {
+      "name": "ascii-fluid-svelte",
+      "type": "registry:ui",
+      "title": "ASCII Fluid",
+      "description": "Mouse-trail WebGL fluid background quantized to a clean ASCII brightness ramp - zero deps, theme-aware.",
+      "files": [
+        {
+          "path": "ascii-fluid.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/ascii-fluid.svelte"
+        }
+      ]
     }
   ]
 }

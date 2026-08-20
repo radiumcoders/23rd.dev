@@ -13,6 +13,20 @@
           "target": "components/ui/shader-fire.tsx"
         }
       ]
+    },
+    {
+      "name": "shader-fire-svelte",
+      "type": "registry:ui",
+      "title": "Shader Fire",
+      "description": "Sparse 2D WebGL fire wash for landing heroes — tongues rise from the bottom, theme-aware, optional pointer heat.",
+      "files": [
+        {
+          "path": "shader-fire.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/shader-fire.svelte"
+        }
+      ],
+      "dependencies": []
     }
   ]
 }

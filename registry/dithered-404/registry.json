@@ -13,6 +13,19 @@
           "target": "components/ui/dithered-404.tsx"
         }
       ]
+    },
+    {
+      "name": "dithered-404-svelte",
+      "type": "registry:ui",
+      "title": "Dithered 404",
+      "description": "Bayer-pixel 404 section — a fireball cursor scorches the glyph, burns it into embers and smoke, then reforms. Optional soft realistic fire.",
+      "files": [
+        {
+          "path": "dithered-404.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/dithered-404.svelte"
+        }
+      ]
     }
   ]
 }

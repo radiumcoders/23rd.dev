@@ -11,21 +11,18 @@ Bold **404** printed as ordered Bayer pixels — or turn **Dither** off for a so
 
 ## Installation
 
-<CliCommand command="shadcn@latest add @23rd/dithered-404" />
+<CliCommand item="dithered-404" />
 
 Or install straight from the public GitHub source registry:
 
-<CliCommand
-  npm="npx shadcn@latest add radiumcoders/23rd.dev/dithered-404"
-  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/dithered-404"
-  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/dithered-404"
-  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/dithered-404"
-/>
+<CliCommand item="dithered-404" github />
 
 ## Usage
 
 Pin it inside a relatively positioned section. Default `theme="auto"` follows shadcn / next-themes (`class` on `<html>`). Pass `color` to set the glyph ink to any hex.
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -44,30 +41,68 @@ export function NotFound() {
   )
 }
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import Dithered404 from "$lib/components/ui/dithered-404.svelte"
+</script>
+
+<section class="relative isolate min-h-svh overflow-hidden bg-background">
+  <Dithered404 color="#E8B45A" />
+  <div class="relative z-10 flex min-h-svh flex-col items-center justify-end px-6 pb-16 text-center">
+    <p class="text-sm text-muted-foreground">
+      This page could not be found.
+    </p>
+  </div>
+</section>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 Force a palette if the parent theme should not drive it:
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 <Dithered404 theme="light" />
 <Dithered404 theme="dark" />
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<Dithered404 theme="light" />
+<Dithered404 theme="dark" />
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 Honors `prefers-reduced-motion` (static 404, no fireball).
 
 Print the same scene as a soft fire instead of Bayer pixels:
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 <Dithered404 dither={false} />
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<Dithered404 dither={false} />
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 ## Props
 
-| Prop          | Type                          | Default   |
-| ------------- | ----------------------------- | --------- |
-| `color`       | `string`                      | theme ink |
-| `pixelSize`   | `number`                      | `4`       |
-| `brush`       | `number`                      | `28`      |
-| `interactive` | `boolean`                     | `true`    |
-| `dither`      | `boolean`                     | `true`    |
-| `theme`       | `"light" \| "dark" \| "auto"` | `auto`    |
-| `className`   | `string`                      | —         |
+| Prop          | Type                          | Default     |
+| ------------- | ----------------------------- | ----------- |
+| `color`       | `string`                      | theme ink   |
+| `pixelSize`   | `number`                      | `4`         |
+| `brush`       | `number`                      | `28`        |
+| `interactive` | `boolean`                     | `true`      |
+| `dither`      | `boolean`                     | `true`      |
+| `theme`       | `"light" \| "dark" \| "auto"` | `auto`      |
+| `className`   | `string`                      | React only  |
+| `class`       | `string`                      | Svelte only |

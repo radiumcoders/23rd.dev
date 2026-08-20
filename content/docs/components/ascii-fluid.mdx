@@ -11,21 +11,18 @@ Pointer trails dump ink into a fluid sim; density maps onto a full letter/symbol
 
 ## Installation
 
-<CliCommand command="shadcn@latest add @23rd/ascii-fluid" />
+<CliCommand item="ascii-fluid" />
 
 Or install straight from the public GitHub source registry:
 
-<CliCommand
-  npm="npx shadcn@latest add radiumcoders/23rd.dev/ascii-fluid"
-  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/ascii-fluid"
-  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/ascii-fluid"
-  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/ascii-fluid"
-/>
+<CliCommand item="ascii-fluid" github />
 
 ## Usage
 
 Place it behind content in a relatively positioned container.
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -40,6 +37,20 @@ export function Hero() {
   )
 }
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import AsciiFluid from "$lib/components/ui/ascii-fluid.svelte"
+</script>
+
+<div class="relative h-svh overflow-hidden bg-background">
+  <AsciiFluid />
+  <div class="relative z-10 p-10">Your content</div>
+</div>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 ## Props
 
@@ -55,4 +66,5 @@ export function Hero() {
 | `animate` | `boolean` | `true` |
 | `interactive` | `boolean` | `true` |
 | `theme` | `"light" \| "dark" \| "auto"` | `auto` |
-| `className` | `string` | — |
+| `className` | `string` | React only |
+| `class` | `string` | Svelte only |

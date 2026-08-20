@@ -5,27 +5,24 @@ description: A hyperspace starfield background — colored streaks from the cent
 
 import { RadiantLinesDemo } from "@/registry/radiant-lines/radiant-lines-demo"
 
-Canvas starfield in the spirit of those GSAP hyperspace scroll demos: stars project from the center as streaks. Scroll velocity (Motion) boosts warp; release and it eases back to a drift.
+Canvas starfield in the spirit of those GSAP hyperspace scroll demos: stars project from the center as streaks. Scroll velocity boosts warp; release and it eases back to a drift.
 
 <RadiantLinesDemo />
 
 ## Installation
 
-<CliCommand command="shadcn@latest add @23rd/radiant-lines" />
+<CliCommand item="radiant-lines" />
 
 Or install straight from the public GitHub source registry:
 
-<CliCommand
-  npm="npx shadcn@latest add radiumcoders/23rd.dev/radiant-lines"
-  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/radiant-lines"
-  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/radiant-lines"
-  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/radiant-lines"
-/>
+<CliCommand item="radiant-lines" github />
 
 ## Usage
 
-Place it behind content in a relatively positioned container. Pass `containerRef` when scroll happens inside an overflow element instead of the window.
+Place it behind content in a relatively positioned container. Pass a scroll container when scroll happens inside an overflow element instead of the window.
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -43,6 +40,22 @@ export function Hero() {
   )
 }
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import RadiantLines from "$lib/components/ui/radiant-lines.svelte"
+
+  let scroller: HTMLDivElement | undefined = $state()
+</script>
+
+<div bind:this={scroller} class="relative h-svh overflow-y-auto">
+  <RadiantLines container={scroller} class="sticky top-0 h-svh" />
+  <div class="relative z-10 p-10">Your content</div>
+</div>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 ## Props
 
@@ -50,5 +63,7 @@ export function Hero() {
 | --- | --- | --- |
 | `colors` | `string[]` | coral / teal / amber / blue / pink / lime / slate |
 | `starCount` | `number` | `420` |
-| `containerRef` | `RefObject<HTMLElement \| null>` | window scroll |
-| `className` | `string` | — |
+| `containerRef` | `RefObject<HTMLElement \| null>` | React — window scroll |
+| `container` | `HTMLElement` | Svelte — window scroll |
+| `className` | `string` | React only |
+| `class` | `string` | Svelte only |

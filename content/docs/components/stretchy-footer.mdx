@@ -18,21 +18,18 @@ Not a scroll-progress footer reveal — an **overflow rubber-band**. Scroll to t
 
 ## Installation
 
-<CliCommand command="shadcn@latest add @23rd/stretchy-footer" />
+<CliCommand item="stretchy-footer" />
 
 Or install straight from the public GitHub source registry:
 
-<CliCommand
-  npm="npx shadcn@latest add radiumcoders/23rd.dev/stretchy-footer"
-  pnpm="pnpm dlx shadcn@latest add radiumcoders/23rd.dev/stretchy-footer"
-  yarn="yarn dlx shadcn@latest add radiumcoders/23rd.dev/stretchy-footer"
-  bun="bunx --bun shadcn@latest add radiumcoders/23rd.dev/stretchy-footer"
-/>
+<CliCommand item="stretchy-footer" github />
 
 ## Usage
 
-Use it as the scroll viewport. Put your page (and a normal footer block) in `children`. Wheel / touch past the bottom stretches the aurora; idle or release snaps it back. Honors `prefers-reduced-motion` (no stretch).
+Use it as the scroll viewport. Put your page (and a normal footer block) in children. Wheel / touch past the bottom stretches the aurora; idle or release snaps it back. Honors `prefers-reduced-motion` (no stretch).
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -51,9 +48,29 @@ export function Page() {
   )
 }
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import StretchyFooter from "$lib/components/ui/stretchy-footer.svelte"
+</script>
+
+<StretchyFooter class="h-svh bg-background">
+  <main class="min-h-[120%] px-8 py-24 text-foreground">
+    <!-- page content -->
+  </main>
+  <footer class="px-8 pb-10 text-center text-muted-foreground">
+    23rd — opinionated UI for shippers
+  </footer>
+</StretchyFooter>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 On a full document (window scroll), pass `windowScroll` and mark the page root with `data-stretchy-page` so the content rolls up into the aurora:
 
+<FrameworkCode>
+  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -68,13 +85,26 @@ export function DocsChrome() {
   )
 }
 ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import StretchyFooter from "$lib/components/ui/stretchy-footer.svelte"
+</script>
+
+<div data-stretchy-page><!-- page content --></div>
+<StretchyFooter windowScroll />
+```
+  </FrameworkSvelte>
+</FrameworkCode>
 
 ## Props
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `children` | `ReactNode` | — |
-| `scrollRef` | `RefObject<HTMLElement \| null>` | self as scroller |
+| `children` | `ReactNode` / snippet | — |
+| `scrollRef` | `RefObject<HTMLElement \| null>` | React — self as scroller |
+| `scrollEl` | `HTMLElement` | Svelte — self as scroller |
 | `windowScroll` | `boolean` | `false` |
 | `contentSelector` | `string` | `[data-stretchy-page]` |
 | `maxStretch` | `number` | `280` |
@@ -83,4 +113,5 @@ export function DocsChrome() {
 | `damping` | `number` | `32` |
 | `columns` | `number` | `48` |
 | `label` | `string` | `Stretchy overflow` |
-| `className` | `string` | — |
+| `className` | `string` | React only |
+| `class` | `string` | Svelte only |
