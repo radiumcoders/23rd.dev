@@ -4,6 +4,12 @@ export type RadiantLinesOptions = {
   /** How many stars. Default 420 */
   starCount?: number
   /**
+   * How far each star jumps when warping (idle drift and scroll).
+   * `1` matches the original ~60fps travel; higher values lengthen streaks.
+   * Default `1`.
+   */
+  displacement?: number
+  /**
    * Scroll container. Omit / `null` to use the window.
    * Pass the overflow scroller when the component lives inside one.
    */
@@ -29,6 +35,10 @@ const DEPTH = 1000
 const STIFFNESS = 70
 const DAMPING = 32
 const MASS = 0.5
+/** Original per-frame coefficient (`2.4`) converted to per-second at 60fps. */
+const TRAVEL_PER_SEC = 2.4 * 60
+/** Draw streaks as a 60fps step so filled heads keep a visible tail at any fps. */
+const TRAIL_DT = 1 / 60
 
 type Star = {
   x: number
@@ -40,6 +50,11 @@ type Star = {
 
 function paletteOf(colors?: string[]) {
   return colors && colors.length > 0 ? colors : DEFAULT_COLORS
+}
+
+function displacementOf(value?: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return 1
+  return Math.max(0, value)
 }
 
 function createStars(count: number, colors: string[]): Star[] {
@@ -60,7 +75,8 @@ function createStars(count: number, colors: string[]): Star[] {
 /**
  * Hyperspace starfield — colored streaks radiate from the center.
  * Transparent canvas over `bg-background` (shadcn theme). Warp speed follows
- * scroll velocity (down → inward, up → outward).
+ * scroll velocity (down → inward, up → outward). `displacement` scales how
+ * far each star travels (and how long the filled heads' streaks get).
  */
 export function createRadiantLines(
   canvas: HTMLCanvasElement,
@@ -69,6 +85,7 @@ export function createRadiantLines(
   let options: RadiantLinesOptions = {
     starCount: 420,
     colors: DEFAULT_COLORS,
+    displacement: 1,
     container: null,
     ...initial,
   }
@@ -177,7 +194,8 @@ export function createRadiantLines(
       applyWarp(0)
     }
 
-    const accel = (STIFFNESS * (speedTarget - speed) - DAMPING * speedVel) / MASS
+    const accel =
+      (STIFFNESS * (speedTarget - speed) - DAMPING * speedVel) / MASS
     speedVel += accel * dt
     speed += speedVel * dt
 
@@ -192,13 +210,13 @@ export function createRadiantLines(
     const warp = reduce ? 0.05 : speed
     const focal = Math.max(w, h) * 0.5
     const colors = paletteOf(options.colors)
+    const travel = warp * TRAVEL_PER_SEC * displacementOf(options.displacement)
 
     ctx.clearRect(0, 0, w, h)
 
     for (let i = 0; i < stars.length; i++) {
       const star = stars[i]!
-      star.pz = star.z
-      star.z -= dir * warp * 2.4 * dt
+      star.z -= dir * travel * dt
 
       if (star.z <= 1) {
         star.z = DEPTH
@@ -212,6 +230,12 @@ export function createRadiantLines(
         star.x = (Math.random() - 0.5) * DEPTH
         star.y = (Math.random() - 0.5) * DEPTH
         star.color = colors[Math.floor(Math.random() * colors.length)]!
+      } else {
+        // FPS-independent tail so filled heads keep a visible streak.
+        star.pz = Math.min(
+          DEPTH,
+          Math.max(1.01, star.z + dir * travel * TRAIL_DT)
+        )
       }
 
       const k = focal / star.z

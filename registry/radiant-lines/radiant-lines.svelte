@@ -23,6 +23,7 @@
     class: className = "",
     colors = DEFAULT_COLORS,
     starCount = 420,
+    displacement = 1,
     container,
   }: Props = $props()
 
@@ -34,6 +35,7 @@
     instance = createRadiantLines(canvas, {
       colors,
       starCount,
+      displacement,
       container: container ?? null,
     })
     return () => {
@@ -46,6 +48,7 @@
     instance?.setOptions({
       colors,
       starCount,
+      displacement,
       container: container ?? null,
     })
   })
