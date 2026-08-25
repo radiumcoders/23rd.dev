@@ -107,10 +107,10 @@
         linear-gradient(#000 0 0);
     mask-size:
         100% 100%,
-        100% calc(100% - 16px);
+        100% calc(100% - var(--frame-top, 8px) - var(--frame-bottom, 20px));
     mask-position:
         0 0,
-        0 8px;
+        0 var(--frame-top, 8px);
     mask-repeat: no-repeat;
     mask-composite: exclude;
 }

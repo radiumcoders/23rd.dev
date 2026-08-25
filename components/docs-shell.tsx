@@ -24,6 +24,9 @@ const sidebarTokens: CSSProperties = {
   "--sidebar-accent": "color-mix(in oklch, var(--foreground) 6%, transparent)",
   "--sidebar-accent-foreground": "var(--foreground)",
   "--sidebar-ring": "var(--ring)",
+  "--frame-top": "2px",
+  "--frame-x": "8px",
+  "--frame-bottom": "20px",
 } as CSSProperties
 
 type PageNode = { type: "page"; name: ReactNode; url: string }
@@ -76,10 +79,14 @@ export function DocsShell({
             <DocsSidebar tree={tree} embedded />
           </SidebarContent>
         </Sidebar>
-        <SidebarInset className="relative my-2 mr-2 ml-1 bg-background">
+        <SidebarInset className="relative mr-2 ml-1 bg-background">
           <div aria-hidden className="pointer-events-none sticky top-0 z-30 h-0">
             <div className="docs-window-mask absolute inset-x-0 top-0 h-svh" />
-            <div className="absolute inset-x-0 top-2 h-[calc(100svh-16px)] rounded-2xl ring-1 ring-border/60 shadow-[0_0_18px_rgba(0,0,0,0.07)] dark:ring-white/20 dark:shadow-[0_0_26px_rgba(0,0,0,0.55)]" />
+            <div className="absolute inset-x-0 top-[var(--frame-top)] h-[calc(100svh_-_var(--frame-top)_-_var(--frame-bottom))] rounded-2xl ring-1 ring-border/60 shadow-[0_0_18px_rgba(0,0,0,0.07)] dark:ring-white/20 dark:shadow-[0_0_26px_rgba(0,0,0,0.55)]" />
+          </div>
+          <div aria-hidden className="pointer-events-none sticky top-0 z-10 h-0">
+            <div className="absolute inset-x-0 top-[var(--frame-top)] h-16 bg-gradient-to-b from-background/80 to-transparent backdrop-blur-md [mask-image:linear-gradient(to_bottom,black,transparent)]" />
+            <div className="absolute inset-x-0 top-[calc(100svh_-_var(--frame-bottom)_-_4rem)] h-16 bg-gradient-to-t from-background/80 to-transparent backdrop-blur-md [mask-image:linear-gradient(to_top,black,transparent)]" />
           </div>
           <header className="sticky top-0 z-20 flex h-14 w-full items-center gap-3 bg-background/85 px-4 backdrop-blur-sm md:px-6">
             <DocsSidebarTrigger showWhenCollapsed />
