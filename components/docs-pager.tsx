@@ -25,9 +25,9 @@ function PagerLink({
     <Link
       href={item.url}
       className={cn(
-        "group flex min-w-0 flex-1 flex-col gap-1 rounded-2xl border border-border bg-background px-4 py-3 transition-colors",
-        "hover:bg-muted hover:text-foreground",
-        "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 focus-visible:outline-none",
+        "group flex min-w-0 flex-1 flex-col gap-1 rounded-2xl bg-muted/50 px-4 py-3 ring-1 ring-border/60 shadow-sm transition-colors",
+        "hover:bg-muted",
+        "focus-visible:ring-3 focus-visible:ring-ring/30 focus-visible:outline-none",
         isPrevious ? "items-start" : "items-end text-end"
       )}
     >
@@ -63,7 +63,7 @@ export function DocsPager({
   return (
     <nav
       aria-label="Docs pagination"
-      className="mt-12 flex flex-col gap-3 border-t border-border pt-8 sm:flex-row"
+      className="mt-12 flex flex-col gap-3 sm:flex-row"
     >
       {previous ? (
         <PagerLink item={previous} direction="previous" />

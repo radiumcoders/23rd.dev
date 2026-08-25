@@ -98,6 +98,23 @@
     }
 }
 
+/* Pinned docs window: opaque band around the card edges (top/bottom strips
+   and outside-corner zones) so scrolling content never crosses the frame. */
+.docs-window-mask {
+    background-color: var(--background);
+    mask-image:
+        linear-gradient(#000 0 0),
+        linear-gradient(#000 0 0);
+    mask-size:
+        100% 100%,
+        100% calc(100% - 16px);
+    mask-position:
+        0 0,
+        0 8px;
+    mask-repeat: no-repeat;
+    mask-composite: exclude;
+}
+
 :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
