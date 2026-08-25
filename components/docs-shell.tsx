@@ -77,14 +77,10 @@ export function DocsShell({
           </SidebarContent>
         </Sidebar>
         <SidebarInset className="relative my-2 mr-2 ml-1 bg-background">
-          <div
-            aria-hidden
-            className="docs-window-mask pointer-events-none sticky top-0 z-30 h-svh"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none sticky top-2 z-40 h-[calc(100svh-16px)] rounded-2xl ring-1 ring-border/60 shadow-[0_0_18px_rgba(0,0,0,0.07)] dark:ring-white/20 dark:shadow-[0_0_26px_rgba(0,0,0,0.55)]"
-          />
+          <div aria-hidden className="pointer-events-none sticky top-0 z-30 h-0">
+            <div className="docs-window-mask absolute inset-x-0 top-0 h-svh" />
+            <div className="absolute inset-x-0 top-2 h-[calc(100svh-16px)] rounded-2xl ring-1 ring-border/60 shadow-[0_0_18px_rgba(0,0,0,0.07)] dark:ring-white/20 dark:shadow-[0_0_26px_rgba(0,0,0,0.55)]" />
+          </div>
           <header className="sticky top-0 z-20 flex h-14 w-full items-center gap-3 bg-background/85 px-4 backdrop-blur-sm md:px-6">
             <DocsSidebarTrigger showWhenCollapsed />
             <div className="ml-auto flex items-center gap-1">
