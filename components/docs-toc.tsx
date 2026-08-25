@@ -14,8 +14,8 @@ export function DocsToc({ items }: { items: TOCItemType[] }) {
   if (items.length === 0) return null
 
   return (
-    <aside className="absolute inset-y-0 right-6 hidden w-52 xl:block">
-      <div className="sticky top-24 py-10 md:py-14">
+    <aside className="hidden w-44 shrink-0 xl:block">
+      <div className="sticky top-16">
         <p className="mb-3 text-sm font-medium text-muted-foreground">
           On this page
         </p>

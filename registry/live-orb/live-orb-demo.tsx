@@ -158,7 +158,7 @@ export function LiveOrbDemo() {
         ) : null}
         {props.variant === "webgl" ? (
           <ControlColors
-            label="Interior"
+            label="Wash"
             colors={props.colors}
             palettes={[
               WEBGL_COLORS,
@@ -185,7 +185,7 @@ export function LiveOrbDemo() {
         />
         <ControlSwitch
           label="Blink"
-          description="Occasional eyelid squash"
+          description="Occasional blink"
           checked={props.blink}
           onChange={(v) => updateProp("blink", v)}
         />

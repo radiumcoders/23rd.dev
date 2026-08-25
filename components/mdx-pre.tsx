@@ -41,7 +41,14 @@ export function MdxPre({
           ) : null}
         </div>
       )}
-      className={cn("bg-transparent! shadow-none!", className)}
+      viewportProps={{
+        className:
+          "rounded-[calc(var(--radius-2xl)-2px)] bg-background ring-1 ring-border/80",
+      }}
+      className={cn(
+        "my-6 rounded-2xl border-0 bg-muted/50 p-1 shadow-none",
+        className
+      )}
     >
       <Pre>{children}</Pre>
     </CodeBlock>

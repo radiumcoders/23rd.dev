@@ -29,12 +29,12 @@ export function ComponentPreview({
     <figure
       data-slot="component-preview"
       className={cn(
-        "not-prose my-6 w-full overflow-hidden rounded-2xl bg-muted/50",
+        "not-prose my-6 w-full rounded-2xl bg-muted/50",
         className
       )}
     >
       {label ? (
-        <figcaption className="px-3.5 py-0.5">
+        <figcaption className="flex h-9 items-center px-3.5">
           <span className="text-sm font-medium text-foreground/90">{label}</span>
         </figcaption>
       ) : null}
@@ -42,16 +42,13 @@ export function ComponentPreview({
       <div className={cn("p-1", label && "pt-0")}>
         <div
           className={cn(
-            "relative flex min-h-[36svh] w-full flex-wrap gap-4 overflow-hidden rounded-[calc(var(--radius-2xl)-2px)] bg-background p-8 ring-1 ring-border/80",
-            align === "center" && "items-center justify-center",
+            "relative flex min-h-[36svh] w-full items-center justify-center overflow-hidden rounded-[calc(var(--radius-2xl)-2px)] bg-background p-8 ring-1 ring-border/80",
             align === "start" && "items-start justify-start",
             align === "end" && "items-end justify-end",
             stageClassName
           )}
         >
-          <div className="relative z-10 flex w-full max-w-full flex-wrap items-center justify-center gap-3">
-            {children}
-          </div>
+          {children}
         </div>
       </div>
     </figure>

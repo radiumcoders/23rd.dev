@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 
 import {
   createLiveOrb,
+  fallbackFaceStyle,
   resolveVariant,
   type LiveOrbInstance,
   type LiveOrbOptions,
@@ -31,7 +32,7 @@ export type LiveOrbProps = Omit<LiveOrbOptions, "onHasGl"> & {
 }
 
 /**
- * Matte (or iridescent) sphere with two capsule eyes that follow the pointer.
+ * Evenly lit sphere with two capsule eyes that follow the pointer.
  * The orb stays put — only the gaze moves.
  */
 export function LiveOrb({
@@ -93,18 +94,16 @@ export function LiveOrb({
       {!hasGl ? (
         <div
           aria-hidden
-          className="absolute inset-[7%] overflow-hidden rounded-full"
-          style={{
-            backgroundImage: `radial-gradient(circle at 38% 30%, ${resolved.highlight} 0%, ${resolved.body} 52%, ${resolved.shade} 100%)`,
-          }}
+          className="absolute inset-[2%] overflow-hidden rounded-full"
+          style={fallbackFaceStyle(resolved)}
         >
           <span
             className="absolute rounded-full"
             style={{
               backgroundColor: resolved.eye,
-              width: "11%",
-              height: "26%",
-              left: "32%",
+              width: "13%",
+              height: "28%",
+              left: "31%",
               top: "34%",
             }}
           />
@@ -112,9 +111,9 @@ export function LiveOrb({
             className="absolute rounded-full"
             style={{
               backgroundColor: resolved.eye,
-              width: "11%",
-              height: "26%",
-              left: "57%",
+              width: "13%",
+              height: "28%",
+              left: "56%",
               top: "34%",
             }}
           />

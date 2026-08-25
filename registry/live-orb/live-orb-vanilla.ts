@@ -7,7 +7,7 @@ export type LiveOrbOptions = {
   color?: string
   /** Eye hex — used when `variant="custom"`. */
   eyeColor?: string
-  /** Iridescent stops — used when `variant="webgl"`. */
+  /** Unlit wash stops — used when `variant="webgl"`. */
   colors?: string[]
   /** Eyes follow the pointer. Default `true`. */
   interactive?: boolean
@@ -25,7 +25,7 @@ export type LiveOrbInstance = {
 export const WHITE = { color: "#F4F4F5", eyeColor: "#09090B" } as const
 export const BLACK = { color: "#18181B", eyeColor: "#F4F4F5" } as const
 export const CUSTOM_DEFAULT = { color: "#7C5CFF", eyeColor: "#FAFAFA" } as const
-/** Violet / foam / dust-rose — stock webgl interior. */
+/** Violet / foam / dust-rose — stock unlit wash. */
 export const WEBGL_COLORS = ["#7C6AF7", "#7DD3C7", "#E8B4D4"]
 
 const VERT = `
@@ -98,19 +98,7 @@ float eyeMask(vec3 n, vec3 e, vec3 right, vec3 up, float halfH, float rad) {
   return fill * smoothstep(0.12, 0.32, facing);
 }
 
-vec3 matteShade(vec3 n, vec3 body) {
-  vec3 light = normalize(vec3(-0.22, 0.62, 0.72));
-  float wrap = dot(n, light) * 0.42 + 0.58;
-  vec3 halfV = normalize(light + vec3(0.0, 0.0, 1.0));
-  float spec = pow(max(dot(n, halfV), 0.0), 56.0) * 0.16;
-  float rim = pow(1.0 - n.z, 1.55);
-  vec3 col = body * wrap;
-  col *= mix(1.0, 0.78, rim);
-  col += vec3(spec);
-  return col;
-}
-
-vec3 webglShade(vec3 n, float t) {
+vec3 wash(vec3 n, float t) {
   vec2 q = n.xy * 2.2 + n.z * 0.85;
   vec2 w1 = vec2(
     fbm(q * 1.4 + vec2(t * 0.22, t * 0.18)),
@@ -119,15 +107,8 @@ vec3 webglShade(vec3 n, float t) {
   q += (w1 - 0.5) * 0.72;
   float f = fbm(q * 2.1 + vec2(0.0, t * 0.12));
   float g = fbm(q * 4.6 - vec2(t * 0.2, 0.0));
-  vec3 interior = mix(u_c1, u_c2, smoothstep(0.28, 0.72, f));
-  interior = mix(interior, u_c3, pow(smoothstep(0.42, 0.9, g), 1.4));
-  vec3 light = normalize(vec3(-0.18, 0.55, 0.8));
-  float wrap = dot(n, light) * 0.28 + 0.72;
-  float fres = pow(1.0 - n.z, 2.1);
-  vec3 col = interior * wrap;
-  col += fres * mix(u_c2, u_c3, 0.45) * 0.55;
-  col += pow(max(dot(n, light), 0.0), 40.0) * 0.22;
-  return col;
+  vec3 col = mix(u_c1, u_c2, smoothstep(0.28, 0.72, f));
+  return mix(col, u_c3, pow(smoothstep(0.42, 0.9, g), 1.4));
 }
 
 void main() {
@@ -135,7 +116,7 @@ void main() {
   float aspect = u_resolution.x / max(u_resolution.y, 1.0);
   uv.x *= aspect;
 
-  float radius = 0.86;
+  float radius = 0.94;
   vec2 p = uv / radius;
   float r2 = dot(p, p);
   float edge = 1.0 - smoothstep(0.985, 1.012, sqrt(max(r2, 0.0)));
@@ -163,12 +144,8 @@ void main() {
     eyeMask(n, eR, right, up, halfH, rad)
   );
 
-  vec3 body = u_mode > 0.5
-    ? webglShade(n, u_time * u_speed)
-    : matteShade(n, u_body);
-
+  vec3 body = u_mode > 0.5 ? wash(n, u_time * u_speed) : u_body;
   vec3 col = mix(body, u_eye, clamp(eyes, 0.0, 1.0));
-  col += (hash(gl_FragCoord.xy + fract(u_time * 0.01)) - 0.5) * 0.012;
 
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), edge);
 }
@@ -212,16 +189,6 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
   return shader
 }
 
-function mixHex(hex: string, toward: string, t: number) {
-  const a = hexToRgb(hex)
-  const b = hexToRgb(toward)
-  const m = (i: number) =>
-    Math.round((a[i]! * (1 - t) + b[i]! * t) * 255)
-      .toString(16)
-      .padStart(2, "0")
-  return `#${m(0)}${m(1)}${m(2)}`
-}
-
 export function resolveVariant(
   variant: LiveOrbVariant,
   color?: string,
@@ -237,29 +204,37 @@ export function resolveVariant(
     body = BLACK.color
     eye = BLACK.eyeColor
   } else if (variant === "webgl") {
-    body = WHITE.color
+    palette = colors && colors.length > 0 ? colors : WEBGL_COLORS
+    body = palette[1] ?? WEBGL_COLORS[1]!
     eye = "#0C0C10"
     mode = 1
-    palette = colors && colors.length > 0 ? colors : WEBGL_COLORS
   } else if (variant === "custom") {
     body = color ?? CUSTOM_DEFAULT.color
     eye = eyeColor ?? CUSTOM_DEFAULT.eyeColor
   }
 
-  const highlight =
-    mode === 1
-      ? mixHex(palette[1] ?? WEBGL_COLORS[1]!, "#FFFFFF", 0.35)
-      : mixHex(body, "#FFFFFF", 0.42)
-  const shade =
-    mode === 1
-      ? mixHex(palette[0] ?? WEBGL_COLORS[0]!, "#0A0A0B", 0.45)
-      : mixHex(body, "#09090B", 0.22)
+  return { body, eye, mode, palette }
+}
 
-  return { body, eye, mode, palette, highlight, shade }
+export function fallbackFaceStyle(
+  resolved: ReturnType<typeof resolveVariant>
+): {
+  backgroundColor?: string
+  backgroundImage?: string
+} {
+  if (resolved.mode === 1) {
+    const a = resolved.palette[0] ?? WEBGL_COLORS[0]
+    const b = resolved.palette[1] ?? WEBGL_COLORS[1]
+    const c = resolved.palette[2] ?? WEBGL_COLORS[2]
+    return {
+      backgroundImage: `linear-gradient(135deg, ${a}, ${b}, ${c})`,
+    }
+  }
+  return { backgroundColor: resolved.body }
 }
 
 /**
- * Matte (or iridescent) sphere with two capsule eyes that follow the pointer.
+ * Evenly lit sphere with two capsule eyes that follow the pointer.
  * The orb stays put — only the gaze moves.
  */
 export function createLiveOrb(
