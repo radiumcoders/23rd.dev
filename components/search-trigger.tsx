@@ -18,9 +18,14 @@ export function SearchTrigger() {
     >
       <RiSearchLine className="size-4" />
       <span className="hidden sm:inline">Search</span>
-      <span className="hidden items-center gap-0.5 text-xs text-muted-foreground/70 sm:inline-flex">
+      <span className="hidden items-center gap-0.5 sm:inline-flex">
         {hotKey.map((k, i) => (
-          <kbd key={i}>{k.display}</kbd>
+          <kbd
+            key={i}
+            className="rounded-md bg-muted px-1.5 py-px font-sans text-[11px] font-medium text-muted-foreground"
+          >
+            {k.display}
+          </kbd>
         ))}
       </span>
     </Dialog.Trigger>

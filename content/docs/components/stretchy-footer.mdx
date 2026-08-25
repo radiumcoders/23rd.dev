@@ -3,18 +3,11 @@ title: Stretchy Footer
 description: Dia-style rubber overscroll — pull past the bottom and a rainbow aurora stretches up, then springs back when you let go.
 ---
 
-import {
-  StretchyFooterDemo,
-  StretchyFooterPageEffect,
-} from "@/registry/stretchy-footer/stretchy-footer-demo"
+import { StretchyFooterDemo } from "@/registry/stretchy-footer/stretchy-footer-demo"
 
-<StretchyFooterPageEffect />
+Not a scroll-progress footer reveal — an **overflow rubber-band**. In the preview, scroll past the end (or hit Show effect): the page rolls up from the bottom and the aurora fills the stretch. Swap palettes, blur, glow, and snap below.
 
-Not a scroll-progress footer reveal — an **overflow rubber-band**. Scroll to the end of this page, then keep going: the page rolls up from the bottom and the rainbow aurora fills the stretch. Let go and it snaps back.
-
-<ComponentPreview title="Stretchy Footer" stageClassName="min-h-0 overflow-hidden p-0">
-  <StretchyFooterDemo />
-</ComponentPreview>
+<StretchyFooterDemo />
 
 ## Installation
 
@@ -112,6 +105,8 @@ export function DocsChrome() {
 | `stiffness` | `number` | `380` |
 | `damping` | `number` | `32` |
 | `columns` | `number` | `48` |
+| `blur` | `number` | `14` |
+| `glow` | `number` | `0.22` |
 | `label` | `string` | `Stretchy overflow` |
 | `className` | `string` | React only |
 | `class` | `string` | Svelte only |

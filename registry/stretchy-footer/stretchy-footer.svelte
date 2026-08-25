@@ -6,8 +6,10 @@
   import {
     applyResistance,
     columnScale,
+    DEFAULT_BLUR,
     DEFAULT_COLORS,
     DEFAULT_COLUMNS,
+    DEFAULT_GLOW,
     elementAtBottom,
     hexToRgba,
     POP_BOOST,
@@ -56,6 +58,10 @@
     damping?: number
     /** How many vertical aurora bars. Default `48`. */
     columns?: number
+    /** Gaussian blur on the aurora bars, in px. Default `14`. */
+    blur?: number
+    /** White floor bloom opacity (0–1). Default `0.22`. */
+    glow?: number
     /** Accessible label for the decorative field. */
     label?: string
     /**
@@ -76,6 +82,8 @@
     stiffness = 380,
     damping = 32,
     columns = DEFAULT_COLUMNS,
+    blur = DEFAULT_BLUR,
+    glow = DEFAULT_GLOW,
     label = "Stretchy overflow",
     demoId,
   }: Props = $props()
@@ -98,6 +106,8 @@
   let demoTimer: ReturnType<typeof setTimeout> | null = null
 
   const reduce = $derived(mounted && reduceMotion && !demoPlaying)
+  const blurPx = $derived(Math.max(0, blur))
+  const glowAlpha = $derived(Math.min(1, Math.max(0, glow)))
 
   const bars = $derived.by(() => {
     const count = Math.max(8, Math.min(96, Math.floor(columns)))
@@ -394,7 +404,7 @@
     >
       <div
         class="absolute inset-0 flex items-end justify-stretch"
-        style="filter: blur(14px); transform: scaleY(1.08);"
+        style="filter: blur({blurPx}px); transform: scaleY(1.08);"
       >
         {#each bars as bar (bar.key)}
           <div
@@ -406,7 +416,7 @@
 
       <div
         class="absolute inset-x-0 bottom-0 h-1/2"
-        style="background-image: radial-gradient(ellipse 70% 100% at 50% 100%, rgba(255,255,255,0.22), rgba(0, 0, 0, 0) 70%);"
+        style="background-image: radial-gradient(ellipse 70% 100% at 50% 100%, rgba(255,255,255,{glowAlpha}), rgba(0, 0, 0, 0) 70%);"
       ></div>
     </div>
   </div>

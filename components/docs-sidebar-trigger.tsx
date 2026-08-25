@@ -33,7 +33,7 @@ export function DocsSidebarTrigger({
     return () => window.clearTimeout(id)
   }, [expanded, showWhenCollapsed])
 
-  const hidden = showWhenCollapsed && !revealed
+  const hidden = showWhenCollapsed && !revealed && !isMobile
 
   return (
     <Button

@@ -190,7 +190,7 @@ export function DocsSidebar({
     <Sidebar
       id={id}
       aria-label="Documentation"
-      variant="sidebar"
+      variant="inset"
       collapsible="offcanvas"
       className={cn(className)}
     >

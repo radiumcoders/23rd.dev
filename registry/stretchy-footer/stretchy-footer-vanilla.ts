@@ -12,6 +12,10 @@ export const DEFAULT_COLORS = [
 ]
 
 export const DEFAULT_COLUMNS = 48
+/** Gaussian blur on the aurora bars, in px. */
+export const DEFAULT_BLUR = 14
+/** White floor bloom opacity (0–1). */
+export const DEFAULT_GLOW = 0.22
 export const WHEEL_IDLE_MS = 90
 export const PULL_GAIN = 0.7
 export const POP_BOOST = 1.45

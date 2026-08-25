@@ -130,7 +130,7 @@ export function ComponentControls({
         className
       )}
     >
-      <figcaption className="flex items-center justify-between gap-3 px-3.5 py-0.5">
+      <figcaption className="flex h-9 items-center justify-between gap-3 px-3.5">
         <span className="text-sm font-medium text-foreground/90">{title}</span>
         {snippet || onReset ? (
           <div className="flex items-center">

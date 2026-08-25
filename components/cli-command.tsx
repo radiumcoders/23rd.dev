@@ -172,7 +172,7 @@ export function CliCommand({
         className
       )}
     >
-      <div className="flex items-center justify-between gap-3 px-3.5 py-0.5">
+      <div className="flex h-9 items-center justify-between gap-3 px-3.5">
         <div
           className="flex size-6 items-center justify-center"
           aria-hidden

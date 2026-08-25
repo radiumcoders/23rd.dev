@@ -23,8 +23,10 @@ import { cn } from "@/lib/utils"
 import {
   applyResistance,
   columnScale,
+  DEFAULT_BLUR,
   DEFAULT_COLORS,
   DEFAULT_COLUMNS,
+  DEFAULT_GLOW,
   elementAtBottom,
   hexToRgba,
   POP_BOOST,
@@ -74,6 +76,10 @@ export type StretchyFooterProps = {
   damping?: number
   /** How many vertical aurora bars. Default `48`. */
   columns?: number
+  /** Gaussian blur on the aurora bars, in px. Default `14`. */
+  blur?: number
+  /** White floor bloom opacity (0–1). Default `0.22`. */
+  glow?: number
   /** Accessible label for the decorative field. */
   label?: string
   /**
@@ -103,6 +109,8 @@ export function StretchyFooter({
   stiffness = 380,
   damping = 32,
   columns = DEFAULT_COLUMNS,
+  blur = DEFAULT_BLUR,
+  glow = DEFAULT_GLOW,
   label = "Stretchy overflow",
   demoId,
 }: StretchyFooterProps) {
@@ -139,6 +147,9 @@ export function StretchyFooter({
   )
   const pageY = useTransform(stretch, (v) => -v)
   const fieldOpacity = useTransform(progress, [0, 0.08, 0.2], [0, 1, 1])
+
+  const blurPx = Math.max(0, blur)
+  const glowAlpha = Math.min(1, Math.max(0, glow))
 
   const bars = useMemo(() => {
     const count = Math.max(8, Math.min(96, Math.floor(columns)))
@@ -395,7 +406,7 @@ export function StretchyFooter({
         {/* Single blur layer — cheaper than per-bar filters */}
         <div
           className="absolute inset-0 flex items-end justify-stretch"
-          style={{ filter: "blur(14px)", transform: "scaleY(1.08)" }}
+          style={{ filter: `blur(${blurPx}px)`, transform: "scaleY(1.08)" }}
         >
           {bars.map((bar) => (
             <div
@@ -413,8 +424,7 @@ export function StretchyFooter({
         <div
           className="absolute inset-x-0 bottom-0 h-1/2"
           style={{
-            backgroundImage:
-              "radial-gradient(ellipse 70% 100% at 50% 100%, rgba(255,255,255,0.22), rgba(0, 0, 0, 0) 70%)",
+            backgroundImage: `radial-gradient(ellipse 70% 100% at 50% 100%, rgba(255,255,255,${glowAlpha}), rgba(0, 0, 0, 0) 70%)`,
           }}
         />
       </motion.div>

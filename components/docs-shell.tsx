@@ -1,7 +1,8 @@
 "use client"
 
-import type { CSSProperties, ReactNode } from "react"
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 import { DocsSidebar } from "@/components/docs-sidebar"
 import { DocsSidebarTrigger } from "@/components/docs-sidebar-trigger"
@@ -9,6 +10,7 @@ import { GithubStars } from "@/components/github-stars"
 import { Logo } from "@/components/logo"
 import { SearchTrigger } from "@/components/search-trigger"
 import { FrameworkProvider } from "@/lib/framework"
+import { cn } from "@/lib/utils"
 import {
   Sidebar,
   SidebarContent,
@@ -20,13 +22,10 @@ import {
 const sidebarTokens: CSSProperties = {
   "--sidebar": "var(--background)",
   "--sidebar-foreground": "var(--foreground)",
-  "--sidebar-border": "var(--border)",
+  "--sidebar-border": "transparent",
   "--sidebar-accent": "color-mix(in oklch, var(--foreground) 6%, transparent)",
   "--sidebar-accent-foreground": "var(--foreground)",
   "--sidebar-ring": "var(--ring)",
-  "--frame-top": "2px",
-  "--frame-x": "8px",
-  "--frame-bottom": "20px",
 } as CSSProperties
 
 type PageNode = { type: "page"; name: ReactNode; url: string }
@@ -41,10 +40,37 @@ type FolderNode = {
 type RootNode = { type?: "root"; name: ReactNode; children: TreeNode[] }
 type TreeNode = PageNode | SeparatorNode | FolderNode
 
+function WindowEdgeFade({ edge }: { edge: "top" | "bottom" }) {
+  const isTop = edge === "top"
+
+  return (
+    <>
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-x-0 z-10 h-24",
+          isTop
+            ? "top-0 bg-linear-to-b from-background from-25% via-background/60 to-transparent"
+            : "bottom-0 bg-linear-to-t from-background from-25% via-background/60 to-transparent"
+        )}
+      />
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-x-0 z-10 h-16 backdrop-blur-md",
+          isTop
+            ? "top-0 mask-[linear-gradient(to_bottom,black,transparent)]"
+            : "bottom-0 mask-[linear-gradient(to_top,black,transparent)]"
+        )}
+      />
+    </>
+  )
+}
+
 /**
- * Docs chrome: SidebarProvider + Sidebar navigation + mobile trigger.
- * Provider, sidebar, and links live in one module so responsive mobile
- * navigation is statically verifiable (Sheet runtime is in ui/sidebar).
+ * Docs chrome: canvas sidebar + a real inset content window.
+ * The window is a flex column; the article scrolls inside it so the ring,
+ * corners, and shadow never have to be faked with overlays.
  */
 export function DocsShell({
   tree,
@@ -55,15 +81,39 @@ export function DocsShell({
   children: ReactNode
   githubStars?: number | null
 }) {
+  const pathname = usePathname()
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 })
+  }, [pathname])
+
+  useEffect(() => {
+    const html = document.documentElement
+    const { overflow: htmlOverflow, scrollbarGutter } = html.style
+    const bodyOverflow = document.body.style.overflow
+    html.style.overflow = "hidden"
+    html.style.scrollbarGutter = "auto"
+    document.body.style.overflow = "hidden"
+    return () => {
+      html.style.overflow = htmlOverflow
+      html.style.scrollbarGutter = scrollbarGutter
+      document.body.style.overflow = bodyOverflow
+    }
+  }, [])
+
   return (
     <FrameworkProvider>
-      <SidebarProvider style={sidebarTokens}>
+      <SidebarProvider
+        style={sidebarTokens}
+        className="h-svh min-h-0 overflow-hidden bg-background"
+      >
         <Sidebar
           id="docs-sidebar"
           aria-label="Documentation"
-          variant="sidebar"
+          variant="inset"
           collapsible="offcanvas"
-          className="group-data-[side=left]:border-r-0"
+          className="p-3"
         >
           <SidebarHeader className="flex h-14 flex-row items-center gap-2 px-4">
             <Link
@@ -79,23 +129,23 @@ export function DocsShell({
             <DocsSidebar tree={tree} embedded />
           </SidebarContent>
         </Sidebar>
-        <SidebarInset className="relative mr-2 ml-1 bg-background">
-          <div aria-hidden className="pointer-events-none sticky top-0 z-30 h-0">
-            <div className="docs-window-mask absolute inset-x-0 top-0 h-svh" />
-            <div className="absolute inset-x-0 top-[var(--frame-top)] h-[calc(100svh_-_var(--frame-top)_-_var(--frame-bottom))] rounded-2xl ring-1 ring-border/60 shadow-[0_0_18px_rgba(0,0,0,0.07)] dark:ring-white/20 dark:shadow-[0_0_26px_rgba(0,0,0,0.55)]" />
+        <SidebarInset className="relative z-10 m-3 min-h-0 min-w-0 overflow-hidden rounded-2xl bg-background ring-1 ring-black/10 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_0_24px_rgba(0,0,0,0.06)] md:peer-data-[variant=inset]:m-3 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-2xl md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-3 dark:ring-white/12 dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_0_28px_rgba(0,0,0,0.35)]">
+          <div
+            ref={scrollRef}
+            data-docs-window-scroll
+            className="absolute inset-0 overflow-y-auto overscroll-y-contain pt-14 pb-10"
+          >
+            {children}
           </div>
-          <div aria-hidden className="pointer-events-none sticky top-0 z-10 h-0">
-            <div className="absolute inset-x-0 top-[var(--frame-top)] h-16 bg-gradient-to-b from-background/80 to-transparent backdrop-blur-md [mask-image:linear-gradient(to_bottom,black,transparent)]" />
-            <div className="absolute inset-x-0 top-[calc(100svh_-_var(--frame-bottom)_-_4rem)] h-16 bg-gradient-to-t from-background/80 to-transparent backdrop-blur-md [mask-image:linear-gradient(to_top,black,transparent)]" />
-          </div>
-          <header className="sticky top-0 z-20 flex h-14 w-full items-center gap-3 bg-background/85 px-4 backdrop-blur-sm md:px-6">
+          <WindowEdgeFade edge="top" />
+          <WindowEdgeFade edge="bottom" />
+          <header className="absolute inset-x-0 top-0 z-20 flex h-14 items-center gap-3 px-4 md:px-6">
             <DocsSidebarTrigger showWhenCollapsed />
             <div className="ml-auto flex items-center gap-1">
               <GithubStars stars={githubStars} />
               <SearchTrigger />
             </div>
           </header>
-          <div className="flex flex-1 flex-col">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </FrameworkProvider>
