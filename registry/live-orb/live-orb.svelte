@@ -5,6 +5,7 @@
   import { onMount } from "svelte"
   import {
     createLiveOrb,
+    fallbackFaceStyle,
     resolveVariant,
     type LiveOrbInstance,
     type LiveOrbOptions,
@@ -66,6 +67,7 @@
   })
 
   const resolved = $derived(resolveVariant(variant, color, eyeColor, colors))
+  const face = $derived(fallbackFaceStyle(resolved))
 </script>
 
 <div
@@ -78,16 +80,21 @@
   {#if !hasGl}
     <div
       aria-hidden="true"
-      class="absolute inset-[7%] overflow-hidden rounded-full"
-      style="background-image: radial-gradient(circle at 38% 30%, {resolved.highlight} 0%, {resolved.body} 52%, {resolved.shade} 100%);"
+      class="absolute inset-[2%] overflow-hidden rounded-full"
+      style={[
+        face.backgroundColor && `background-color: ${face.backgroundColor}`,
+        face.backgroundImage && `background-image: ${face.backgroundImage}`,
+      ]
+        .filter(Boolean)
+        .join("; ")}
     >
       <span
         class="absolute rounded-full"
-        style="background-color: {resolved.eye}; width: 11%; height: 26%; left: 32%; top: 34%;"
+        style="background-color: {resolved.eye}; width: 13%; height: 28%; left: 31%; top: 34%;"
       ></span>
       <span
         class="absolute rounded-full"
-        style="background-color: {resolved.eye}; width: 11%; height: 26%; left: 57%; top: 34%;"
+        style="background-color: {resolved.eye}; width: 13%; height: 28%; left: 56%; top: 34%;"
       ></span>
     </div>
   {/if}

@@ -1,11 +1,11 @@
 ---
 title: Live Orb
-description: A matte 3D sphere with two capsule eyes that follow the pointer — white, black, webgl, and custom variants.
+description: An evenly lit sphere with two capsule eyes that follow the pointer — white, black, webgl, and custom variants.
 ---
 
 import { LiveOrbDemo } from "@/registry/live-orb/live-orb-demo"
 
-A still orb. Two pill eyes ride the curve and look at the cursor. White is the default — a quiet off-white ball with black capsules. Black inverts it. WebGL keeps the same face on an iridescent interior. Custom takes your hex.
+A still orb. Two pill eyes ride the curve and look at the cursor. The ball is fully lit — no shade, rim, or highlight. White is the default. Black inverts it. WebGL keeps the same face on an unlit color wash. Custom takes your hex.
 
 <LiveOrbDemo />
 
@@ -42,7 +42,7 @@ export function Mascot() {
   </FrameworkSvelte>
 </FrameworkCode>
 
-Named variants set the material. `custom` reads `color` and `eyeColor`. `webgl` can take an optional three-stop `colors` palette.
+Named variants set the fill. `custom` reads `color` and `eyeColor`. `webgl` can take an optional three-stop `colors` palette.
 
 <FrameworkCode>
   <FrameworkReact>

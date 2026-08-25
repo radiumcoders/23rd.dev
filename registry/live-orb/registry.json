@@ -5,7 +5,7 @@
       "name": "live-orb",
       "type": "registry:ui",
       "title": "Live Orb",
-      "description": "A matte 3D sphere with two capsule eyes that follow the pointer — white, black, webgl, and custom variants.",
+      "description": "An evenly lit sphere with two capsule eyes that follow the pointer — white, black, webgl, and custom variants.",
       "files": [
         {
           "path": "live-orb.tsx",
@@ -18,7 +18,7 @@
       "name": "live-orb-svelte",
       "type": "registry:ui",
       "title": "Live Orb",
-      "description": "A matte 3D sphere with two capsule eyes that follow the pointer — white, black, webgl, and custom variants.",
+      "description": "An evenly lit sphere with two capsule eyes that follow the pointer — white, black, webgl, and custom variants.",
       "files": [
         {
           "path": "live-orb.svelte",
