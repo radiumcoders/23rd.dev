@@ -2,42 +2,21 @@ export type AsciiLogoPhase = "logo" | "scattered" | "fallen" | "returning"
 
 export type AsciiLogoTheme = "light" | "dark" | "auto"
 
-/** Wordmark `text` is capped at this many whitespace-separated words. */
-export const MAX_TEXT_WORDS = 5
+/** Wordmark `text` is capped at this many characters. */
+export const MAX_TEXT_LETTERS = 5
 
-function wordList(text: string): string[] {
-  return text.trim().split(/\s+/).filter(Boolean)
-}
-
-/** Keep at most `maxWords` words; extra tokens are dropped. */
+/** Keep at most `maxLetters` characters; extra input is dropped. */
 export function clampAsciiLogoText(
   text: string,
-  maxWords = MAX_TEXT_WORDS
+  maxLetters = MAX_TEXT_LETTERS
 ): string {
-  const words = wordList(text)
-  if (words.length <= maxWords) return text
-  return words.slice(0, maxWords).join(" ")
-}
-
-/**
- * Input-safe cap. Extra words are dropped. A trailing space is kept so
- * further keystrokes stay a rejected sixth word instead of appending to
- * the fifth.
- */
-export function limitAsciiLogoInput(
-  next: string,
-  _prev: string = "",
-  maxWords = MAX_TEXT_WORDS
-): string {
-  const words = wordList(next)
-  if (words.length <= maxWords) return next
-  return `${words.slice(0, maxWords).join(" ")} `
+  return [...text].slice(0, maxLetters).join("")
 }
 
 export type AsciiLogoOptions = {
   /**
    * Wordmark sampled into the ASCII grid. Ignored when `src` is set.
-   * Capped at `MAX_TEXT_WORDS` (5). Default `"23rd"`
+   * Capped at `MAX_TEXT_LETTERS` (5). Default `"23rd"`
    */
   text?: string
   /** Image URL to sample instead of `text` (any raster or same-origin SVG). */

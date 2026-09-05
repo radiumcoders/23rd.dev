@@ -15,8 +15,8 @@ import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
   AsciiLogo,
-  MAX_TEXT_WORDS,
-  limitAsciiLogoInput,
+  MAX_TEXT_LETTERS,
+  clampAsciiLogoText,
   type AsciiLogoPhase,
 } from "@/registry/ascii-logo/ascii-logo"
 
@@ -173,12 +173,13 @@ export function AsciiLogoDemo() {
               <Input
                 id="ascii-logo-text"
                 value={props.text}
+                maxLength={MAX_TEXT_LETTERS}
                 aria-describedby="ascii-logo-text-hint"
-                className="h-8 w-48"
+                className="h-8 w-28"
                 onChange={(event) =>
                   updateProp(
                     "text",
-                    limitAsciiLogoInput(event.currentTarget.value, props.text)
+                    clampAsciiLogoText(event.currentTarget.value)
                   )
                 }
               />
@@ -187,7 +188,7 @@ export function AsciiLogoDemo() {
               id="ascii-logo-text-hint"
               className="text-right text-xs text-muted-foreground"
             >
-              Max {MAX_TEXT_WORDS} words
+              Max {MAX_TEXT_LETTERS} letters
             </p>
           </div>
         ) : null}
