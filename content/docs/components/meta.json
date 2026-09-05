@@ -2,6 +2,7 @@
   "title": "Components",
   "pages": [
     "---Background---",
+    "logo-burst",
     "radiant-lines",
     "ascii-fluid",
     "---Shaders---",

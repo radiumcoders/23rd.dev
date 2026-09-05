@@ -1,0 +1,31 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "items": [
+    {
+      "name": "logo-burst",
+      "type": "registry:ui",
+      "title": "Logo Burst",
+      "description": "Hair-line tentacles explode from a centered mark, then settle with tip particles — drop any logo in the middle.",
+      "files": [
+        {
+          "path": "logo-burst.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/logo-burst.tsx"
+        }
+      ]
+    },
+    {
+      "name": "logo-burst-svelte",
+      "type": "registry:ui",
+      "title": "Logo Burst",
+      "description": "Hair-line tentacles explode from a centered mark, then settle with tip particles — drop any logo in the middle.",
+      "files": [
+        {
+          "path": "logo-burst.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/logo-burst.svelte"
+        }
+      ]
+    }
+  ]
+}
