@@ -208,8 +208,8 @@ export function createAsciiLogo(
     interactive: true,
     theme: "auto",
     ...initial,
-    text: clampAsciiLogoText(initial.text ?? "23rd"),
   }
+  options.text = clampAsciiLogoText(options.text)
 
   const ctx = canvas.getContext("2d")
   if (!ctx) return null
