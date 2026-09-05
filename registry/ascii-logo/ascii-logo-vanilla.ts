@@ -20,21 +20,18 @@ export function clampAsciiLogoText(
 }
 
 /**
- * Input-safe cap: typing past the limit is ignored so the fifth word
- * is not mutated. Pastes / replacements still keep the first `maxWords`.
+ * Input-safe cap. Extra words are dropped. A trailing space is kept so
+ * further keystrokes stay a rejected sixth word instead of appending to
+ * the fifth.
  */
 export function limitAsciiLogoInput(
   next: string,
-  prev: string,
+  _prev: string = "",
   maxWords = MAX_TEXT_WORDS
 ): string {
-  const nextWords = wordList(next)
-  if (nextWords.length <= maxWords) return next
-  const prevWords = wordList(prev)
-  if (prevWords.length >= maxWords && next.startsWith(prev.trimEnd())) {
-    return prev.trimEnd()
-  }
-  return nextWords.slice(0, maxWords).join(" ")
+  const words = wordList(next)
+  if (words.length <= maxWords) return next
+  return `${words.slice(0, maxWords).join(" ")} `
 }
 
 export type AsciiLogoOptions = {
