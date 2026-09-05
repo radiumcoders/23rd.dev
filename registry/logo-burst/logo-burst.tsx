@@ -37,19 +37,19 @@ export type {
 
 export type LogoBurstProps = Omit<LogoBurstOptions, "onThemeChange"> & {
   className?: string
-  /** Centered mark. Defaults to a rounded chevron plate. */
+  /** Optional centered mark. Omitted by default — the burst is the hero. */
   children?: ReactNode
   /**
    * Increment to replay the explosion. Mount already plays once.
    */
   replayKey?: number
-  /** Click / Enter on the mark replays the burst. Default `true`. */
+  /** Click the field to replay the burst. Default `true`. */
   replayOnClick?: boolean
   /** Accessible name. Default `"Logo burst"`. */
   label?: string
 }
 
-/** Default centered plate — swap via `children`. Follows the theme. */
+/** Optional centered plate if you want a logo over the burst. */
 export function LogoBurstMark({ className }: { className?: string }) {
   return (
     <span
@@ -70,7 +70,7 @@ export function LogoBurstMark({ className }: { className?: string }) {
 }
 
 /**
- * Hair-line tentacles explode from a centered mark, then keep a slow inhale.
+ * Hair-line tentacles explode from the center, then keep a slow inhale.
  * Transparent canvas over `bg-background`. Theme-aware light / dark.
  */
 export function LogoBurst({
@@ -142,7 +142,7 @@ export function LogoBurst({
 
   useEffect(() => {
     const core = coreRef.current
-    if (!core || coreSize !== undefined) return
+    if (!core || !children || coreSize !== undefined) return
     const sync = () => {
       const box = core.getBoundingClientRect()
       const measured = Math.max(box.width, box.height)
@@ -166,8 +166,6 @@ export function LogoBurst({
     instanceRef.current?.replay()
   }
 
-  const mark = children ?? <LogoBurstMark />
-
   return (
     <div
       data-slot="logo-burst"
@@ -180,30 +178,25 @@ export function LogoBurst({
         aria-hidden
         className="absolute inset-0 size-full"
       />
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        {replayOnClick ? (
-          <button
-            ref={(node) => {
-              coreRef.current = node
-            }}
-            type="button"
-            aria-label="Replay burst"
-            onClick={replay}
-            className="pointer-events-auto relative cursor-pointer rounded-[22%] border-0 bg-transparent p-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
-          >
-            {mark}
-          </button>
-        ) : (
+      {children ? (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
           <div
             ref={(node) => {
               coreRef.current = node
             }}
-            className="pointer-events-auto relative"
           >
-            {mark}
+            {children}
           </div>
-        )}
-      </div>
+        </div>
+      ) : null}
+      {replayOnClick ? (
+        <button
+          type="button"
+          aria-label="Replay burst"
+          onClick={replay}
+          className="absolute inset-0 z-20 cursor-pointer border-0 bg-transparent p-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+        />
+      ) : null}
     </div>
   )
 }

@@ -21,13 +21,13 @@
 
   interface Props extends Omit<LogoBurstOptions, "onThemeChange"> {
     class?: string
-    /** Centered mark. Defaults to a rounded chevron plate. */
+    /** Optional centered mark. Omitted by default — the burst is the hero. */
     children?: Snippet
     /**
      * Increment to replay the explosion. Mount already plays once.
      */
     replayKey?: number
-    /** Click / Enter on the mark replays the burst. Default `true`. */
+    /** Click the field to replay the burst. Default `true`. */
     replayOnClick?: boolean
     /** Accessible name. Default `"Logo burst"`. */
     label?: string
@@ -91,7 +91,7 @@
   $effect(() => {
     const el = core
     const override = coreSize
-    if (!el || override !== undefined) return
+    if (!el || !children || override !== undefined) return
     const sync = () => {
       const box = el.getBoundingClientRect()
       const measured = Math.max(box.width, box.height)
@@ -119,24 +119,6 @@
   }
 </script>
 
-{#snippet mark()}
-  {#if children}
-    {@render children()}
-  {:else}
-    <span
-      data-slot="logo-burst-mark"
-      class="flex size-20 items-center justify-center rounded-[22%] bg-foreground text-background ring-1 ring-foreground/12"
-    >
-      <svg viewBox="0 0 24 24" aria-hidden="true" class="size-10">
-        <path
-          d="M12 5.4 20.4 18.2h-3.7L12 10.3l-4.7 7.9H3.6Z"
-          fill="currentColor"
-        ></path>
-      </svg>
-    </span>
-  {/if}
-{/snippet}
-
 <div
   data-slot="logo-burst"
   role={replayOnClick ? undefined : "img"}
@@ -148,23 +130,21 @@
     aria-hidden="true"
     class="absolute inset-0 size-full"
   ></canvas>
-  <div
-    class="pointer-events-none absolute inset-0 flex items-center justify-center"
-  >
-    {#if replayOnClick}
-      <button
-        bind:this={core}
-        type="button"
-        aria-label="Replay burst"
-        onclick={replay}
-        class="pointer-events-auto relative cursor-pointer rounded-[22%] border-0 bg-transparent p-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
-      >
-        {@render mark()}
-      </button>
-    {:else}
-      <div bind:this={core} class="pointer-events-auto relative">
-        {@render mark()}
+  {#if children}
+    <div
+      class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
+    >
+      <div bind:this={core}>
+        {@render children()}
       </div>
-    {/if}
-  </div>
+    </div>
+  {/if}
+  {#if replayOnClick}
+    <button
+      type="button"
+      aria-label="Replay burst"
+      onclick={replay}
+      class="absolute inset-0 z-20 cursor-pointer border-0 bg-transparent p-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+    ></button>
+  {/if}
 </div>

@@ -5,7 +5,7 @@
       "name": "logo-burst",
       "type": "registry:ui",
       "title": "Logo Burst",
-      "description": "Hair-line tentacles explode from a centered mark, then keep a slow inhale — drop any logo in the middle. Follows light and dark.",
+      "description": "Hair-line tentacles explode from the center, then keep a slow inhale. Follows light and dark.",
       "files": [
         {
           "path": "logo-burst.tsx",
@@ -18,7 +18,7 @@
       "name": "logo-burst-svelte",
       "type": "registry:ui",
       "title": "Logo Burst",
-      "description": "Hair-line tentacles explode from a centered mark, then keep a slow inhale — drop any logo in the middle. Follows light and dark.",
+      "description": "Hair-line tentacles explode from the center, then keep a slow inhale. Follows light and dark.",
       "files": [
         {
           "path": "logo-burst.svelte",

@@ -159,7 +159,7 @@ export function LogoBurstDemo() {
         />
         <ControlSwitch
           label="Replay on click"
-          description="Click the mark to explode again"
+          description="Click the field to explode again"
           checked={props.replayOnClick}
           onChange={(v) => updateProp("replayOnClick", v)}
         />
