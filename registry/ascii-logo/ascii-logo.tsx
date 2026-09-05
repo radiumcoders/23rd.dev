@@ -15,6 +15,7 @@ export {
   DEFAULT_CHARSET,
   MAX_TEXT_WORDS,
   clampAsciiLogoText,
+  limitAsciiLogoInput,
 } from "./ascii-logo-vanilla"
 export type {
   AsciiLogoInstance,

@@ -16,7 +16,7 @@ import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
   AsciiLogo,
   MAX_TEXT_WORDS,
-  clampAsciiLogoText,
+  limitAsciiLogoInput,
   type AsciiLogoPhase,
 } from "@/registry/ascii-logo/ascii-logo"
 
@@ -178,7 +178,7 @@ export function AsciiLogoDemo() {
                 onChange={(event) =>
                   updateProp(
                     "text",
-                    clampAsciiLogoText(event.currentTarget.value)
+                    limitAsciiLogoInput(event.currentTarget.value, props.text)
                   )
                 }
               />

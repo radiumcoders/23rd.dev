@@ -5,14 +5,36 @@ export type AsciiLogoTheme = "light" | "dark" | "auto"
 /** Wordmark `text` is capped at this many whitespace-separated words. */
 export const MAX_TEXT_WORDS = 5
 
+function wordList(text: string): string[] {
+  return text.trim().split(/\s+/).filter(Boolean)
+}
+
 /** Keep at most `maxWords` words; extra tokens are dropped. */
 export function clampAsciiLogoText(
   text: string,
   maxWords = MAX_TEXT_WORDS
 ): string {
-  const words = text.trim().split(/\s+/).filter(Boolean)
+  const words = wordList(text)
   if (words.length <= maxWords) return text
   return words.slice(0, maxWords).join(" ")
+}
+
+/**
+ * Input-safe cap: typing past the limit is ignored so the fifth word
+ * is not mutated. Pastes / replacements still keep the first `maxWords`.
+ */
+export function limitAsciiLogoInput(
+  next: string,
+  prev: string,
+  maxWords = MAX_TEXT_WORDS
+): string {
+  const nextWords = wordList(next)
+  if (nextWords.length <= maxWords) return next
+  const prevWords = wordList(prev)
+  if (prevWords.length >= maxWords && next.startsWith(prev.trimEnd())) {
+    return prev.trimEnd()
+  }
+  return nextWords.slice(0, maxWords).join(" ")
 }
 
 export type AsciiLogoOptions = {
