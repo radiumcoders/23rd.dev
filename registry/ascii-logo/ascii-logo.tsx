@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import {
   createAsciiLogo,
   DEFAULT_CHARSET,
+  clampAsciiLogoText,
   type AsciiLogoInstance,
   type AsciiLogoOptions,
 } from "./ascii-logo-vanilla"
@@ -149,7 +150,7 @@ export function AsciiLogo({
     onPhaseChange,
   ])
 
-  const aria = label ?? (src ? "ASCII logo" : text)
+  const aria = label ?? (src ? "ASCII logo" : clampAsciiLogoText(text))
 
   return (
     <div
