@@ -10,7 +10,7 @@ export type LogoBurstOptions = {
   color?: string
   /**
    * Inner hole in CSS pixels. Lines start just outside this disc.
-   * Default `10` (tight origin). Raise it when you overlay a mark.
+   * Default `0` (lines meet at the origin). Raise it when you overlay a mark.
    */
   coreSize?: number
   /**
@@ -48,7 +48,7 @@ export const LIGHT_COLOR = "#3F3F46"
 /** @deprecated Use `DARK_COLOR` or omit `color` and set `theme`. */
 export const DEFAULT_COLOR = DARK_COLOR
 export const DEFAULT_TENTACLE_COUNT = 260
-export const DEFAULT_CORE_SIZE = 10
+export const DEFAULT_CORE_SIZE = 0
 export const DEFAULT_RADIUS = 0.48
 export const DEFAULT_DURATION = 1.35
 export const DEFAULT_SEED = 23
@@ -108,7 +108,7 @@ function coreSizeOf(value?: number) {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return DEFAULT_CORE_SIZE
   }
-  return clamp(value, 8, 480)
+  return clamp(value, 0, 480)
 }
 
 function seedOf(value?: number) {

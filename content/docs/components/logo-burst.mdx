@@ -83,6 +83,7 @@ export function Replayable() {
   const [key, setKey] = useState(0)
 
 return (
+
 <div className="relative h-96 bg-background">
 <LogoBurst replayKey={key} replayOnClick={false} />
 <button type="button" onClick={() => setKey((n) => n + 1)}>
@@ -115,22 +116,22 @@ Replay
 
 ## Props
 
-| Prop            | Type                          | Default                                           |
-| --------------- | ----------------------------- | ------------------------------------------------- |
-| `children`      | `ReactNode` / `Snippet`       | none                                              |
-| `tentacleCount` | `number`                      | `260`                                             |
-| `color`         | `string`                      | theme ink / bone                                  |
-| `theme`         | `"light" \| "dark" \| "auto"` | `"auto"`                                          |
-| `breathe`       | `boolean`                     | `true`                                            |
-| `coreSize`      | `number`                      | `10` — inner hole; measured when children are set |
-| `radius`        | `number`                      | `0.48` — outer reach vs the shorter edge          |
-| `duration`      | `number`                      | `1.35`                                            |
-| `seed`          | `number`                      | `23`                                              |
-| `particleRatio` | `number`                      | `0.62`                                            |
-| `replayKey`     | `number`                      | `0`                                               |
-| `replayOnClick` | `boolean`                     | `true`                                            |
-| `label`         | `string`                      | `"Logo burst"`                                    |
-| `className`     | `string`                      | React only                                        |
-| `class`         | `string`                      | Svelte only                                       |
+| Prop            | Type                          | Default                                                        |
+| --------------- | ----------------------------- | -------------------------------------------------------------- |
+| `children`      | `ReactNode` / `Snippet`       | none                                                           |
+| `tentacleCount` | `number`                      | `260`                                                          |
+| `color`         | `string`                      | theme ink / bone                                               |
+| `theme`         | `"light" \| "dark" \| "auto"` | `"auto"`                                                       |
+| `breathe`       | `boolean`                     | `true`                                                         |
+| `coreSize`      | `number`                      | `0` — lines meet at the origin; measured when children are set |
+| `radius`        | `number`                      | `0.48` — outer reach vs the shorter edge                       |
+| `duration`      | `number`                      | `1.35`                                                         |
+| `seed`          | `number`                      | `23`                                                           |
+| `particleRatio` | `number`                      | `0.62`                                                         |
+| `replayKey`     | `number`                      | `0`                                                            |
+| `replayOnClick` | `boolean`                     | `true`                                                         |
+| `label`         | `string`                      | `"Logo burst"`                                                 |
+| `className`     | `string`                      | React only                                                     |
+| `class`         | `string`                      | Svelte only                                                    |
 
 `color` overrides the theme filament. Omit it and `theme="auto"` picks ink on light, bone on dark.
