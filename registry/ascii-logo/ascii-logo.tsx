@@ -11,7 +11,11 @@ import {
   type AsciiLogoOptions,
 } from "./ascii-logo-vanilla"
 
-export { DEFAULT_CHARSET } from "./ascii-logo-vanilla"
+export {
+  DEFAULT_CHARSET,
+  MAX_TEXT_WORDS,
+  clampAsciiLogoText,
+} from "./ascii-logo-vanilla"
 export type {
   AsciiLogoInstance,
   AsciiLogoOptions,

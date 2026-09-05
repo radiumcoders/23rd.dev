@@ -15,6 +15,8 @@ import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
   AsciiLogo,
+  MAX_TEXT_WORDS,
+  clampAsciiLogoText,
   type AsciiLogoPhase,
 } from "@/registry/ascii-logo/ascii-logo"
 
@@ -160,22 +162,33 @@ export function AsciiLogoDemo() {
           </div>
         </div>
         {source === "text" ? (
-          <div className="flex items-center justify-between gap-4">
-            <label
-              htmlFor="ascii-logo-text"
-              className="text-sm font-medium text-foreground/90"
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between gap-4">
+              <label
+                htmlFor="ascii-logo-text"
+                className="text-sm font-medium text-foreground/90"
+              >
+                Text
+              </label>
+              <Input
+                id="ascii-logo-text"
+                value={props.text}
+                aria-describedby="ascii-logo-text-hint"
+                className="h-8 w-48"
+                onChange={(event) =>
+                  updateProp(
+                    "text",
+                    clampAsciiLogoText(event.currentTarget.value)
+                  )
+                }
+              />
+            </div>
+            <p
+              id="ascii-logo-text-hint"
+              className="text-right text-xs text-muted-foreground"
             >
-              Text
-            </label>
-            <Input
-              id="ascii-logo-text"
-              value={props.text}
-              maxLength={16}
-              className="h-8 w-36"
-              onChange={(event) =>
-                updateProp("text", event.currentTarget.value)
-              }
-            />
+              Max {MAX_TEXT_WORDS} words
+            </p>
           </div>
         ) : null}
         <ControlColor

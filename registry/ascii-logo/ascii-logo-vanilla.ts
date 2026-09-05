@@ -2,10 +2,23 @@ export type AsciiLogoPhase = "logo" | "scattered" | "fallen" | "returning"
 
 export type AsciiLogoTheme = "light" | "dark" | "auto"
 
+/** Wordmark `text` is capped at this many whitespace-separated words. */
+export const MAX_TEXT_WORDS = 5
+
+/** Keep at most `maxWords` words; extra tokens are dropped. */
+export function clampAsciiLogoText(
+  text: string,
+  maxWords = MAX_TEXT_WORDS
+): string {
+  const words = text.trim().split(/\s+/).filter(Boolean)
+  if (words.length <= maxWords) return text
+  return words.slice(0, maxWords).join(" ")
+}
+
 export type AsciiLogoOptions = {
   /**
    * Wordmark sampled into the ASCII grid. Ignored when `src` is set.
-   * Default `"23rd"`
+   * Capped at `MAX_TEXT_WORDS` (5). Default `"23rd"`
    */
   text?: string
   /** Image URL to sample instead of `text` (any raster or same-origin SVG). */
@@ -197,6 +210,7 @@ export function createAsciiLogo(
     interactive: true,
     theme: "auto",
     ...initial,
+    text: clampAsciiLogoText(initial.text ?? "23rd"),
   }
 
   const ctx = canvas.getContext("2d")
@@ -606,6 +620,9 @@ export function createAsciiLogo(
   return {
     setOptions(next) {
       options = { ...options, ...next }
+      if (typeof next.text === "string") {
+        options.text = clampAsciiLogoText(next.text)
+      }
     },
     destroy() {
       running = false
