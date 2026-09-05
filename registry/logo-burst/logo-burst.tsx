@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils"
 
 import {
   createLogoBurst,
-  DEFAULT_COLOR,
   DEFAULT_CORE_SIZE,
   DEFAULT_DURATION,
   DEFAULT_PARTICLE_RATIO,
@@ -18,6 +17,7 @@ import {
 } from "./logo-burst-vanilla"
 
 export {
+  DARK_COLOR,
   DEFAULT_COLOR,
   DEFAULT_CORE_SIZE,
   DEFAULT_DURATION,
@@ -25,10 +25,17 @@ export {
   DEFAULT_RADIUS,
   DEFAULT_SEED,
   DEFAULT_TENTACLE_COUNT,
+  LIGHT_COLOR,
+  resolveColor,
+  resolveDark,
 } from "./logo-burst-vanilla"
-export type { LogoBurstInstance, LogoBurstOptions } from "./logo-burst-vanilla"
+export type {
+  LogoBurstInstance,
+  LogoBurstOptions,
+  LogoBurstTheme,
+} from "./logo-burst-vanilla"
 
-export type LogoBurstProps = LogoBurstOptions & {
+export type LogoBurstProps = Omit<LogoBurstOptions, "onThemeChange"> & {
   className?: string
   /** Centered mark. Defaults to a rounded chevron plate. */
   children?: ReactNode
@@ -42,13 +49,13 @@ export type LogoBurstProps = LogoBurstOptions & {
   label?: string
 }
 
-/** Default centered plate — swap via `children`. */
+/** Default centered plate — swap via `children`. Follows the theme. */
 export function LogoBurstMark({ className }: { className?: string }) {
   return (
     <span
       data-slot="logo-burst-mark"
       className={cn(
-        "flex size-20 items-center justify-center rounded-[22%] bg-white text-neutral-950 shadow-[0_0_0_1px_rgba(255,255,255,0.12)]",
+        "flex size-20 items-center justify-center rounded-[22%] bg-foreground text-background ring-1 ring-foreground/12",
         className
       )}
     >
@@ -63,19 +70,21 @@ export function LogoBurstMark({ className }: { className?: string }) {
 }
 
 /**
- * Hair-line tentacles explode from a centered mark, then settle with tip
- * particles. Transparent canvas — sit it on a dark surface.
+ * Hair-line tentacles explode from a centered mark, then keep a slow inhale.
+ * Transparent canvas over `bg-background`. Theme-aware light / dark.
  */
 export function LogoBurst({
   className,
   children,
   tentacleCount = DEFAULT_TENTACLE_COUNT,
-  color = DEFAULT_COLOR,
+  color,
   coreSize,
   radius = DEFAULT_RADIUS,
   duration = DEFAULT_DURATION,
   seed = DEFAULT_SEED,
   particleRatio = DEFAULT_PARTICLE_RATIO,
+  theme = "auto",
+  breathe = true,
   replayKey = 0,
   replayOnClick = true,
   label = "Logo burst",
@@ -96,6 +105,8 @@ export function LogoBurst({
       duration,
       seed,
       particleRatio,
+      theme,
+      breathe,
     })
     return () => {
       instanceRef.current?.destroy()
@@ -114,8 +125,20 @@ export function LogoBurst({
       duration,
       seed,
       particleRatio,
+      theme,
+      breathe,
     })
-  }, [tentacleCount, color, coreSize, radius, duration, seed, particleRatio])
+  }, [
+    tentacleCount,
+    color,
+    coreSize,
+    radius,
+    duration,
+    seed,
+    particleRatio,
+    theme,
+    breathe,
+  ])
 
   useEffect(() => {
     const core = coreRef.current

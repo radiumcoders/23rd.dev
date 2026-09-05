@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useLayoutEffect, useMemo, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -10,34 +10,56 @@ import {
   ControlSwitch,
 } from "@/components/component-controls"
 import { ComponentPreview } from "@/components/component-preview"
+import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
-  DEFAULT_COLOR,
+  DARK_COLOR,
   DEFAULT_DURATION,
   DEFAULT_PARTICLE_RATIO,
   DEFAULT_RADIUS,
   DEFAULT_TENTACLE_COUNT,
+  LIGHT_COLOR,
   LogoBurst,
 } from "@/registry/logo-burst/logo-burst"
 
-const STAGE = "#050506"
+function norm(hex: string) {
+  return hex.trim().toUpperCase()
+}
+
+function isStockColor(color: string) {
+  return norm(color) === norm(LIGHT_COLOR) || norm(color) === norm(DARK_COLOR)
+}
 
 export function LogoBurstDemo() {
+  const theme = useHydratedTheme()
+  const stock = theme === "dark" ? DARK_COLOR : LIGHT_COLOR
+
   const defaults = useMemo(
     () => ({
       tentacleCount: DEFAULT_TENTACLE_COUNT,
-      color: DEFAULT_COLOR,
+      color: stock,
       radius: DEFAULT_RADIUS,
       duration: DEFAULT_DURATION,
       particleRatio: DEFAULT_PARTICLE_RATIO,
       replayOnClick: true,
+      breathe: true,
     }),
-    []
+    [stock]
   )
 
-  const { props, updateProp, resetProps, hasChanges } =
+  const { props, updateProp, resetProps, hasChanges, setProps } =
     usePreviewProps(defaults)
+
+  useLayoutEffect(() => {
+    setProps((prev) => {
+      if (!isStockColor(prev.color)) return prev
+      if (norm(prev.color) === norm(stock)) return prev
+      return { ...prev, color: stock }
+    })
+  }, [setProps, stock])
+
   const [replayKey, setReplayKey] = useState(0)
+  const useAutoColor = isStockColor(props.color)
 
   return (
     <>
@@ -45,18 +67,17 @@ export function LogoBurstDemo() {
         title="Logo Burst"
         stageClassName="min-h-0 overflow-hidden p-0"
       >
-        <div
-          className="relative h-[56svh] w-full"
-          style={{ backgroundColor: STAGE }}
-        >
+        <div className="relative h-[56svh] w-full bg-background">
           <LogoBurst
             tentacleCount={props.tentacleCount}
-            color={props.color}
+            color={useAutoColor ? undefined : props.color}
             radius={props.radius}
             duration={props.duration}
             particleRatio={props.particleRatio}
             replayOnClick={props.replayOnClick}
+            breathe={props.breathe}
             replayKey={replayKey}
+            theme="auto"
           />
         </div>
       </ComponentPreview>
@@ -70,7 +91,7 @@ export function LogoBurstDemo() {
             props.tentacleCount === DEFAULT_TENTACLE_COUNT
               ? undefined
               : props.tentacleCount,
-          color: props.color === DEFAULT_COLOR ? undefined : props.color,
+          color: useAutoColor ? undefined : props.color,
           radius: props.radius === DEFAULT_RADIUS ? undefined : props.radius,
           duration:
             props.duration === DEFAULT_DURATION ? undefined : props.duration,
@@ -79,6 +100,7 @@ export function LogoBurstDemo() {
               ? undefined
               : props.particleRatio,
           replayOnClick: props.replayOnClick ? undefined : false,
+          breathe: props.breathe ? undefined : false,
         }}
       >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -128,6 +150,12 @@ export function LogoBurstDemo() {
           max={1}
           step={0.05}
           onChange={(v) => updateProp("particleRatio", v)}
+        />
+        <ControlSwitch
+          label="Breathe"
+          description="Slow inhale after the burst"
+          checked={props.breathe}
+          onChange={(v) => updateProp("breathe", v)}
         />
         <ControlSwitch
           label="Replay on click"

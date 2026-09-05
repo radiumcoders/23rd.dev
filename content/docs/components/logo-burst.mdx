@@ -1,11 +1,11 @@
 ---
 title: Logo Burst
-description: Hair-line tentacles explode from a centered mark, then settle with tip particles — drop any logo in the middle.
+description: Hair-line tentacles explode from a centered mark, then keep a slow inhale — drop any logo in the middle. Follows light and dark.
 ---
 
 import { LogoBurstDemo } from "@/registry/logo-burst/logo-burst-demo"
 
-A brand-hero burst. Thin filaments detonate out of the center, tip particles lock in, and the mark stays put. Click the plate — or bump `replayKey` — to explode again. Sit it on a dark surface.
+A brand-hero burst. Thin filaments detonate out of the center, tip particles lock in, then the field breathes. Click the plate — or bump `replayKey` — to explode again. Default `theme="auto"` follows the site. Press `d` to toggle.
 
 <LogoBurstDemo />
 
@@ -19,7 +19,7 @@ Or install straight from the public GitHub source registry:
 
 ## Usage
 
-Give the parent a size and a dark background. The canvas is transparent. Pass children to swap the default chevron plate.
+Give the parent a size. The canvas is transparent over `bg-background`. Pass children to swap the default chevron plate.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -30,7 +30,7 @@ import { LogoBurst } from "@/components/ui/logo-burst"
 
 export function HeroMark() {
   return (
-    <div className="relative h-svh w-full bg-black">
+    <div className="relative h-svh w-full bg-background">
       <LogoBurst>
         <img src="/mark.svg" alt="" className="size-20 rounded-[22%]" />
       </LogoBurst>
@@ -45,7 +45,7 @@ export function HeroMark() {
   import LogoBurst from "$lib/components/ui/logo-burst.svelte"
 </script>
 
-<div class="relative h-svh w-full bg-black">
+<div class="relative h-svh w-full bg-background">
   <LogoBurst>
     <img src="/mark.svg" alt="" class="size-20 rounded-[22%]" />
   </LogoBurst>
@@ -70,7 +70,7 @@ export function Replayable() {
   const [key, setKey] = useState(0)
 
 return (
-<div className="relative h-96 bg-black">
+<div className="relative h-96 bg-background">
 <LogoBurst replayKey={key} replayOnClick={false} />
 <button type="button" onClick={() => setKey((n) => n + 1)}>
 Replay
@@ -89,7 +89,7 @@ Replay
   let key = $state(0)
 </script>
 
-<div class="relative h-96 bg-black">
+<div class="relative h-96 bg-background">
   <LogoBurst replayKey={key} replayOnClick={false} />
   <button type="button" onclick={() => (key += 1)}>Replay</button>
 </div>
@@ -98,22 +98,26 @@ Replay
   </FrameworkSvelte>
 </FrameworkCode>
 
-`prefers-reduced-motion: reduce` draws the settled field and skips the explosion.
+`prefers-reduced-motion: reduce` draws the settled field and skips the explosion and the inhale.
 
 ## Props
 
-| Prop            | Type                    | Default                                  |
-| --------------- | ----------------------- | ---------------------------------------- |
-| `children`      | `ReactNode` / `Snippet` | chevron plate                            |
-| `tentacleCount` | `number`                | `260`                                    |
-| `color`         | `string`                | `#D6D2CA`                                |
-| `coreSize`      | `number`                | measured from the mark                   |
-| `radius`        | `number`                | `0.48` — outer reach vs the shorter edge |
-| `duration`      | `number`                | `1.35`                                   |
-| `seed`          | `number`                | `23`                                     |
-| `particleRatio` | `number`                | `0.62`                                   |
-| `replayKey`     | `number`                | `0`                                      |
-| `replayOnClick` | `boolean`               | `true`                                   |
-| `label`         | `string`                | `"Logo burst"`                           |
-| `className`     | `string`                | React only                               |
-| `class`         | `string`                | Svelte only                              |
+| Prop            | Type                          | Default                                  |
+| --------------- | ----------------------------- | ---------------------------------------- |
+| `children`      | `ReactNode` / `Snippet`       | chevron plate                            |
+| `tentacleCount` | `number`                      | `260`                                    |
+| `color`         | `string`                      | theme ink / bone                         |
+| `theme`         | `"light" \| "dark" \| "auto"` | `"auto"`                                 |
+| `breathe`       | `boolean`                     | `true`                                   |
+| `coreSize`      | `number`                      | measured from the mark                   |
+| `radius`        | `number`                      | `0.48` — outer reach vs the shorter edge |
+| `duration`      | `number`                      | `1.35`                                   |
+| `seed`          | `number`                      | `23`                                     |
+| `particleRatio` | `number`                      | `0.62`                                   |
+| `replayKey`     | `number`                      | `0`                                      |
+| `replayOnClick` | `boolean`                     | `true`                                   |
+| `label`         | `string`                      | `"Logo burst"`                           |
+| `className`     | `string`                      | React only                               |
+| `class`         | `string`                      | Svelte only                              |
+
+`color` overrides the theme filament. Omit it and `theme="auto"` picks ink on light, bone on dark.

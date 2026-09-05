@@ -5,7 +5,6 @@
   import { onMount, type Snippet } from "svelte"
   import {
     createLogoBurst,
-    DEFAULT_COLOR,
     DEFAULT_CORE_SIZE,
     DEFAULT_DURATION,
     DEFAULT_PARTICLE_RATIO,
@@ -20,7 +19,7 @@
     return parts.filter(Boolean).join(" ")
   }
 
-  interface Props extends LogoBurstOptions {
+  interface Props extends Omit<LogoBurstOptions, "onThemeChange"> {
     class?: string
     /** Centered mark. Defaults to a rounded chevron plate. */
     children?: Snippet
@@ -38,12 +37,14 @@
     class: className = "",
     children,
     tentacleCount = DEFAULT_TENTACLE_COUNT,
-    color = DEFAULT_COLOR,
+    color,
     coreSize,
     radius = DEFAULT_RADIUS,
     duration = DEFAULT_DURATION,
     seed = DEFAULT_SEED,
     particleRatio = DEFAULT_PARTICLE_RATIO,
+    theme = "auto",
+    breathe = true,
     replayKey = 0,
     replayOnClick = true,
     label = "Logo burst",
@@ -64,6 +65,8 @@
       duration,
       seed,
       particleRatio,
+      theme,
+      breathe,
     })
     return () => {
       instance?.destroy()
@@ -80,6 +83,8 @@
       duration,
       seed,
       particleRatio,
+      theme,
+      breathe,
     })
   })
 
@@ -120,7 +125,7 @@
   {:else}
     <span
       data-slot="logo-burst-mark"
-      class="flex size-20 items-center justify-center rounded-[22%] bg-white text-neutral-950 shadow-[0_0_0_1px_rgba(255,255,255,0.12)]"
+      class="flex size-20 items-center justify-center rounded-[22%] bg-foreground text-background ring-1 ring-foreground/12"
     >
       <svg viewBox="0 0 24 24" aria-hidden="true" class="size-10">
         <path
