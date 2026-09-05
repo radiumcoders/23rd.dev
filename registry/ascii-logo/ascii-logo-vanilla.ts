@@ -2,10 +2,21 @@ export type AsciiLogoPhase = "logo" | "scattered" | "fallen" | "returning"
 
 export type AsciiLogoTheme = "light" | "dark" | "auto"
 
+/** Wordmark `text` is capped at this many characters. */
+export const MAX_TEXT_LETTERS = 5
+
+/** Keep at most `maxLetters` characters; extra input is dropped. */
+export function clampAsciiLogoText(
+  text: string,
+  maxLetters = MAX_TEXT_LETTERS
+): string {
+  return [...text].slice(0, maxLetters).join("")
+}
+
 export type AsciiLogoOptions = {
   /**
    * Wordmark sampled into the ASCII grid. Ignored when `src` is set.
-   * Default `"23rd"`
+   * Capped at `MAX_TEXT_LETTERS` (5). Default `"23rd"`
    */
   text?: string
   /** Image URL to sample instead of `text` (any raster or same-origin SVG). */
@@ -198,6 +209,7 @@ export function createAsciiLogo(
     theme: "auto",
     ...initial,
   }
+  options.text = clampAsciiLogoText(options.text)
 
   const ctx = canvas.getContext("2d")
   if (!ctx) return null
@@ -606,6 +618,9 @@ export function createAsciiLogo(
   return {
     setOptions(next) {
       options = { ...options, ...next }
+      if (typeof next.text === "string") {
+        options.text = clampAsciiLogoText(next.text)
+      }
     },
     destroy() {
       running = false

@@ -6,6 +6,7 @@
   import {
     createAsciiLogo,
     DEFAULT_CHARSET,
+    clampAsciiLogoText,
     type AsciiLogoInstance,
     type AsciiLogoOptions,
   } from "./ascii-logo-vanilla"
@@ -110,7 +111,7 @@
     })
   })
 
-  const aria = $derived(label ?? (src ? "ASCII logo" : text))
+  const aria = $derived(label ?? (src ? "ASCII logo" : clampAsciiLogoText(text)))
 </script>
 
 <div
