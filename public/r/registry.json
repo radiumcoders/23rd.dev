@@ -138,6 +138,32 @@
       "type": "registry:ui"
     },
     {
+      "name": "logo-burst",
+      "title": "Logo Burst",
+      "description": "Hair-line tentacles explode from the center, then keep a slow inhale. Follows light and dark.",
+      "files": [
+        {
+          "path": "registry/logo-burst/logo-burst.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/logo-burst.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
+      "name": "logo-burst-svelte",
+      "title": "Logo Burst",
+      "description": "Hair-line tentacles explode from the center, then keep a slow inhale. Follows light and dark.",
+      "files": [
+        {
+          "path": "registry/logo-burst/logo-burst.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/logo-burst.svelte"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "radiant-lines",
       "title": "Radiant Lines",
       "description": "A hyperspace starfield background — colored streaks radiate from the center, with warp speed driven by scroll velocity.",

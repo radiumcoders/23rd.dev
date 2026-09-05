@@ -1,0 +1,137 @@
+---
+title: Logo Burst
+description: Hair-line tentacles explode from the center, then keep a slow inhale. Follows light and dark.
+---
+
+import { LogoBurstDemo } from "@/registry/logo-burst/logo-burst-demo"
+
+A brand-hero burst. Thin filaments detonate out of the center, tip particles lock in, then the field breathes. Click the field — or bump `replayKey` — to explode again. Default `theme="auto"` follows the site. Press `d` to toggle.
+
+<LogoBurstDemo />
+
+## Installation
+
+<CliCommand item="logo-burst" />
+
+Or install straight from the public GitHub source registry:
+
+<CliCommand item="logo-burst" github />
+
+## Usage
+
+Give the parent a size. The canvas is transparent over `bg-background`.
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+"use client"
+
+import { LogoBurst } from "@/components/ui/logo-burst"
+
+export function HeroBurst() {
+  return (
+    <div className="relative h-svh w-full bg-background">
+      <LogoBurst />
+    </div>
+  )
+}
+```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import LogoBurst from "$lib/components/ui/logo-burst.svelte"
+</script>
+
+<div class="relative h-svh w-full bg-background">
+  <LogoBurst />
+</div>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+Pass children only if you want a mark in the hole. `coreSize` is then measured from that mark unless you lock it.
+
+<FrameworkCode>
+  <FrameworkReact>
+    ```tsx
+    <LogoBurst>
+      <img src="/mark.svg" alt="" className="size-20 rounded-[22%]" />
+    </LogoBurst>
+    ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+    ```svelte
+    <LogoBurst>
+      <img src="/mark.svg" alt="" class="size-20 rounded-[22%]" />
+    </LogoBurst>
+    ```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+Replay from outside by incrementing `replayKey`.
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+"use client"
+
+import { useState } from "react"
+import { LogoBurst } from "@/components/ui/logo-burst"
+
+export function Replayable() {
+  const [key, setKey] = useState(0)
+
+return (
+
+<div className="relative h-96 bg-background">
+<LogoBurst replayKey={key} replayOnClick={false} />
+<button type="button" onClick={() => setKey((n) => n + 1)}>
+Replay
+</button>
+</div>
+)
+}
+
+````
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import LogoBurst from "$lib/components/ui/logo-burst.svelte"
+
+  let key = $state(0)
+</script>
+
+<div class="relative h-96 bg-background">
+  <LogoBurst replayKey={key} replayOnClick={false} />
+  <button type="button" onclick={() => (key += 1)}>Replay</button>
+</div>
+````
+
+  </FrameworkSvelte>
+</FrameworkCode>
+
+`prefers-reduced-motion: reduce` draws the settled field and skips the explosion and the inhale.
+
+## Props
+
+| Prop            | Type                          | Default                                                        |
+| --------------- | ----------------------------- | -------------------------------------------------------------- |
+| `children`      | `ReactNode` / `Snippet`       | none                                                           |
+| `tentacleCount` | `number`                      | `260`                                                          |
+| `color`         | `string`                      | theme ink / bone                                               |
+| `theme`         | `"light" \| "dark" \| "auto"` | `"auto"`                                                       |
+| `breathe`       | `boolean`                     | `true`                                                         |
+| `coreSize`      | `number`                      | `0` — lines meet at the origin; measured when children are set |
+| `radius`        | `number`                      | `0.48` — outer reach vs the shorter edge                       |
+| `duration`      | `number`                      | `1.35`                                                         |
+| `seed`          | `number`                      | `23`                                                           |
+| `particleRatio` | `number`                      | `0.62`                                                         |
+| `replayKey`     | `number`                      | `0`                                                            |
+| `replayOnClick` | `boolean`                     | `true`                                                         |
+| `label`         | `string`                      | `"Logo burst"`                                                 |
+| `className`     | `string`                      | React only                                                     |
+| `class`         | `string`                      | Svelte only                                                    |
+
+`color` overrides the theme filament. Omit it and `theme="auto"` picks ink on light, bone on dark.
