@@ -1,6 +1,16 @@
+export type PhosphorScoreTheme = "light" | "dark" | "auto"
+
 export type PhosphorScoreOptions = {
-  /** Ink / phosphor color. Default `#4DFF6A`. */
+  /**
+   * Ink / phosphor color. Omit to follow `theme`
+   * (`LIGHT_COLOR` / `DARK_COLOR`).
+   */
   color?: string
+  /**
+   * Bloom amount, 0–100. Default `50`. Scales the playhead halo
+   * and exit flare — kept small so it sits on the note, not a disc.
+   */
+  glow?: number
   /**
    * Tilt the score plane back, in degrees. Default `16`.
    */
@@ -21,6 +31,13 @@ export type PhosphorScoreOptions = {
   sway?: boolean
   /** Deterministic score. Default `23`. */
   seed?: number
+  /**
+   * Palette mode. Default `auto` follows shadcn / next-themes
+   * (`html.dark` class).
+   */
+  theme?: PhosphorScoreTheme
+  /** Fires whenever resolved dark mode changes. */
+  onThemeChange?: (dark: boolean) => void
 }
 
 export type PhosphorScoreInstance = {
@@ -28,14 +45,21 @@ export type PhosphorScoreInstance = {
   destroy: () => void
 }
 
-export const DEFAULT_COLOR = "#4DFF6A"
+/** Phosphor on black */
+export const DARK_COLOR = "#4DFF6A"
+/** Forest ink on paper */
+export const LIGHT_COLOR = "#147A3A"
+/** @deprecated Use `DARK_COLOR` or omit `color` and set `theme`. */
+export const DEFAULT_COLOR = DARK_COLOR
+export const DARK_BG = "#050505"
+export const LIGHT_BG = "#F4F1E8"
+export const DEFAULT_GLOW = 50
 export const DEFAULT_ROTATE_X = 16
 export const DEFAULT_ROTATE_Y = -12
 export const DEFAULT_ROTATE_Z = 0
 export const DEFAULT_SPEED = 1.35
 export const DEFAULT_DENSITY = 1
 export const DEFAULT_SEED = 23
-const BLOOM = 1
 
 const LOOP_BEATS = 48
 const DYNAMICS = ["pp", "p", "mp", "mf", "f", "ff"] as const
@@ -143,6 +167,11 @@ function rgba(rgb: Rgb, a: number) {
   return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${clamp(a, 0, 1)})`
 }
 
+function glowOf(value?: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return DEFAULT_GLOW
+  return clamp(value, 0, 100)
+}
+
 function rotateOf(value: number | undefined, fallback: number) {
   if (typeof value !== "number" || !Number.isFinite(value)) return fallback
   return clamp(value, -80, 80)
@@ -163,6 +192,45 @@ function densityOf(value?: number) {
 function seedOf(value?: number) {
   if (typeof value !== "number" || !Number.isFinite(value)) return DEFAULT_SEED
   return Math.round(value) >>> 0
+}
+
+function themeOf(value?: PhosphorScoreTheme): PhosphorScoreTheme {
+  return value === "light" || value === "dark" || value === "auto"
+    ? value
+    : "auto"
+}
+
+function optionalColor(value?: string) {
+  const next = value?.trim()
+  return next ? next : undefined
+}
+
+/** Resolves shadcn / next-themes dark mode (`attribute="class"` → `html.dark`). */
+export function isDarkTheme(): boolean {
+  if (typeof document === "undefined") return false
+  const root = document.documentElement
+  if (root.classList.contains("dark")) return true
+  if (root.classList.contains("light")) return false
+  const dataTheme = root.getAttribute("data-theme")
+  if (dataTheme === "dark") return true
+  if (dataTheme === "light") return false
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+}
+
+export function resolveDark(theme: PhosphorScoreTheme): boolean {
+  if (theme === "dark") return true
+  if (theme === "light") return false
+  return isDarkTheme()
+}
+
+export function resolveColor(color: string | undefined, dark: boolean) {
+  const custom = optionalColor(color)
+  if (custom) return custom
+  return dark ? DARK_COLOR : LIGHT_COLOR
+}
+
+export function resolveBg(dark: boolean) {
+  return dark ? DARK_BG : LIGHT_BG
 }
 
 type Score = {
@@ -330,20 +398,8 @@ export function createPhosphorScore(
   canvas: HTMLCanvasElement,
   initial: PhosphorScoreOptions = {}
 ): PhosphorScoreInstance | null {
-  let options: Required<
-    Pick<
-      PhosphorScoreOptions,
-      | "color"
-      | "rotateX"
-      | "rotateY"
-      | "rotateZ"
-      | "speed"
-      | "density"
-      | "sway"
-      | "seed"
-    >
-  > = {
-    color: DEFAULT_COLOR,
+  let options: PhosphorScoreOptions = {
+    glow: DEFAULT_GLOW,
     rotateX: DEFAULT_ROTATE_X,
     rotateY: DEFAULT_ROTATE_Y,
     rotateZ: DEFAULT_ROTATE_Z,
@@ -352,6 +408,7 @@ export function createPhosphorScore(
     seed: DEFAULT_SEED,
     ...initial,
     sway: initial.sway ?? true,
+    theme: themeOf(initial.theme),
   }
 
   const ctx = canvas.getContext("2d", { alpha: false })
@@ -360,7 +417,9 @@ export function createPhosphorScore(
   const size = { w: 0, h: 0 }
   let score = generateScore(seedOf(options.seed), densityOf(options.density))
   let dust = makeDust(seedOf(options.seed))
-  let rgb = parseColor(options.color)
+  let dark = resolveDark(themeOf(options.theme))
+  let rgb = parseColor(resolveColor(options.color, dark))
+  options.onThemeChange?.(dark)
   const flares: Flare[] = []
   const hit = new Set<number>()
   let reduce = false
@@ -396,10 +455,25 @@ export function createPhosphorScore(
   onReduce()
   mqReduce.addEventListener("change", onReduce)
 
+  const syncTheme = () => {
+    const next = resolveDark(themeOf(options.theme))
+    if (next === dark) return
+    dark = next
+    rgb = parseColor(resolveColor(options.color, dark))
+    options.onThemeChange?.(dark)
+  }
+  const mo = new MutationObserver(syncTheme)
+  mo.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class", "data-theme", "style"],
+  })
+  const mqDark = window.matchMedia("(prefers-color-scheme: dark)")
+  mqDark.addEventListener("change", syncTheme)
+
   const rebuild = () => {
     score = generateScore(seedOf(options.seed), densityOf(options.density))
     dust = makeDust(seedOf(options.seed))
-    rgb = parseColor(options.color)
+    rgb = parseColor(resolveColor(options.color, dark))
     hit.clear()
     flares.length = 0
   }
@@ -461,11 +535,13 @@ export function createPhosphorScore(
     ctx.restore()
   }
 
-  const glowBlob = (pt: Pt, radius: number, color: string) => {
-    const r = radius * pt.s
+  const glowBlob = (pt: Pt, radius: number, alpha: number) => {
+    const r = Math.max(1.2, radius * pt.s)
     const g = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, r)
-    g.addColorStop(0, color)
-    g.addColorStop(1, "rgba(0,0,0,0)")
+    g.addColorStop(0, rgba(rgb, alpha))
+    g.addColorStop(0.28, rgba(rgb, alpha * 0.42))
+    g.addColorStop(0.62, rgba(rgb, alpha * 0.1))
+    g.addColorStop(1, rgba(rgb, 0))
     ctx.fillStyle = g
     ctx.beginPath()
     ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2)
@@ -496,10 +572,13 @@ export function createPhosphorScore(
     cam.z =
       (rotateOf(options.rotateZ, DEFAULT_ROTATE_Z) * Math.PI) / 180 +
       (swayOn ? Math.sin(clock * 0.17) * 0.08 : 0)
-    const color = rgb
+    const bloom = glowOf(options.glow) / 50
+    const color = parseColor(resolveColor(options.color, dark))
+    rgb = color
 
+    ctx.imageSmoothingEnabled = true
     ctx.globalCompositeOperation = "source-over"
-    ctx.fillStyle = "#050505"
+    ctx.fillStyle = resolveBg(dark)
     ctx.fillRect(0, 0, w, h)
 
     ctx.save()
@@ -507,7 +586,7 @@ export function createPhosphorScore(
     for (const d of dust) {
       const px = ((d.x + 1) * 0.5 + clock * 0.01 * d.z) % 1
       const py = ((d.y + 1) * 0.5 + elapsed * 0.004 * (0.3 + d.z)) % 1
-      ctx.fillStyle = rgba(color, d.a)
+      ctx.fillStyle = rgba(color, dark ? d.a : d.a * 0.28)
       ctx.fillRect(px * w, py * h, d.s, d.s)
     }
     ctx.restore()
@@ -539,7 +618,7 @@ export function createPhosphorScore(
             started = true
           } else ctx.lineTo(pt.x, pt.y)
           if (i === Math.floor(steps * 0.62)) {
-            ctx.strokeStyle = rgba(color, 0.16 + hitAmt * 0.28 * BLOOM)
+            ctx.strokeStyle = rgba(color, 0.16 + hitAmt * 0.28 * bloom)
             ctx.lineWidth = 1
             ctx.stroke()
             ctx.beginPath()
@@ -711,7 +790,7 @@ export function createPhosphorScore(
       const x = lerp(-gap - sp * 18, gap + sp * 18, i / 18)
       playheadPts.push(project(x, playY))
     }
-    ctx.strokeStyle = rgba(color, 0.22 * BLOOM)
+    ctx.strokeStyle = rgba(color, 0.28 * Math.min(1, bloom))
     ctx.lineWidth = 1
     ctx.beginPath()
     ctx.moveTo(playheadPts[0]!.x, playheadPts[0]!.y)
@@ -720,9 +799,8 @@ export function createPhosphorScore(
     }
     ctx.stroke()
 
-    ctx.globalCompositeOperation = "lighter"
-    const scan = playheadPts[Math.floor(playheadPts.length / 2)]!
-    glowBlob(scan, 110 * BLOOM, rgba(color, 0.1 * BLOOM))
+    const bloomOp = dark ? "lighter" : "source-over"
+    ctx.globalCompositeOperation = bloomOp
 
     for (const note of score.notes) {
       const d = wrapDelta(note.t, beat, LOOP_BEATS)
@@ -756,17 +834,20 @@ export function createPhosphorScore(
         ctx.stroke()
       }
 
-      if (intens > 0.05) {
-        glowBlob(
-          pt,
-          (22 + intens * 52) * BLOOM,
-          rgba(color, (0.16 + intens * 0.42) * BLOOM)
-        )
+      if (intens > 0.04 && bloom > 0) {
+        const halo = (5 + intens * 9) * bloom
+        glowBlob(pt, halo, (dark ? 0.55 : 0.28) * intens * Math.min(1, bloom))
       }
 
       ctx.globalCompositeOperation = "source-over"
+      ctx.save()
+      if (intens > 0.2 && bloom > 0) {
+        ctx.shadowColor = rgba(color, dark ? 0.9 : 0.45)
+        ctx.shadowBlur = (3.5 + intens * 5) * bloom
+      }
       drawOval(pt, headR, rgba(color, clamp(alpha, 0.2, 1)))
-      ctx.globalCompositeOperation = "lighter"
+      ctx.restore()
+      ctx.globalCompositeOperation = bloomOp
 
       if (d <= 0 && d > -0.08 && intens > 0.7) {
         const id = (note.t * 1000 + note.staff * 17 + note.pitch) | 0
@@ -776,8 +857,8 @@ export function createPhosphorScore(
             x,
             y: playY,
             age: 0,
-            life: 0.48,
-            size: 36,
+            life: 0.38,
+            size: 10,
           })
           if (hit.size > 400) hit.clear()
         }
@@ -794,19 +875,15 @@ export function createPhosphorScore(
       }
       const pt = project(flare.x, flare.y)
       const fade = Math.sin((1 - t) * Math.PI)
-      glowBlob(
-        pt,
-        flare.size * (0.8 + t * 1.6) * BLOOM,
-        rgba(color, 0.5 * fade * BLOOM)
-      )
+      glowBlob(pt, (7 + t * 6) * bloom, (dark ? 0.55 : 0.28) * fade)
       ctx.save()
       ctx.translate(pt.x, pt.y)
       ctx.rotate(cam.z)
-      const flareW = 90 * BLOOM * (1 + t) * pt.s
-      const flareH = 2.4 * pt.s
+      const flareW = 22 * bloom * (1 + t * 0.4) * pt.s
+      const flareH = 1.4 * pt.s
       const fg = ctx.createLinearGradient(-flareW, 0, flareW, 0)
       fg.addColorStop(0, rgba(color, 0))
-      fg.addColorStop(0.5, rgba(color, 0.75 * fade))
+      fg.addColorStop(0.5, rgba(color, (dark ? 0.7 : 0.4) * fade))
       fg.addColorStop(1, rgba(color, 0))
       ctx.fillStyle = fg
       ctx.fillRect(-flareW, -flareH, flareW * 2, flareH * 2)
@@ -828,8 +905,10 @@ export function createPhosphorScore(
         ...options,
         ...next,
         sway: next.sway ?? options.sway,
+        theme: themeOf(next.theme ?? options.theme),
       }
-      rgb = parseColor(options.color)
+      syncTheme()
+      rgb = parseColor(resolveColor(options.color, dark))
       if (
         seedOf(options.seed) !== prevSeed ||
         densityOf(options.density) !== prevDens
@@ -841,7 +920,9 @@ export function createPhosphorScore(
       running = false
       cancelAnimationFrame(raf)
       ro.disconnect()
+      mo.disconnect()
       mqReduce.removeEventListener("change", onReduce)
+      mqDark.removeEventListener("change", syncTheme)
     },
   }
 }

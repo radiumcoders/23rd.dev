@@ -1,5 +1,7 @@
 "use client"
 
+import { useLayoutEffect, useMemo } from "react"
+
 import {
   ComponentControls,
   ControlColor,
@@ -7,46 +9,76 @@ import {
   ControlSwitch,
 } from "@/components/component-controls"
 import { ComponentPreview } from "@/components/component-preview"
+import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
-  DEFAULT_COLOR,
+  DARK_COLOR,
   DEFAULT_DENSITY,
+  DEFAULT_GLOW,
   DEFAULT_ROTATE_X,
   DEFAULT_ROTATE_Y,
   DEFAULT_ROTATE_Z,
   DEFAULT_SPEED,
+  LIGHT_COLOR,
   PhosphorScore,
 } from "@/registry/phosphor-score/phosphor-score"
 
-const DEFAULTS = {
-  color: DEFAULT_COLOR,
-  rotateX: DEFAULT_ROTATE_X,
-  rotateY: DEFAULT_ROTATE_Y,
-  rotateZ: DEFAULT_ROTATE_Z,
-  speed: DEFAULT_SPEED,
-  density: DEFAULT_DENSITY,
-  sway: true,
+function norm(hex: string) {
+  return hex.trim().toUpperCase()
+}
+
+function isStockColor(color: string) {
+  return norm(color) === norm(LIGHT_COLOR) || norm(color) === norm(DARK_COLOR)
 }
 
 export function PhosphorScoreDemo() {
-  const { props, updateProp, resetProps, hasChanges } =
-    usePreviewProps(DEFAULTS)
+  const theme = useHydratedTheme()
+  const stock = theme === "dark" ? DARK_COLOR : LIGHT_COLOR
+
+  const defaults = useMemo(
+    () => ({
+      color: stock,
+      glow: DEFAULT_GLOW,
+      rotateX: DEFAULT_ROTATE_X,
+      rotateY: DEFAULT_ROTATE_Y,
+      rotateZ: DEFAULT_ROTATE_Z,
+      speed: DEFAULT_SPEED,
+      density: DEFAULT_DENSITY,
+      sway: true,
+    }),
+    [stock]
+  )
+
+  const { props, updateProp, resetProps, hasChanges, setProps } =
+    usePreviewProps(defaults)
+
+  useLayoutEffect(() => {
+    setProps((prev) => {
+      if (!isStockColor(prev.color)) return prev
+      if (norm(prev.color) === norm(stock)) return prev
+      return { ...prev, color: stock }
+    })
+  }, [setProps, stock])
+
+  const useAutoColor = isStockColor(props.color)
 
   return (
     <>
       <ComponentPreview
         title="Phosphor Score"
-        stageClassName="min-h-0 overflow-hidden bg-black p-0"
+        stageClassName="min-h-0 overflow-hidden bg-background p-0"
       >
-        <div className="relative h-[56svh] w-full bg-black">
+        <div className="relative h-[56svh] w-full bg-background">
           <PhosphorScore
-            color={props.color}
+            color={useAutoColor ? undefined : props.color}
+            glow={props.glow}
             rotateX={props.rotateX}
             rotateY={props.rotateY}
             rotateZ={props.rotateZ}
             speed={props.speed}
             density={props.density}
             sway={props.sway}
+            theme="auto"
           />
         </div>
       </ComponentPreview>
@@ -56,7 +88,8 @@ export function PhosphorScoreDemo() {
         onReset={resetProps}
         component="PhosphorScore"
         snippetProps={{
-          color: props.color === DEFAULT_COLOR ? undefined : props.color,
+          color: useAutoColor ? undefined : props.color,
+          glow: props.glow === DEFAULT_GLOW ? undefined : props.glow,
           rotateX:
             props.rotateX === DEFAULT_ROTATE_X ? undefined : props.rotateX,
           rotateY:
@@ -73,6 +106,14 @@ export function PhosphorScoreDemo() {
           label="Phosphor"
           value={props.color}
           onChange={(v) => updateProp("color", v)}
+        />
+        <ControlSlider
+          label="Glow"
+          value={props.glow}
+          min={0}
+          max={100}
+          step={1}
+          onChange={(v) => updateProp("glow", v)}
         />
         <ControlSlider
           label="Rotate X"
