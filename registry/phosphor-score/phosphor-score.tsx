@@ -8,9 +8,9 @@ import {
   createPhosphorScore,
   DEFAULT_COLOR,
   DEFAULT_DENSITY,
-  DEFAULT_GLOW,
   DEFAULT_ROTATE_X,
   DEFAULT_ROTATE_Y,
+  DEFAULT_ROTATE_Z,
   DEFAULT_SEED,
   DEFAULT_SPEED,
   type PhosphorScoreInstance,
@@ -20,9 +20,9 @@ import {
 export {
   DEFAULT_COLOR,
   DEFAULT_DENSITY,
-  DEFAULT_GLOW,
   DEFAULT_ROTATE_X,
   DEFAULT_ROTATE_Y,
+  DEFAULT_ROTATE_Z,
   DEFAULT_SEED,
   DEFAULT_SPEED,
 } from "./phosphor-score-vanilla"
@@ -42,9 +42,9 @@ export type PhosphorScoreProps = PhosphorScoreOptions & {
 export function PhosphorScore({
   className,
   color = DEFAULT_COLOR,
-  glow = DEFAULT_GLOW,
   rotateX = DEFAULT_ROTATE_X,
   rotateY = DEFAULT_ROTATE_Y,
+  rotateZ = DEFAULT_ROTATE_Z,
   speed = DEFAULT_SPEED,
   density = DEFAULT_DENSITY,
   sway = true,
@@ -58,9 +58,9 @@ export function PhosphorScore({
     if (!canvas) return
     instanceRef.current = createPhosphorScore(canvas, {
       color,
-      glow,
       rotateX,
       rotateY,
+      rotateZ,
       speed,
       density,
       sway,
@@ -77,15 +77,15 @@ export function PhosphorScore({
   useEffect(() => {
     instanceRef.current?.setOptions({
       color,
-      glow,
       rotateX,
       rotateY,
+      rotateZ,
       speed,
       density,
       sway,
       seed,
     })
-  }, [color, glow, rotateX, rotateY, speed, density, sway, seed])
+  }, [color, rotateX, rotateY, rotateZ, speed, density, sway, seed])
 
   return (
     <div

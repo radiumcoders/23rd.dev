@@ -2,11 +2,6 @@ export type PhosphorScoreOptions = {
   /** Ink / phosphor color. Default `#4DFF6A`. */
   color?: string
   /**
-   * Bloom strength at the playhead and on the exit flash.
-   * Default `1`.
-   */
-  glow?: number
-  /**
    * Tilt the score plane back, in degrees. Default `16`.
    */
   rotateX?: number
@@ -14,6 +9,10 @@ export type PhosphorScoreOptions = {
    * Yaw the score plane, in degrees. Default `-12`.
    */
   rotateY?: number
+  /**
+   * Roll the score plane, in degrees. Default `0`.
+   */
+  rotateZ?: number
   /** Scroll speed in beats per second. Default `1.35`. */
   speed?: number
   /** How packed the notation is. Default `1`. */
@@ -30,12 +29,13 @@ export type PhosphorScoreInstance = {
 }
 
 export const DEFAULT_COLOR = "#4DFF6A"
-export const DEFAULT_GLOW = 1
 export const DEFAULT_ROTATE_X = 16
 export const DEFAULT_ROTATE_Y = -12
+export const DEFAULT_ROTATE_Z = 0
 export const DEFAULT_SPEED = 1.35
 export const DEFAULT_DENSITY = 1
 export const DEFAULT_SEED = 23
+const BLOOM = 1
 
 const LOOP_BEATS = 48
 const DYNAMICS = ["pp", "p", "mp", "mf", "f", "ff"] as const
@@ -143,23 +143,9 @@ function rgba(rgb: Rgb, a: number) {
   return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${clamp(a, 0, 1)})`
 }
 
-function mixWhite(rgb: Rgb, t: number): Rgb {
-  const k = clamp(t, 0, 1)
-  return [
-    Math.round(lerp(rgb[0], 255, k)),
-    Math.round(lerp(rgb[1], 255, k)),
-    Math.round(lerp(rgb[2], 255, k)),
-  ]
-}
-
-function glowOf(value?: number) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return DEFAULT_GLOW
-  return clamp(value, 0, 2.4)
-}
-
 function rotateOf(value: number | undefined, fallback: number) {
   if (typeof value !== "number" || !Number.isFinite(value)) return fallback
-  return clamp(value, -55, 55)
+  return clamp(value, -80, 80)
 }
 
 function speedOf(value?: number) {
@@ -348,9 +334,9 @@ export function createPhosphorScore(
     Pick<
       PhosphorScoreOptions,
       | "color"
-      | "glow"
       | "rotateX"
       | "rotateY"
+      | "rotateZ"
       | "speed"
       | "density"
       | "sway"
@@ -358,9 +344,9 @@ export function createPhosphorScore(
     >
   > = {
     color: DEFAULT_COLOR,
-    glow: DEFAULT_GLOW,
     rotateX: DEFAULT_ROTATE_X,
     rotateY: DEFAULT_ROTATE_Y,
+    rotateZ: DEFAULT_ROTATE_Z,
     speed: DEFAULT_SPEED,
     density: DEFAULT_DENSITY,
     seed: DEFAULT_SEED,
@@ -420,21 +406,29 @@ export function createPhosphorScore(
 
   type Pt = { x: number; y: number; s: number; z: number }
 
-  const project = (x: number, y: number, rotX: number, rotY: number): Pt => {
-    const cosX = Math.cos(rotX)
-    const sinX = Math.sin(rotX)
-    const cosY = Math.cos(rotY)
-    const sinY = Math.sin(rotY)
-    const y1 = y * cosX
-    const z1 = y * sinX
-    const x2 = x * cosY - z1 * sinY
-    const z2 = x * sinY + z1 * cosY
-    const fov = Math.max(size.h, 420) * 1.15
+  const cam = { x: 0, y: 0, z: 0 }
+
+  const project = (x: number, y: number): Pt => {
+    const cosX = Math.cos(cam.x)
+    const sinX = Math.sin(cam.x)
+    const cosY = Math.cos(cam.y)
+    const sinY = Math.sin(cam.y)
+    const cosZ = Math.cos(cam.z)
+    const sinZ = Math.sin(cam.z)
+    const xz = x * cosZ - y * sinZ
+    const yz = x * sinZ + y * cosZ
+    const y1 = yz * cosX
+    const z1 = yz * sinX
+    const x2 = xz * cosY - z1 * sinY
+    const z2 = xz * sinY + z1 * cosY
+    const fov = Math.max(size.h, 420) * 2.4
     const persp = fov / (fov + z2)
+    const tilt = Math.abs(cam.x) + Math.abs(cam.y) + Math.abs(cam.z)
+    const fit = 0.78 / (1 + tilt * 0.35)
     return {
-      x: size.w * 0.5 + x2 * persp,
-      y: size.h * 0.5 + y1 * persp,
-      s: persp,
+      x: size.w * 0.5 + x2 * persp * fit,
+      y: size.h * 0.5 + y1 * persp * fit,
+      s: persp * fit,
       z: z2,
     }
   }
@@ -488,18 +482,20 @@ export function createPhosphorScore(
 
     const w = size.w
     const h = size.h
-    const sp = clamp(Math.min(w, h) * 0.016, 8, 15)
-    const gap = clamp(w * 0.2, 64, 118)
-    const ppb = clamp(h * 0.09, 34, 78)
-    const playY = h * 0.2
-    const glow = glowOf(options.glow)
-    const sway = options.sway !== false && !reduce
-    const rotX =
+    const sp = clamp(Math.min(w, h) * 0.014, 7, 13)
+    const gap = clamp(w * 0.16, 52, 96)
+    const ppb = clamp(h * 0.075, 28, 64)
+    const playY = h * 0.12
+    const swayOn = options.sway !== false && !reduce
+    cam.x =
       (rotateOf(options.rotateX, DEFAULT_ROTATE_X) * Math.PI) / 180 +
-      (sway ? Math.sin(clock * 0.33) * 0.11 : 0)
-    const rotY =
+      (swayOn ? Math.sin(clock * 0.33) * 0.11 : 0)
+    cam.y =
       (rotateOf(options.rotateY, DEFAULT_ROTATE_Y) * Math.PI) / 180 +
-      (sway ? Math.cos(clock * 0.21) * 0.16 : 0)
+      (swayOn ? Math.cos(clock * 0.21) * 0.16 : 0)
+    cam.z =
+      (rotateOf(options.rotateZ, DEFAULT_ROTATE_Z) * Math.PI) / 180 +
+      (swayOn ? Math.sin(clock * 0.17) * 0.08 : 0)
     const color = rgb
 
     ctx.globalCompositeOperation = "source-over"
@@ -511,13 +507,13 @@ export function createPhosphorScore(
     for (const d of dust) {
       const px = ((d.x + 1) * 0.5 + clock * 0.01 * d.z) % 1
       const py = ((d.y + 1) * 0.5 + elapsed * 0.004 * (0.3 + d.z)) % 1
-      ctx.fillStyle = rgba(mixWhite(color, 0.35), d.a)
+      ctx.fillStyle = rgba(color, d.a)
       ctx.fillRect(px * w, py * h, d.s, d.s)
     }
     ctx.restore()
 
-    const visMin = -2.2
-    const visMax = h / ppb + 2.2
+    const visMin = -8
+    const visMax = h / ppb + 8
 
     const inView = (t: number) => {
       const d = wrapDelta(t, beat, LOOP_BEATS)
@@ -533,17 +529,17 @@ export function createPhosphorScore(
         const x = pitchX(staff, pitch, gap, sp)
         ctx.beginPath()
         let started = false
-        const steps = 36
+        const steps = 56
         for (let i = 0; i <= steps; i++) {
           const d = lerp(visMax, visMin, i / steps)
           const hitAmt = nearPlay(d)
-          const pt = project(x, timeY(d, ppb, playY), rotX, rotY)
+          const pt = project(x, timeY(d, ppb, playY))
           if (!started) {
             ctx.moveTo(pt.x, pt.y)
             started = true
           } else ctx.lineTo(pt.x, pt.y)
           if (i === Math.floor(steps * 0.62)) {
-            ctx.strokeStyle = rgba(color, 0.16 + hitAmt * 0.28 * glow)
+            ctx.strokeStyle = rgba(color, 0.16 + hitAmt * 0.28 * BLOOM)
             ctx.lineWidth = 1
             ctx.stroke()
             ctx.beginPath()
@@ -561,8 +557,8 @@ export function createPhosphorScore(
       const d = wrapDelta(bar, beat, LOOP_BEATS)
       const y = timeY(d, ppb, playY)
       for (const staff of [0, 1] as const) {
-        const a = project(pitchX(staff, 0, gap, sp), y, rotX, rotY)
-        const b = project(pitchX(staff, 8, gap, sp), y, rotX, rotY)
+        const a = project(pitchX(staff, 0, gap, sp), y)
+        const b = project(pitchX(staff, 8, gap, sp), y)
         ctx.strokeStyle = rgba(color, 0.14 + nearPlay(d) * 0.2)
         ctx.lineWidth = 1
         ctx.beginPath()
@@ -579,9 +575,7 @@ export function createPhosphorScore(
       const d = wrapDelta(mark.t, beat, LOOP_BEATS)
       const pt = project(
         pitchX(mark.staff, mark.pitch, gap, sp),
-        timeY(d, ppb, playY),
-        rotX,
-        rotY
+        timeY(d, ppb, playY)
       )
       ctx.fillStyle = rgba(color, 0.28 + nearPlay(d) * 0.45)
       ctx.fillText(mark.text, pt.x, pt.y)
@@ -600,10 +594,10 @@ export function createPhosphorScore(
       const xOuter0 = pitchX(staff, pin.open ? outer : inner, gap, sp)
       const xOuter1 = pitchX(staff, pin.open ? inner : outer, gap, sp)
       const xMid = pitchX(staff, (outer + inner) / 2, gap, sp)
-      const a = project(xOuter0, y0, rotX, rotY)
-      const b = project(xOuter1, y1, rotX, rotY)
-      const c = project(xMid, y0, rotX, rotY)
-      const e = project(xMid, y1, rotX, rotY)
+      const a = project(xOuter0, y0)
+      const b = project(xOuter1, y1)
+      const c = project(xMid, y0)
+      const e = project(xMid, y1)
       ctx.strokeStyle = rgba(color, 0.22)
       ctx.lineWidth = 1
       ctx.beginPath()
@@ -621,23 +615,17 @@ export function createPhosphorScore(
       const side = slur.staff === 0 ? -1.8 : 1.8
       const a = project(
         pitchX(slur.staff, slur.p0 + side, gap, sp),
-        timeY(d0, ppb, playY),
-        rotX,
-        rotY
+        timeY(d0, ppb, playY)
       )
       const b = project(
         pitchX(slur.staff, slur.p1 + side, gap, sp),
-        timeY(d1, ppb, playY),
-        rotX,
-        rotY
+        timeY(d1, ppb, playY)
       )
       const midT = (slur.t0 + slur.t1) / 2
       const midP = (slur.p0 + slur.p1) / 2 + side * 1.6
       const c = project(
         pitchX(slur.staff, midP, gap, sp),
-        timeY(wrapDelta(midT, beat, LOOP_BEATS), ppb, playY),
-        rotX,
-        rotY
+        timeY(wrapDelta(midT, beat, LOOP_BEATS), ppb, playY)
       )
       ctx.strokeStyle = rgba(color, 0.2)
       ctx.lineWidth = 1.1
@@ -651,8 +639,8 @@ export function createPhosphorScore(
       if (!inView(link.t)) continue
       const d = wrapDelta(link.t, beat, LOOP_BEATS)
       const y = timeY(d, ppb, playY)
-      const a = project(pitchX(0, link.p0, gap, sp), y, rotX, rotY)
-      const b = project(pitchX(1, link.p1, gap, sp), y, rotX, rotY)
+      const a = project(pitchX(0, link.p0, gap, sp), y)
+      const b = project(pitchX(1, link.p1, gap, sp), y)
       ctx.strokeStyle = rgba(color, 0.12 + nearPlay(d) * 0.18)
       ctx.lineWidth = 1
       ctx.beginPath()
@@ -676,8 +664,8 @@ export function createPhosphorScore(
       const x0 = pitchX(note.staff, note.pitch, gap, sp)
       const x1 = pitchX(note.staff, note.pitch + dir * 6.4, gap, sp)
       return {
-        head: project(x0, y, rotX, rotY),
-        tip: project(x1, y, rotX, rotY),
+        head: project(x0, y),
+        tip: project(x1, y),
         d,
       }
     }
@@ -719,11 +707,11 @@ export function createPhosphorScore(
     }
 
     const playheadPts: Pt[] = []
-    for (let i = 0; i <= 12; i++) {
-      const x = lerp(-gap - sp * 8, gap + sp * 8, i / 12)
-      playheadPts.push(project(x, playY, rotX, rotY))
+    for (let i = 0; i <= 18; i++) {
+      const x = lerp(-gap - sp * 18, gap + sp * 18, i / 18)
+      playheadPts.push(project(x, playY))
     }
-    ctx.strokeStyle = rgba(mixWhite(color, 0.4), 0.18 * glow)
+    ctx.strokeStyle = rgba(color, 0.22 * BLOOM)
     ctx.lineWidth = 1
     ctx.beginPath()
     ctx.moveTo(playheadPts[0]!.x, playheadPts[0]!.y)
@@ -734,22 +722,21 @@ export function createPhosphorScore(
 
     ctx.globalCompositeOperation = "lighter"
     const scan = playheadPts[Math.floor(playheadPts.length / 2)]!
-    glowBlob(scan, 90 * glow, rgba(color, 0.07 * glow))
+    glowBlob(scan, 110 * BLOOM, rgba(color, 0.1 * BLOOM))
 
     for (const note of score.notes) {
       const d = wrapDelta(note.t, beat, LOOP_BEATS)
       if (d > visMax || d < visMin) continue
       const y = timeY(d, ppb, playY)
       const x = pitchX(note.staff, note.pitch, gap, sp)
-      const pt = project(x, y, rotX, rotY)
+      const pt = project(x, y)
       const intens = nearPlay(d)
       const upcoming = d > 0 ? clamp(1 - d / 10, 0.18, 0.55) : 0.2
       const headR = Math.max(2.4, sp * 0.38)
-      const fillAmt = mixWhite(color, intens * 0.85)
       const alpha = upcoming + intens * 0.8
 
       if (note.acc !== 0 && d > -0.4) {
-        const accPt = project(x, y - sp * 0.9, rotX, rotY)
+        const accPt = project(x, y - sp * 0.9)
         ctx.fillStyle = rgba(color, 0.25 + intens * 0.5)
         ctx.font = `${Math.round(sp * 1.1)}px Georgia, serif`
         ctx.fillText(note.acc > 0 ? "#" : "b", accPt.x - 4, accPt.y)
@@ -759,8 +746,8 @@ export function createPhosphorScore(
         const ledgerPitch = note.pitch < 0 ? -2 : 10
         const lx0 = pitchX(note.staff, ledgerPitch - 0.9, gap, sp)
         const lx1 = pitchX(note.staff, ledgerPitch + 0.9, gap, sp)
-        const la = project(lx0, y, rotX, rotY)
-        const lb = project(lx1, y, rotX, rotY)
+        const la = project(lx0, y)
+        const lb = project(lx1, y)
         ctx.strokeStyle = rgba(color, 0.2 + intens * 0.3)
         ctx.lineWidth = 1
         ctx.beginPath()
@@ -772,13 +759,13 @@ export function createPhosphorScore(
       if (intens > 0.05) {
         glowBlob(
           pt,
-          (18 + intens * 42) * glow,
-          rgba(fillAmt, (0.12 + intens * 0.38) * glow)
+          (22 + intens * 52) * BLOOM,
+          rgba(color, (0.16 + intens * 0.42) * BLOOM)
         )
       }
 
       ctx.globalCompositeOperation = "source-over"
-      drawOval(pt, headR, rgba(fillAmt, clamp(alpha, 0.2, 1)))
+      drawOval(pt, headR, rgba(color, clamp(alpha, 0.2, 1)))
       ctx.globalCompositeOperation = "lighter"
 
       if (d <= 0 && d > -0.08 && intens > 0.7) {
@@ -789,8 +776,8 @@ export function createPhosphorScore(
             x,
             y: playY,
             age: 0,
-            life: 0.42 + glow * 0.12,
-            size: 22 + glow * 18,
+            life: 0.48,
+            size: 36,
           })
           if (hit.size > 400) hit.clear()
         }
@@ -805,40 +792,28 @@ export function createPhosphorScore(
         flares.splice(i, 1)
         continue
       }
-      const pt = project(flare.x, flare.y, rotX, rotY)
+      const pt = project(flare.x, flare.y)
       const fade = Math.sin((1 - t) * Math.PI)
       glowBlob(
         pt,
-        flare.size * (0.8 + t * 1.6) * glow,
-        rgba(mixWhite(color, 0.9), 0.55 * fade * glow)
+        flare.size * (0.8 + t * 1.6) * BLOOM,
+        rgba(color, 0.5 * fade * BLOOM)
       )
       ctx.save()
       ctx.translate(pt.x, pt.y)
-      ctx.rotate(0)
-      const flareW = 70 * glow * (1 + t) * pt.s
-      const flareH = 2.2 * pt.s
+      ctx.rotate(cam.z)
+      const flareW = 90 * BLOOM * (1 + t) * pt.s
+      const flareH = 2.4 * pt.s
       const fg = ctx.createLinearGradient(-flareW, 0, flareW, 0)
-      fg.addColorStop(0, "rgba(255,255,255,0)")
-      fg.addColorStop(0.5, rgba(mixWhite(color, 1), 0.7 * fade))
-      fg.addColorStop(1, "rgba(255,255,255,0)")
+      fg.addColorStop(0, rgba(color, 0))
+      fg.addColorStop(0.5, rgba(color, 0.75 * fade))
+      fg.addColorStop(1, rgba(color, 0))
       ctx.fillStyle = fg
       ctx.fillRect(-flareW, -flareH, flareW * 2, flareH * 2)
       ctx.restore()
     }
 
     ctx.globalCompositeOperation = "source-over"
-    const vig = ctx.createRadialGradient(
-      w * 0.5,
-      h * 0.52,
-      Math.min(w, h) * 0.2,
-      w * 0.5,
-      h * 0.52,
-      Math.max(w, h) * 0.72
-    )
-    vig.addColorStop(0, "rgba(0,0,0,0)")
-    vig.addColorStop(1, "rgba(0,0,0,0.55)")
-    ctx.fillStyle = vig
-    ctx.fillRect(0, 0, w, h)
 
     raf = requestAnimationFrame(frame)
   }

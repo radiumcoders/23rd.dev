@@ -11,18 +11,18 @@ import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
   DEFAULT_COLOR,
   DEFAULT_DENSITY,
-  DEFAULT_GLOW,
   DEFAULT_ROTATE_X,
   DEFAULT_ROTATE_Y,
+  DEFAULT_ROTATE_Z,
   DEFAULT_SPEED,
   PhosphorScore,
 } from "@/registry/phosphor-score/phosphor-score"
 
 const DEFAULTS = {
   color: DEFAULT_COLOR,
-  glow: DEFAULT_GLOW,
   rotateX: DEFAULT_ROTATE_X,
   rotateY: DEFAULT_ROTATE_Y,
+  rotateZ: DEFAULT_ROTATE_Z,
   speed: DEFAULT_SPEED,
   density: DEFAULT_DENSITY,
   sway: true,
@@ -41,9 +41,9 @@ export function PhosphorScoreDemo() {
         <div className="relative h-[56svh] w-full bg-black">
           <PhosphorScore
             color={props.color}
-            glow={props.glow}
             rotateX={props.rotateX}
             rotateY={props.rotateY}
+            rotateZ={props.rotateZ}
             speed={props.speed}
             density={props.density}
             sway={props.sway}
@@ -57,11 +57,12 @@ export function PhosphorScoreDemo() {
         component="PhosphorScore"
         snippetProps={{
           color: props.color === DEFAULT_COLOR ? undefined : props.color,
-          glow: props.glow === DEFAULT_GLOW ? undefined : props.glow,
           rotateX:
             props.rotateX === DEFAULT_ROTATE_X ? undefined : props.rotateX,
           rotateY:
             props.rotateY === DEFAULT_ROTATE_Y ? undefined : props.rotateY,
+          rotateZ:
+            props.rotateZ === DEFAULT_ROTATE_Z ? undefined : props.rotateZ,
           speed: props.speed === DEFAULT_SPEED ? undefined : props.speed,
           density:
             props.density === DEFAULT_DENSITY ? undefined : props.density,
@@ -72,14 +73,6 @@ export function PhosphorScoreDemo() {
           label="Phosphor"
           value={props.color}
           onChange={(v) => updateProp("color", v)}
-        />
-        <ControlSlider
-          label="Glow"
-          value={props.glow}
-          min={0}
-          max={2.2}
-          step={0.05}
-          onChange={(v) => updateProp("glow", v)}
         />
         <ControlSlider
           label="Rotate X"
@@ -96,6 +89,14 @@ export function PhosphorScoreDemo() {
           max={40}
           step={1}
           onChange={(v) => updateProp("rotateY", v)}
+        />
+        <ControlSlider
+          label="Rotate Z"
+          value={props.rotateZ}
+          min={-40}
+          max={40}
+          step={1}
+          onChange={(v) => updateProp("rotateZ", v)}
         />
         <ControlSlider
           label="Speed"

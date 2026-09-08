@@ -7,9 +7,9 @@
     createPhosphorScore,
     DEFAULT_COLOR,
     DEFAULT_DENSITY,
-    DEFAULT_GLOW,
     DEFAULT_ROTATE_X,
     DEFAULT_ROTATE_Y,
+    DEFAULT_ROTATE_Z,
     DEFAULT_SEED,
     DEFAULT_SPEED,
     type PhosphorScoreInstance,
@@ -27,9 +27,9 @@
   let {
     class: className = "",
     color = DEFAULT_COLOR,
-    glow = DEFAULT_GLOW,
     rotateX = DEFAULT_ROTATE_X,
     rotateY = DEFAULT_ROTATE_Y,
+    rotateZ = DEFAULT_ROTATE_Z,
     speed = DEFAULT_SPEED,
     density = DEFAULT_DENSITY,
     sway = true,
@@ -43,9 +43,9 @@
     if (!canvas) return
     instance = createPhosphorScore(canvas, {
       color,
-      glow,
       rotateX,
       rotateY,
+      rotateZ,
       speed,
       density,
       sway,
@@ -60,9 +60,9 @@
   $effect(() => {
     instance?.setOptions({
       color,
-      glow,
       rotateX,
       rotateY,
+      rotateZ,
       speed,
       density,
       sway,

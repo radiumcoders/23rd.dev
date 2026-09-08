@@ -5,7 +5,7 @@ description: Vertical CRT sheet music — notes slide down the staves, bloom at 
 
 import { PhosphorScoreDemo } from "@/registry/phosphor-score/phosphor-score-demo"
 
-A falling score, not a piano roll. Two vertical staves, beamed runs, dynamics, and a scan line: notes dim on the way down, go white-hot as they play, then flare out. `rotateX` / `rotateY` tilt the plane; `glow` is the bloom. `sway` keeps a slow camera drift. Press `d` if you want the docs chrome in the other theme — the canvas stays black.
+A falling score, not a piano roll. Two vertical staves, beamed runs, dynamics, and a scan line: notes dim on the way down, bloom in the phosphor color as they play, then flare out. `rotateX` / `rotateY` / `rotateZ` tilt the plane; bloom stays the same color as the notes. `sway` keeps a slow camera drift. Press `d` if you want the docs chrome in the other theme — the canvas stays black.
 
 <PhosphorScoreDemo />
 
@@ -50,16 +50,16 @@ export function HeroScore() {
   </FrameworkSvelte>
 </FrameworkCode>
 
-Tilt it, push the bloom, pick a phosphor.
+Tilt it and pick a phosphor. Bloom follows `color`.
 
 <FrameworkCode>
   <FrameworkReact>
     ```tsx
     <PhosphorScore
       color="#4DFF6A"
-      glow={1.35}
       rotateX={18}
       rotateY={-14}
+      rotateZ={8}
       speed={1.5}
       sway
     />
@@ -69,9 +69,9 @@ Tilt it, push the bloom, pick a phosphor.
     ```svelte
     <PhosphorScore
       color="#4DFF6A"
-      glow={1.35}
       rotateX={18}
       rotateY={-14}
+      rotateZ={8}
       speed={1.5}
       sway
     />
@@ -83,15 +83,15 @@ Tilt it, push the bloom, pick a phosphor.
 
 ## Props
 
-| Prop        | Type      | Default                                           |
-| ----------- | --------- | ------------------------------------------------- |
-| `color`     | `string`  | `"#4DFF6A"`                                       |
-| `glow`      | `number`  | `1` — bloom at the playhead and on the exit flare |
-| `rotateX`   | `number`  | `16` — tilt back, degrees                         |
-| `rotateY`   | `number`  | `-12` — yaw, degrees                              |
-| `speed`     | `number`  | `1.35` — beats per second                         |
-| `density`   | `number`  | `1` — how packed the notation is                  |
-| `sway`      | `boolean` | `true` — slow camera drift                        |
-| `seed`      | `number`  | `23`                                              |
-| `className` | `string`  | React only                                        |
-| `class`     | `string`  | Svelte only                                       |
+| Prop        | Type      | Default                          |
+| ----------- | --------- | -------------------------------- |
+| `color`     | `string`  | `"#4DFF6A"` — notes and bloom    |
+| `rotateX`   | `number`  | `16` — tilt back, degrees        |
+| `rotateY`   | `number`  | `-12` — yaw, degrees             |
+| `rotateZ`   | `number`  | `0` — roll, degrees              |
+| `speed`     | `number`  | `1.35` — beats per second        |
+| `density`   | `number`  | `1` — how packed the notation is |
+| `sway`      | `boolean` | `true` — slow camera drift       |
+| `seed`      | `number`  | `23`                             |
+| `className` | `string`  | React only                       |
+| `class`     | `string`  | Svelte only                      |
