@@ -1,0 +1,97 @@
+---
+title: Phosphor Score
+description: Vertical CRT sheet music — notes slide down the staves, bloom at the playhead, then exit in a flare.
+---
+
+import { PhosphorScoreDemo } from "@/registry/phosphor-score/phosphor-score-demo"
+
+A falling score, not a piano roll. Two vertical staves, beamed runs, dynamics, and a scan line: notes dim on the way down, go white-hot as they play, then flare out. `rotateX` / `rotateY` tilt the plane; `glow` is the bloom. `sway` keeps a slow camera drift. Press `d` if you want the docs chrome in the other theme — the canvas stays black.
+
+<PhosphorScoreDemo />
+
+## Installation
+
+<CliCommand item="phosphor-score" />
+
+Or install straight from the public GitHub source registry:
+
+<CliCommand item="phosphor-score" github />
+
+## Usage
+
+Give the parent a size. The canvas is opaque black.
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+"use client"
+
+import { PhosphorScore } from "@/components/ui/phosphor-score"
+
+export function HeroScore() {
+  return (
+    <div className="relative h-svh w-full">
+      <PhosphorScore />
+    </div>
+  )
+}
+```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import PhosphorScore from "$lib/components/ui/phosphor-score.svelte"
+</script>
+
+<div class="relative h-svh w-full">
+  <PhosphorScore />
+</div>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+Tilt it, push the bloom, pick a phosphor.
+
+<FrameworkCode>
+  <FrameworkReact>
+    ```tsx
+    <PhosphorScore
+      color="#4DFF6A"
+      glow={1.35}
+      rotateX={18}
+      rotateY={-14}
+      speed={1.5}
+      sway
+    />
+    ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+    ```svelte
+    <PhosphorScore
+      color="#4DFF6A"
+      glow={1.35}
+      rotateX={18}
+      rotateY={-14}
+      speed={1.5}
+      sway
+    />
+    ```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+`prefers-reduced-motion: reduce` freezes the scroll and the camera drift, and keeps a still frame of the score.
+
+## Props
+
+| Prop        | Type      | Default                                           |
+| ----------- | --------- | ------------------------------------------------- |
+| `color`     | `string`  | `"#4DFF6A"`                                       |
+| `glow`      | `number`  | `1` — bloom at the playhead and on the exit flare |
+| `rotateX`   | `number`  | `16` — tilt back, degrees                         |
+| `rotateY`   | `number`  | `-12` — yaw, degrees                              |
+| `speed`     | `number`  | `1.35` — beats per second                         |
+| `density`   | `number`  | `1` — how packed the notation is                  |
+| `sway`      | `boolean` | `true` — slow camera drift                        |
+| `seed`      | `number`  | `23`                                              |
+| `className` | `string`  | React only                                        |
+| `class`     | `string`  | Svelte only                                       |
