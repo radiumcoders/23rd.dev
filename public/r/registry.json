@@ -164,6 +164,32 @@
       "type": "registry:ui"
     },
     {
+      "name": "phosphor-score",
+      "title": "Phosphor Score",
+      "description": "Vertical sheet music on a CRT phosphor — notes fall, bloom at the playhead, then exit in a flare.",
+      "files": [
+        {
+          "path": "registry/phosphor-score/phosphor-score.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/phosphor-score.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
+      "name": "phosphor-score-svelte",
+      "title": "Phosphor Score",
+      "description": "Vertical sheet music on a CRT phosphor — notes fall, bloom at the playhead, then exit in a flare.",
+      "files": [
+        {
+          "path": "registry/phosphor-score/phosphor-score.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/phosphor-score.svelte"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "radiant-lines",
       "title": "Radiant Lines",
       "description": "A hyperspace starfield background — colored streaks radiate from the center, with warp speed driven by scroll velocity.",

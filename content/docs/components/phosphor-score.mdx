@@ -1,0 +1,86 @@
+---
+title: Phosphor Score
+description: Vertical CRT sheet music — notes slide down the staves, bloom at the playhead, then exit in a flare.
+---
+
+import { PhosphorScoreDemo } from "@/registry/phosphor-score/phosphor-score-demo"
+
+A falling score, not a piano roll. Two vertical staves, beamed runs, dynamics, and a scan line: notes dim on the way down, bloom in the phosphor color as they play, then flare out. Default `theme="auto"` follows the site — phosphor on black, forest ink on the page background. `glow` is 0–100 (default `50`) and stays a tight halo on the note. Press `d` to toggle.
+
+<PhosphorScoreDemo />
+
+## Installation
+
+<CliCommand item="phosphor-score" />
+
+Or install straight from the public GitHub source registry:
+
+<CliCommand item="phosphor-score" github />
+
+## Usage
+
+Give the parent a size. The canvas fills the parent.
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+"use client"
+
+import { PhosphorScore } from "@/components/ui/phosphor-score"
+
+export function HeroScore() {
+  return (
+    <div className="relative h-svh w-full bg-background">
+      <PhosphorScore />
+    </div>
+  )
+}
+```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import PhosphorScore from "$lib/components/ui/phosphor-score.svelte"
+</script>
+
+<div class="relative h-svh w-full bg-background">
+  <PhosphorScore />
+</div>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+Lock a theme or push the bloom. Omit `color` to follow light / dark.
+
+<FrameworkCode>
+  <FrameworkReact>
+    ```tsx
+    <PhosphorScore theme="light" glow={50} />
+    <PhosphorScore theme="dark" color="#4DFF6A" glow={50} />
+    ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+    ```svelte
+    <PhosphorScore theme="light" glow={50} />
+    <PhosphorScore theme="dark" color="#4DFF6A" glow={50} />
+    ```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+`prefers-reduced-motion: reduce` freezes the scroll and the camera drift, and keeps a still frame of the score.
+
+## Props
+
+| Prop        | Type                          | Default                                 |
+| ----------- | ----------------------------- | --------------------------------------- |
+| `color`     | `string`                      | theme phosphor / forest ink             |
+| `glow`      | `number`                      | `50` — 0–100, halo size at the playhead |
+| `speed`     | `number`                      | `1.35` — beats per second               |
+| `density`   | `number`                      | `1` — how packed the notation is        |
+| `sway`      | `boolean`                     | `true` — slow camera drift              |
+| `seed`      | `number`                      | `23`                                    |
+| `theme`     | `"light" \| "dark" \| "auto"` | `"auto"`                                |
+| `className` | `string`                      | React only                              |
+| `class`     | `string`                      | Svelte only                             |
+
+Omit `color` and `theme="auto"` picks phosphor green on dark, forest ink on light. The canvas is transparent in light mode so the parent background shows through.
