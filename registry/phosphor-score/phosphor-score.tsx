@@ -47,36 +47,47 @@ function PhosphorEdgeFade({
   dark: boolean
 }) {
   const isTop = edge === "top"
+  const pos = isTop ? "top-0" : "bottom-0"
+  const mask = isTop
+    ? "mask-[linear-gradient(to_bottom,black,transparent)]"
+    : "mask-[linear-gradient(to_top,black,transparent)]"
   return (
     <>
       <div
         aria-hidden
         className={cn(
+          "pointer-events-none absolute inset-x-0 z-10 h-40 backdrop-blur-xl",
+          pos,
+          mask
+        )}
+      />
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-x-0 z-10 h-24 backdrop-blur-md",
+          pos,
+          mask
+        )}
+      />
+      <div
+        aria-hidden
+        className={cn(
           "pointer-events-none absolute inset-x-0 z-10 h-28",
-          isTop ? "top-0" : "bottom-0",
+          pos,
           !dark &&
             (isTop
-              ? "bg-linear-to-b from-background from-20% via-background/55 to-transparent"
-              : "bg-linear-to-t from-background from-20% via-background/55 to-transparent")
+              ? "bg-linear-to-b from-background/65 to-transparent"
+              : "bg-linear-to-t from-background/65 to-transparent")
         )}
         style={
           dark
             ? {
                 backgroundImage: isTop
-                  ? `linear-gradient(to bottom, ${DARK_BG} 18%, rgba(5,5,5,0.55) 48%, transparent)`
-                  : `linear-gradient(to top, ${DARK_BG} 18%, rgba(5,5,5,0.55) 48%, transparent)`,
+                  ? `linear-gradient(to bottom, rgba(5,5,5,0.7), transparent)`
+                  : `linear-gradient(to top, rgba(5,5,5,0.7), transparent)`,
               }
             : undefined
         }
-      />
-      <div
-        aria-hidden
-        className={cn(
-          "pointer-events-none absolute inset-x-0 z-10 h-20 backdrop-blur-md",
-          isTop
-            ? "top-0 mask-[linear-gradient(to_bottom,black,transparent)]"
-            : "bottom-0 mask-[linear-gradient(to_top,black,transparent)]"
-        )}
       />
     </>
   )
@@ -158,10 +169,7 @@ export function PhosphorScore({
       className={cn("absolute inset-0 overflow-hidden bg-background", className)}
       style={isDark ? { backgroundColor: DARK_BG } : undefined}
     >
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 size-full mask-[linear-gradient(to_bottom,transparent,black_16%,black_84%,transparent)]"
-      />
+      <canvas ref={canvasRef} className="absolute inset-0 size-full" />
       <PhosphorEdgeFade edge="top" dark={isDark} />
       <PhosphorEdgeFade edge="bottom" dark={isDark} />
     </div>

@@ -120,10 +120,6 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
 }
 
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t
-}
-
 function wrapDelta(t: number, now: number, loop: number) {
   let d = t - now
   d = ((((d + loop / 2) % loop) + loop) % loop) - loop / 2
@@ -406,6 +402,7 @@ export function createPhosphorScore(
   let lastFrame = performance.now()
   let elapsed = 8
   let clock = 0
+  let dtSmooth = 1 / 60
 
   const resize = () => {
     const parent = canvas.parentElement
@@ -518,8 +515,10 @@ export function createPhosphorScore(
 
   const frame = (now: number) => {
     if (!running) return
-    const dt = Math.min(0.05, (now - lastFrame) / 1000)
+    const raw = Math.min(0.05, (now - lastFrame) / 1000)
     lastFrame = now
+    dtSmooth += (raw - dtSmooth) * 0.2
+    const dt = dtSmooth
     clock += dt
     if (!reduce) elapsed += dt * speedOf(options.speed)
     const beat = elapsed % LOOP_BEATS
@@ -527,9 +526,9 @@ export function createPhosphorScore(
     const w = size.w
     const h = size.h
     const swayOn = options.sway !== false && !reduce
-    cam.x = swayOn ? Math.sin(clock * 0.31) * 10 : 0
-    cam.y = swayOn ? Math.cos(clock * 0.23) * 14 : 0
-    cam.z = swayOn ? Math.sin(clock * 0.17) * 0.018 : 0
+    cam.x = swayOn ? Math.sin(clock * 0.31) * 8 : 0
+    cam.y = swayOn ? Math.cos(clock * 0.23) * 10 : 0
+    cam.z = 0
     frameFit = 0.78
 
     const pad = Math.max(28, Math.min(w, h) * 0.1)
@@ -577,46 +576,36 @@ export function createPhosphorScore(
       return d < visMax && d > visMin
     }
 
-    ctx.lineCap = "round"
-    ctx.lineJoin = "round"
-
+    const staffY0 = topY - h * 0.4 / frameFit
+    const staffY1 = playY + h * 0.25 / frameFit
+    ctx.lineCap = "butt"
+    ctx.lineJoin = "miter"
+    ctx.strokeStyle = rgba(color, 0.22)
+    ctx.lineWidth = 1
     for (const staff of [0, 1] as const) {
       for (let line = 0; line < 5; line++) {
-        const pitch = line * 2
-        const x = pitchX(staff, pitch, gap, sp)
+        const x = pitchX(staff, line * 2, gap, sp)
+        const a = project(x, staffY0)
+        const b = project(x, staffY1)
         ctx.beginPath()
-        let started = false
-        const steps = 56
-        for (let i = 0; i <= steps; i++) {
-          const d = lerp(visMax, visMin, i / steps)
-          const hitAmt = nearPlay(d)
-          const pt = project(x, timeY(d, ppb, playY))
-          if (!started) {
-            ctx.moveTo(pt.x, pt.y)
-            started = true
-          } else ctx.lineTo(pt.x, pt.y)
-          if (i === Math.floor(steps * 0.62)) {
-            ctx.strokeStyle = rgba(color, 0.16 + hitAmt * 0.28 * bloom)
-            ctx.lineWidth = 1
-            ctx.stroke()
-            ctx.beginPath()
-            ctx.moveTo(pt.x, pt.y)
-          }
-        }
-        ctx.strokeStyle = rgba(color, 0.22)
-        ctx.lineWidth = 1
+        ctx.moveTo(a.x, a.y)
+        ctx.lineTo(b.x, b.y)
         ctx.stroke()
       }
     }
+
+    ctx.lineCap = "round"
+    ctx.lineJoin = "round"
 
     for (let bar = 0; bar < LOOP_BEATS; bar += 4) {
       if (!inView(bar)) continue
       const d = wrapDelta(bar, beat, LOOP_BEATS)
       const y = timeY(d, ppb, playY)
+      const alpha = 0.14 + nearPlay(d) * 0.2
       for (const staff of [0, 1] as const) {
         const a = project(pitchX(staff, 0, gap, sp), y)
         const b = project(pitchX(staff, 8, gap, sp), y)
-        ctx.strokeStyle = rgba(color, 0.14 + nearPlay(d) * 0.2)
+        ctx.strokeStyle = rgba(color, alpha)
         ctx.lineWidth = 1
         ctx.beginPath()
         ctx.moveTo(a.x, a.y)

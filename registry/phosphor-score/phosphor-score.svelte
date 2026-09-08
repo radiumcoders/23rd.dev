@@ -79,38 +79,41 @@
   class={cn("absolute inset-0 overflow-hidden bg-background", className)}
   style={isDark ? `background-color: ${DARK_BG}` : ""}
 >
-  <canvas
-    bind:this={canvas}
-    class="absolute inset-0 size-full mask-[linear-gradient(to_bottom,transparent,black_16%,black_84%,transparent)]"
-  ></canvas>
+  <canvas bind:this={canvas} class="absolute inset-0 size-full"></canvas>
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-x-0 top-0 z-10 h-40 backdrop-blur-xl mask-[linear-gradient(to_bottom,black,transparent)]"
+  ></div>
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-x-0 top-0 z-10 h-24 backdrop-blur-md mask-[linear-gradient(to_bottom,black,transparent)]"
+  ></div>
   <div
     aria-hidden="true"
     class={cn(
       "pointer-events-none absolute inset-x-0 top-0 z-10 h-28",
-      !isDark &&
-        "bg-linear-to-b from-background from-20% via-background/55 to-transparent"
+      !isDark && "bg-linear-to-b from-background/65 to-transparent"
     )}
     style={isDark
-      ? `background-image: linear-gradient(to bottom, ${DARK_BG} 18%, rgba(5,5,5,0.55) 48%, transparent)`
+      ? "background-image: linear-gradient(to bottom, rgba(5,5,5,0.7), transparent)"
       : ""}
   ></div>
   <div
     aria-hidden="true"
-    class="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 backdrop-blur-md mask-[linear-gradient(to_bottom,black,transparent)]"
+    class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-40 backdrop-blur-xl mask-[linear-gradient(to_top,black,transparent)]"
+  ></div>
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 backdrop-blur-md mask-[linear-gradient(to_top,black,transparent)]"
   ></div>
   <div
     aria-hidden="true"
     class={cn(
       "pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28",
-      !isDark &&
-        "bg-linear-to-t from-background from-20% via-background/55 to-transparent"
+      !isDark && "bg-linear-to-t from-background/65 to-transparent"
     )}
     style={isDark
-      ? `background-image: linear-gradient(to top, ${DARK_BG} 18%, rgba(5,5,5,0.55) 48%, transparent)`
+      ? "background-image: linear-gradient(to top, rgba(5,5,5,0.7), transparent)"
       : ""}
-  ></div>
-  <div
-    aria-hidden="true"
-    class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 backdrop-blur-md mask-[linear-gradient(to_top,black,transparent)]"
   ></div>
 </div>
