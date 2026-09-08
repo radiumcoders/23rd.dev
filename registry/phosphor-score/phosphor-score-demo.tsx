@@ -15,9 +15,6 @@ import {
   DARK_COLOR,
   DEFAULT_DENSITY,
   DEFAULT_GLOW,
-  DEFAULT_ROTATE_X,
-  DEFAULT_ROTATE_Y,
-  DEFAULT_ROTATE_Z,
   DEFAULT_SPEED,
   LIGHT_COLOR,
   PhosphorScore,
@@ -39,9 +36,6 @@ export function PhosphorScoreDemo() {
     () => ({
       color: stock,
       glow: DEFAULT_GLOW,
-      rotateX: DEFAULT_ROTATE_X,
-      rotateY: DEFAULT_ROTATE_Y,
-      rotateZ: DEFAULT_ROTATE_Z,
       speed: DEFAULT_SPEED,
       density: DEFAULT_DENSITY,
       sway: true,
@@ -72,9 +66,6 @@ export function PhosphorScoreDemo() {
           <PhosphorScore
             color={useAutoColor ? undefined : props.color}
             glow={props.glow}
-            rotateX={props.rotateX}
-            rotateY={props.rotateY}
-            rotateZ={props.rotateZ}
             speed={props.speed}
             density={props.density}
             sway={props.sway}
@@ -90,12 +81,6 @@ export function PhosphorScoreDemo() {
         snippetProps={{
           color: useAutoColor ? undefined : props.color,
           glow: props.glow === DEFAULT_GLOW ? undefined : props.glow,
-          rotateX:
-            props.rotateX === DEFAULT_ROTATE_X ? undefined : props.rotateX,
-          rotateY:
-            props.rotateY === DEFAULT_ROTATE_Y ? undefined : props.rotateY,
-          rotateZ:
-            props.rotateZ === DEFAULT_ROTATE_Z ? undefined : props.rotateZ,
           speed: props.speed === DEFAULT_SPEED ? undefined : props.speed,
           density:
             props.density === DEFAULT_DENSITY ? undefined : props.density,
@@ -114,30 +99,6 @@ export function PhosphorScoreDemo() {
           max={100}
           step={1}
           onChange={(v) => updateProp("glow", v)}
-        />
-        <ControlSlider
-          label="Rotate X"
-          value={props.rotateX}
-          min={-40}
-          max={40}
-          step={1}
-          onChange={(v) => updateProp("rotateX", v)}
-        />
-        <ControlSlider
-          label="Rotate Y"
-          value={props.rotateY}
-          min={-40}
-          max={40}
-          step={1}
-          onChange={(v) => updateProp("rotateY", v)}
-        />
-        <ControlSlider
-          label="Rotate Z"
-          value={props.rotateZ}
-          min={-40}
-          max={40}
-          step={1}
-          onChange={(v) => updateProp("rotateZ", v)}
         />
         <ControlSlider
           label="Speed"

@@ -5,7 +5,7 @@ description: Vertical CRT sheet music — notes slide down the staves, bloom at 
 
 import { PhosphorScoreDemo } from "@/registry/phosphor-score/phosphor-score-demo"
 
-A falling score, not a piano roll. Two vertical staves, beamed runs, dynamics, and a scan line: notes dim on the way down, bloom in the phosphor color as they play, then flare out. Default `theme="auto"` follows the site — phosphor on black, forest ink on paper. `glow` is 0–100 (default `50`) and stays a tight halo on the note. Press `d` to toggle.
+A falling score, not a piano roll. Two vertical staves, beamed runs, dynamics, and a scan line: notes dim on the way down, bloom in the phosphor color as they play, then flare out. Default `theme="auto"` follows the site — phosphor on black, forest ink on the page background. `glow` is 0–100 (default `50`) and stays a tight halo on the note. Press `d` to toggle.
 
 <PhosphorScoreDemo />
 
@@ -50,18 +50,18 @@ export function HeroScore() {
   </FrameworkSvelte>
 </FrameworkCode>
 
-Lock a theme, tilt it, or push the bloom. Omit `color` to follow light / dark.
+Lock a theme or push the bloom. Omit `color` to follow light / dark.
 
 <FrameworkCode>
   <FrameworkReact>
     ```tsx
-    <PhosphorScore theme="light" glow={50} rotateX={18} rotateY={-14} />
+    <PhosphorScore theme="light" glow={50} />
     <PhosphorScore theme="dark" color="#4DFF6A" glow={50} />
     ```
   </FrameworkReact>
   <FrameworkSvelte>
     ```svelte
-    <PhosphorScore theme="light" glow={50} rotateX={18} rotateY={-14} />
+    <PhosphorScore theme="light" glow={50} />
     <PhosphorScore theme="dark" color="#4DFF6A" glow={50} />
     ```
   </FrameworkSvelte>
@@ -75,9 +75,6 @@ Lock a theme, tilt it, or push the bloom. Omit `color` to follow light / dark.
 | ----------- | ----------------------------- | --------------------------------------- |
 | `color`     | `string`                      | theme phosphor / forest ink             |
 | `glow`      | `number`                      | `50` — 0–100, halo size at the playhead |
-| `rotateX`   | `number`                      | `16` — tilt back, degrees               |
-| `rotateY`   | `number`                      | `-12` — yaw, degrees                    |
-| `rotateZ`   | `number`                      | `0` — roll, degrees                     |
 | `speed`     | `number`                      | `1.35` — beats per second               |
 | `density`   | `number`                      | `1` — how packed the notation is        |
 | `sway`      | `boolean`                     | `true` — slow camera drift              |
@@ -86,4 +83,4 @@ Lock a theme, tilt it, or push the bloom. Omit `color` to follow light / dark.
 | `className` | `string`                      | React only                              |
 | `class`     | `string`                      | Svelte only                             |
 
-Omit `color` and `theme="auto"` picks phosphor green on dark, forest ink on light.
+Omit `color` and `theme="auto"` picks phosphor green on dark, forest ink on light. The canvas is transparent in light mode so the parent background shows through.

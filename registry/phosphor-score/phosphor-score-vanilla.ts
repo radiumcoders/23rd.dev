@@ -11,18 +11,6 @@ export type PhosphorScoreOptions = {
    * and exit flare — kept small so it sits on the note, not a disc.
    */
   glow?: number
-  /**
-   * Tilt the score plane back, in degrees. Default `16`.
-   */
-  rotateX?: number
-  /**
-   * Yaw the score plane, in degrees. Default `-12`.
-   */
-  rotateY?: number
-  /**
-   * Roll the score plane, in degrees. Default `0`.
-   */
-  rotateZ?: number
   /** Scroll speed in beats per second. Default `1.35`. */
   speed?: number
   /** How packed the notation is. Default `1`. */
@@ -47,16 +35,14 @@ export type PhosphorScoreInstance = {
 
 /** Phosphor on black */
 export const DARK_COLOR = "#4DFF6A"
-/** Forest ink on paper */
+/** Forest ink on the page background */
 export const LIGHT_COLOR = "#147A3A"
 /** @deprecated Use `DARK_COLOR` or omit `color` and set `theme`. */
 export const DEFAULT_COLOR = DARK_COLOR
 export const DARK_BG = "#050505"
-export const LIGHT_BG = "#F4F1E8"
+/** Light mode is transparent — the parent `bg-background` shows through. */
+export const LIGHT_BG = "transparent"
 export const DEFAULT_GLOW = 50
-export const DEFAULT_ROTATE_X = 16
-export const DEFAULT_ROTATE_Y = -12
-export const DEFAULT_ROTATE_Z = 0
 export const DEFAULT_SPEED = 1.35
 export const DEFAULT_DENSITY = 1
 export const DEFAULT_SEED = 23
@@ -170,11 +156,6 @@ function rgba(rgb: Rgb, a: number) {
 function glowOf(value?: number) {
   if (typeof value !== "number" || !Number.isFinite(value)) return DEFAULT_GLOW
   return clamp(value, 0, 100)
-}
-
-function rotateOf(value: number | undefined, fallback: number) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return fallback
-  return clamp(value, -80, 80)
 }
 
 function speedOf(value?: number) {
@@ -400,9 +381,6 @@ export function createPhosphorScore(
 ): PhosphorScoreInstance | null {
   let options: PhosphorScoreOptions = {
     glow: DEFAULT_GLOW,
-    rotateX: DEFAULT_ROTATE_X,
-    rotateY: DEFAULT_ROTATE_Y,
-    rotateZ: DEFAULT_ROTATE_Z,
     speed: DEFAULT_SPEED,
     density: DEFAULT_DENSITY,
     seed: DEFAULT_SEED,
@@ -411,7 +389,7 @@ export function createPhosphorScore(
     theme: themeOf(initial.theme),
   }
 
-  const ctx = canvas.getContext("2d", { alpha: false })
+  const ctx = canvas.getContext("2d", { alpha: true })
   if (!ctx) return null
 
   const size = { w: 0, h: 0 }
@@ -481,29 +459,19 @@ export function createPhosphorScore(
   type Pt = { x: number; y: number; s: number; z: number }
 
   const cam = { x: 0, y: 0, z: 0 }
+  let frameFit = 0.78
 
   const project = (x: number, y: number): Pt => {
-    const cosX = Math.cos(cam.x)
-    const sinX = Math.sin(cam.x)
-    const cosY = Math.cos(cam.y)
-    const sinY = Math.sin(cam.y)
     const cosZ = Math.cos(cam.z)
     const sinZ = Math.sin(cam.z)
-    const xz = x * cosZ - y * sinZ
-    const yz = x * sinZ + y * cosZ
-    const y1 = yz * cosX
-    const z1 = yz * sinX
-    const x2 = xz * cosY - z1 * sinY
-    const z2 = xz * sinY + z1 * cosY
-    const fov = Math.max(size.h, 420) * 2.4
-    const persp = fov / (fov + z2)
-    const tilt = Math.abs(cam.x) + Math.abs(cam.y) + Math.abs(cam.z)
-    const fit = 0.78 / (1 + tilt * 0.35)
+    const rx = x * cosZ - y * sinZ + cam.y
+    const ry = x * sinZ + y * cosZ + cam.x
+    const s = frameFit
     return {
-      x: size.w * 0.5 + x2 * persp * fit,
-      y: size.h * 0.5 + y1 * persp * fit,
-      s: persp * fit,
-      z: z2,
+      x: size.w * 0.5 + rx * s,
+      y: size.h * 0.5 + ry * s,
+      s,
+      z: 0,
     }
   }
 
@@ -558,28 +526,38 @@ export function createPhosphorScore(
 
     const w = size.w
     const h = size.h
-    const sp = clamp(Math.min(w, h) * 0.014, 7, 13)
-    const gap = clamp(w * 0.16, 52, 96)
-    const ppb = clamp(h * 0.075, 28, 64)
-    const playY = h * 0.12
     const swayOn = options.sway !== false && !reduce
-    cam.x =
-      (rotateOf(options.rotateX, DEFAULT_ROTATE_X) * Math.PI) / 180 +
-      (swayOn ? Math.sin(clock * 0.33) * 0.11 : 0)
-    cam.y =
-      (rotateOf(options.rotateY, DEFAULT_ROTATE_Y) * Math.PI) / 180 +
-      (swayOn ? Math.cos(clock * 0.21) * 0.16 : 0)
-    cam.z =
-      (rotateOf(options.rotateZ, DEFAULT_ROTATE_Z) * Math.PI) / 180 +
-      (swayOn ? Math.sin(clock * 0.17) * 0.08 : 0)
+    cam.x = swayOn ? Math.sin(clock * 0.31) * 10 : 0
+    cam.y = swayOn ? Math.cos(clock * 0.23) * 14 : 0
+    cam.z = swayOn ? Math.sin(clock * 0.17) * 0.018 : 0
+    frameFit = 0.78
+
+    const pad = Math.max(28, Math.min(w, h) * 0.1)
+    const innerW = Math.max(1, w - pad * 2)
+    const innerH = Math.max(1, h - pad * 2)
+    let sp = clamp(Math.min(innerW, innerH) * 0.028, 10, 28)
+    const maxHalf = innerW / 2 / frameFit
+    let gap = maxHalf * 0.4
+    if (gap < sp * 7) {
+      sp = clamp(maxHalf * 0.4 / 7, 10, 28)
+      gap = maxHalf * 0.4
+    }
+    gap = Math.max(sp * 7, gap)
+    const topY = -innerH / 2 / frameFit
+    const playY = (innerH / 2 - sp * 2) / frameFit
+    const ppb = Math.max(28, (playY - topY) / 7.6)
     const bloom = glowOf(options.glow) / 50
     const color = parseColor(resolveColor(options.color, dark))
     rgb = color
 
     ctx.imageSmoothingEnabled = true
     ctx.globalCompositeOperation = "source-over"
-    ctx.fillStyle = resolveBg(dark)
-    ctx.fillRect(0, 0, w, h)
+    if (dark) {
+      ctx.fillStyle = DARK_BG
+      ctx.fillRect(0, 0, w, h)
+    } else {
+      ctx.clearRect(0, 0, w, h)
+    }
 
     ctx.save()
     ctx.globalAlpha = 1
@@ -591,8 +569,8 @@ export function createPhosphorScore(
     }
     ctx.restore()
 
-    const visMin = -8
-    const visMax = h / ppb + 8
+    const visMin = (playY - innerH / 2 / frameFit) / ppb
+    const visMax = (playY - topY) / ppb
 
     const inView = (t: number) => {
       const d = wrapDelta(t, beat, LOOP_BEATS)
@@ -785,19 +763,22 @@ export function createPhosphorScore(
       }
     }
 
-    const playheadPts: Pt[] = []
-    for (let i = 0; i <= 18; i++) {
-      const x = lerp(-gap - sp * 18, gap + sp * 18, i / 18)
-      playheadPts.push(project(x, playY))
-    }
-    ctx.strokeStyle = rgba(color, 0.28 * Math.min(1, bloom))
-    ctx.lineWidth = 1
+    const playYScreen = project(0, playY).y
+    ctx.save()
+    ctx.lineCap = "butt"
+    ctx.strokeStyle = rgba(color, (dark ? 0.22 : 0.16) * Math.min(1, bloom))
+    ctx.lineWidth = 2
     ctx.beginPath()
-    ctx.moveTo(playheadPts[0]!.x, playheadPts[0]!.y)
-    for (let i = 1; i < playheadPts.length; i++) {
-      ctx.lineTo(playheadPts[i]!.x, playheadPts[i]!.y)
-    }
+    ctx.moveTo(0, playYScreen)
+    ctx.lineTo(w, playYScreen)
     ctx.stroke()
+    ctx.strokeStyle = rgba(color, (dark ? 0.7 : 0.45) * Math.min(1, bloom))
+    ctx.lineWidth = 0.75
+    ctx.beginPath()
+    ctx.moveTo(0, playYScreen)
+    ctx.lineTo(w, playYScreen)
+    ctx.stroke()
+    ctx.restore()
 
     const bloomOp = dark ? "lighter" : "source-over"
     ctx.globalCompositeOperation = bloomOp

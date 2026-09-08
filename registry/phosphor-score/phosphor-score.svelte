@@ -8,12 +8,8 @@
     DARK_BG,
     DEFAULT_DENSITY,
     DEFAULT_GLOW,
-    DEFAULT_ROTATE_X,
-    DEFAULT_ROTATE_Y,
-    DEFAULT_ROTATE_Z,
     DEFAULT_SEED,
     DEFAULT_SPEED,
-    LIGHT_BG,
     resolveDark,
     type PhosphorScoreInstance,
     type PhosphorScoreOptions,
@@ -31,9 +27,6 @@
     class: className = "",
     color,
     glow = DEFAULT_GLOW,
-    rotateX = DEFAULT_ROTATE_X,
-    rotateY = DEFAULT_ROTATE_Y,
-    rotateZ = DEFAULT_ROTATE_Z,
     speed = DEFAULT_SPEED,
     density = DEFAULT_DENSITY,
     sway = true,
@@ -51,9 +44,6 @@
     instance = createPhosphorScore(canvas, {
       color,
       glow,
-      rotateX,
-      rotateY,
-      rotateZ,
       speed,
       density,
       sway,
@@ -73,9 +63,6 @@
     instance?.setOptions({
       color,
       glow,
-      rotateX,
-      rotateY,
-      rotateZ,
       speed,
       density,
       sway,
@@ -89,8 +76,41 @@
   data-slot="phosphor-score"
   role="img"
   aria-label="Falling phosphor sheet music"
-  class={cn("absolute inset-0 overflow-hidden", className)}
-  style="background-color: {isDark ? DARK_BG : LIGHT_BG}"
+  class={cn("absolute inset-0 overflow-hidden bg-background", className)}
+  style={isDark ? `background-color: ${DARK_BG}` : ""}
 >
-  <canvas bind:this={canvas} class="absolute inset-0 size-full"></canvas>
+  <canvas
+    bind:this={canvas}
+    class="absolute inset-0 size-full mask-[linear-gradient(to_bottom,transparent,black_16%,black_84%,transparent)]"
+  ></canvas>
+  <div
+    aria-hidden="true"
+    class={cn(
+      "pointer-events-none absolute inset-x-0 top-0 z-10 h-28",
+      !isDark &&
+        "bg-linear-to-b from-background from-20% via-background/55 to-transparent"
+    )}
+    style={isDark
+      ? `background-image: linear-gradient(to bottom, ${DARK_BG} 18%, rgba(5,5,5,0.55) 48%, transparent)`
+      : ""}
+  ></div>
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 backdrop-blur-md mask-[linear-gradient(to_bottom,black,transparent)]"
+  ></div>
+  <div
+    aria-hidden="true"
+    class={cn(
+      "pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28",
+      !isDark &&
+        "bg-linear-to-t from-background from-20% via-background/55 to-transparent"
+    )}
+    style={isDark
+      ? `background-image: linear-gradient(to top, ${DARK_BG} 18%, rgba(5,5,5,0.55) 48%, transparent)`
+      : ""}
+  ></div>
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 backdrop-blur-md mask-[linear-gradient(to_top,black,transparent)]"
+  ></div>
 </div>

@@ -9,12 +9,8 @@ import {
   DARK_BG,
   DEFAULT_DENSITY,
   DEFAULT_GLOW,
-  DEFAULT_ROTATE_X,
-  DEFAULT_ROTATE_Y,
-  DEFAULT_ROTATE_Z,
   DEFAULT_SEED,
   DEFAULT_SPEED,
-  LIGHT_BG,
   resolveDark,
   type PhosphorScoreInstance,
   type PhosphorScoreOptions,
@@ -26,9 +22,6 @@ export {
   DEFAULT_COLOR,
   DEFAULT_DENSITY,
   DEFAULT_GLOW,
-  DEFAULT_ROTATE_X,
-  DEFAULT_ROTATE_Y,
-  DEFAULT_ROTATE_Z,
   DEFAULT_SEED,
   DEFAULT_SPEED,
   LIGHT_BG,
@@ -46,6 +39,49 @@ export type PhosphorScoreProps = Omit<PhosphorScoreOptions, "onThemeChange"> & {
   className?: string
 }
 
+function PhosphorEdgeFade({
+  edge,
+  dark,
+}: {
+  edge: "top" | "bottom"
+  dark: boolean
+}) {
+  const isTop = edge === "top"
+  return (
+    <>
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-x-0 z-10 h-28",
+          isTop ? "top-0" : "bottom-0",
+          !dark &&
+            (isTop
+              ? "bg-linear-to-b from-background from-20% via-background/55 to-transparent"
+              : "bg-linear-to-t from-background from-20% via-background/55 to-transparent")
+        )}
+        style={
+          dark
+            ? {
+                backgroundImage: isTop
+                  ? `linear-gradient(to bottom, ${DARK_BG} 18%, rgba(5,5,5,0.55) 48%, transparent)`
+                  : `linear-gradient(to top, ${DARK_BG} 18%, rgba(5,5,5,0.55) 48%, transparent)`,
+              }
+            : undefined
+        }
+      />
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-x-0 z-10 h-20 backdrop-blur-md",
+          isTop
+            ? "top-0 mask-[linear-gradient(to_bottom,black,transparent)]"
+            : "bottom-0 mask-[linear-gradient(to_top,black,transparent)]"
+        )}
+      />
+    </>
+  )
+}
+
 /**
  * Vertical phosphor sheet music — notes fall toward a playhead, bloom,
  * then exit in a flare. Follows light and dark.
@@ -54,9 +90,6 @@ export function PhosphorScore({
   className,
   color,
   glow = DEFAULT_GLOW,
-  rotateX = DEFAULT_ROTATE_X,
-  rotateY = DEFAULT_ROTATE_Y,
-  rotateZ = DEFAULT_ROTATE_Z,
   speed = DEFAULT_SPEED,
   density = DEFAULT_DENSITY,
   sway = true,
@@ -89,9 +122,6 @@ export function PhosphorScore({
     instanceRef.current = createPhosphorScore(canvas, {
       color,
       glow,
-      rotateX,
-      rotateY,
-      rotateZ,
       speed,
       density,
       sway,
@@ -111,9 +141,6 @@ export function PhosphorScore({
     instanceRef.current?.setOptions({
       color,
       glow,
-      rotateX,
-      rotateY,
-      rotateZ,
       speed,
       density,
       sway,
@@ -121,28 +148,22 @@ export function PhosphorScore({
       theme,
       onThemeChange: setIsDark,
     })
-  }, [
-    color,
-    glow,
-    rotateX,
-    rotateY,
-    rotateZ,
-    speed,
-    density,
-    sway,
-    seed,
-    theme,
-  ])
+  }, [color, glow, speed, density, sway, seed, theme])
 
   return (
     <div
       data-slot="phosphor-score"
       role="img"
       aria-label="Falling phosphor sheet music"
-      className={cn("absolute inset-0 overflow-hidden", className)}
-      style={{ backgroundColor: isDark ? DARK_BG : LIGHT_BG }}
+      className={cn("absolute inset-0 overflow-hidden bg-background", className)}
+      style={isDark ? { backgroundColor: DARK_BG } : undefined}
     >
-      <canvas ref={canvasRef} className="absolute inset-0 size-full" />
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 size-full mask-[linear-gradient(to_bottom,transparent,black_16%,black_84%,transparent)]"
+      />
+      <PhosphorEdgeFade edge="top" dark={isDark} />
+      <PhosphorEdgeFade edge="bottom" dark={isDark} />
     </div>
   )
 }
