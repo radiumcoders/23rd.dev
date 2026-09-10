@@ -82,6 +82,32 @@
       "type": "registry:ui"
     },
     {
+      "name": "folio",
+      "title": "Folio",
+      "description": "The whole page leans back in perspective while you scroll, blurs, then springs flat when you stop.",
+      "files": [
+        {
+          "path": "registry/folio/folio.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/folio.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
+      "name": "folio-svelte",
+      "title": "Folio",
+      "description": "The whole page leans back in perspective while you scroll, blurs, then springs flat when you stop.",
+      "files": [
+        {
+          "path": "registry/folio/folio.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/folio.svelte"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "gooey-color-picker",
       "title": "Gooey Color Picker",
       "description": "A floating color picker with a circular hue wheel, alpha slider, hex field, and motion-powered open/close.",
