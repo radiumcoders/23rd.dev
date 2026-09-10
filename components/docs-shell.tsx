@@ -1,6 +1,12 @@
 "use client"
 
-import { useEffect, useRef, type CSSProperties, type ReactNode } from "react"
+import {
+  useEffect,
+  useId,
+  useRef,
+  type CSSProperties,
+  type ReactNode,
+} from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -40,30 +46,62 @@ type FolderNode = {
 type RootNode = { type?: "root"; name: ReactNode; children: TreeNode[] }
 type TreeNode = PageNode | SeparatorNode | FolderNode
 
-function WindowEdgeFade({ edge }: { edge: "top" | "bottom" }) {
+const EDGE_BLUR_STDS = [1, 2, 4, 8, 16] as const
+
+function DocsEdgeBlurDefs({ uid }: { uid: string }) {
+  return (
+    <svg
+      className="pointer-events-none absolute size-0 overflow-hidden"
+      aria-hidden
+    >
+      <defs>
+        {EDGE_BLUR_STDS.map((std) => (
+          <filter
+            key={std}
+            id={`docs-edge-blur-${std}-${uid}`}
+            x="-10%"
+            y="-50%"
+            width="120%"
+            height="200%"
+            colorInterpolationFilters="sRGB"
+          >
+            <feGaussianBlur in="SourceGraphic" stdDeviation={std} />
+          </filter>
+        ))}
+      </defs>
+    </svg>
+  )
+}
+
+function WindowEdgeFade({
+  edge,
+  uid,
+}: {
+  edge: "top" | "bottom"
+  uid: string
+}) {
   const isTop = edge === "top"
+  const steps = isTop ? [...EDGE_BLUR_STDS].reverse() : EDGE_BLUR_STDS
 
   return (
-    <>
-      <div
-        aria-hidden
-        className={cn(
-          "pointer-events-none absolute inset-x-0 z-10 h-24",
-          isTop
-            ? "top-0 bg-linear-to-b from-background from-25% via-background/60 to-transparent"
-            : "bottom-0 bg-linear-to-t from-background from-25% via-background/60 to-transparent"
-        )}
-      />
-      <div
-        aria-hidden
-        className={cn(
-          "pointer-events-none absolute inset-x-0 z-10 h-16 backdrop-blur-md",
-          isTop
-            ? "top-0 mask-[linear-gradient(to_bottom,black,transparent)]"
-            : "bottom-0 mask-[linear-gradient(to_top,black,transparent)]"
-        )}
-      />
-    </>
+    <div
+      aria-hidden
+      className={cn(
+        "pointer-events-none absolute inset-x-0 z-10 flex h-28 flex-col",
+        isTop ? "top-0 rounded-t-2xl" : "bottom-0 rounded-b-2xl"
+      )}
+    >
+      {steps.map((std) => (
+        <div
+          key={std}
+          className="min-h-0 flex-1"
+          style={{
+            WebkitBackdropFilter: `blur(${std}px)`,
+            backdropFilter: `url(#docs-edge-blur-${std}-${uid})`,
+          }}
+        />
+      ))}
+    </div>
   )
 }
 
@@ -83,6 +121,7 @@ export function DocsShell({
 }) {
   const pathname = usePathname()
   const scrollRef = useRef<HTMLDivElement>(null)
+  const blurUid = useId().replace(/:/g, "")
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 })
@@ -137,8 +176,9 @@ export function DocsShell({
           >
             {children}
           </div>
-          <WindowEdgeFade edge="top" />
-          <WindowEdgeFade edge="bottom" />
+          <DocsEdgeBlurDefs uid={blurUid} />
+          <WindowEdgeFade edge="top" uid={blurUid} />
+          <WindowEdgeFade edge="bottom" uid={blurUid} />
           <header className="absolute inset-x-0 top-0 z-20 flex h-14 items-center gap-3 px-4 md:px-6">
             <DocsSidebarTrigger showWhenCollapsed />
             <div className="ml-auto flex items-center gap-1">
