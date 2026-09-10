@@ -8,13 +8,10 @@ export type FolioPlayDetail = {
   scrollRoot?: HTMLElement | null
   /** How long to hold the lean before springing back, in ms. Default `420`. */
   holdMs?: number
-  holdMs?: number
 }
 
 export type FolioRuntimeOptions = {
-  /** Peak `rotateX` in degrees while scrolling. Default `18`. */
-  maxTilt?: number
-  /** Peak blur in px at the top of the sheet at full tilt. Default `6`. */
+  /** Peak blur in px at full tilt. Default `4`. */
   blur?: number
   /** CSS perspective distance in px. Default `1000`. Floor `1000`. */
   perspective?: number
@@ -30,8 +27,8 @@ export type FolioInstance = {
   destroy: () => void
 }
 
-const DEFAULT_TILT = 18
-const DEFAULT_BLUR = 6
+const TILT_PEAK = 16
+const DEFAULT_BLUR = 4
 const DEFAULT_PERSPECTIVE = 1000
 const MIN_PERSPECTIVE = 1000
 const DEFAULT_RETURN_MS = 520
@@ -145,11 +142,15 @@ function clamp01(n: number) {
   return Math.max(0, Math.min(1, n))
 }
 
+function clampSigned(n: number) {
+  return Math.max(-1, Math.min(1, n))
+}
+
 function remainingScroll(scroller: HTMLElement | Window) {
   return Math.max(0, maxScroll(scroller) - readScrollTop(scroller))
 }
 
-/** `1` in the body of the page, `0` at the bottom so the lean dies. */
+/** `1` in the body of the page, `0` at the bottom so the down-lean dies. */
 function endFade(scroller: HTMLElement | Window) {
   const left = remainingScroll(scroller)
   if (left <= END_SLACK_PX) return 0
@@ -157,28 +158,61 @@ function endFade(scroller: HTMLElement | Window) {
   return clamp01((left - END_SLACK_PX) / zone)
 }
 
-/** Map scroll speed to a 0–1 lean. Direction is ignored — always backward. */
+/** `1` in the body of the page, `0` at the top so the up-lean dies. */
+function startFade(scroller: HTMLElement | Window) {
+  const top = readScrollTop(scroller)
+  if (top <= END_SLACK_PX) return 0
+  const zone = Math.max(96, viewHeightOf(scroller) * 0.4)
+  return clamp01((top - END_SLACK_PX) / zone)
+}
+
+/** Map scroll delta to a signed -1…1 lean. Positive = scrolling down. */
 export function leanFromDelta(deltaPx: number, ref = WHEEL_REF) {
-  return clamp01(Math.abs(deltaPx) / ref)
+  return clampSigned(deltaPx / ref)
+}
+
+/** Slow travel sits near 5°, a flick reaches 16°. */
+function tiltAngle(impulse: number) {
+  const mag = Math.min(1, Math.abs(impulse))
+  const deg = mag * mag * (TILT_PEAK - 5) + mag * 5
+  return deg * Math.sign(impulse || 1)
+}
+
+function hingeY(
+  scroller: HTMLElement | Window,
+  plane: HTMLElement,
+  tilt: number
+) {
+  const vh = viewHeightOf(scroller)
+  const localViewTop = readScrollTop(scroller) - plane.offsetTop
+  if (Math.abs(tilt) < 0.35) return localViewTop + vh * 0.5
+  return tilt > 0 ? localViewTop + vh : localViewTop
 }
 
 export function applyFolioFrame(
   plane: HTMLElement,
   tilt: number,
   options: FolioRuntimeOptions = {},
-  reducedMotion = false
+  reducedMotion = false,
+  originY?: number
 ) {
-  const maxTilt = Math.max(0, options.maxTilt ?? DEFAULT_TILT)
   const blur = Math.max(0, options.blur ?? DEFAULT_BLUR)
   const perspective = Math.max(
     MIN_PERSPECTIVE,
     options.perspective ?? DEFAULT_PERSPECTIVE
   )
   const angle = reducedMotion ? 0 : tilt
-  const amount = maxTilt <= 0 ? 0 : Math.abs(angle) / maxTilt
+  const amount = Math.min(1, Math.abs(angle) / TILT_PEAK)
   const blurPx = reducedMotion ? 0 : amount * blur
 
-  plane.style.transformOrigin = "50% 100%"
+  plane.style.transformOrigin =
+    originY !== undefined
+      ? `50% ${originY.toFixed(1)}px`
+      : Math.abs(angle) < 0.35
+        ? "50% 50%"
+        : angle > 0
+          ? "50% 100%"
+          : "50% 0%"
   plane.style.backfaceVisibility = "hidden"
   plane.style.transform = `perspective(${perspective}px) rotateX(${angle}deg)`
   plane.style.filter = "none"
@@ -187,7 +221,10 @@ export function applyFolioFrame(
   if (blurPx < 0.08) {
     veil.style.cssText = "display:none"
   } else {
-    const ramp = `linear-gradient(to top, transparent 0%, transparent 32%, black 100%)`
+    const ramp =
+      angle >= 0
+        ? "linear-gradient(to top, transparent 0%, transparent 32%, black 100%)"
+        : "linear-gradient(to bottom, transparent 0%, transparent 32%, black 100%)"
     veil.style.cssText = [
       "pointer-events:none",
       "position:absolute",
@@ -266,13 +303,11 @@ export function createFolio(options: {
   plane: HTMLElement
   scroller: HTMLElement | Window
   demoId?: string
-  maxTilt?: number
   blur?: number
   perspective?: number
   returnMs?: number
 }): FolioInstance {
   const runtime: FolioRuntimeOptions = {
-    maxTilt: options.maxTilt,
     blur: options.blur,
     perspective: options.perspective,
     returnMs: options.returnMs,
@@ -293,7 +328,13 @@ export function createFolio(options: {
   const playAbort = { current: new AbortController() }
 
   const paint = (tilt: number) => {
-    applyFolioFrame(options.plane, tilt, runtime, reduced)
+    applyFolioFrame(
+      options.plane,
+      tilt,
+      runtime,
+      reduced,
+      hingeY(options.scroller, options.plane, tilt)
+    )
   }
 
   const spring = createSpring(paint)
@@ -361,17 +402,21 @@ export function createFolio(options: {
     gateRaf = requestAnimationFrame(tick)
   }
 
-  function applyLean(leavingEnd = false) {
+  function applyLean(leavingEdge = false) {
     if (reduced) {
       spring.set(0)
       return
     }
-    const maxTilt = runtime.maxTilt ?? DEFAULT_TILT
     if (playing) {
-      spring.set(maxTilt * Math.max(impulse, 0))
+      spring.set(tiltAngle(impulse || 1))
       return
     }
-    const fade = leavingEnd ? 1 : endFade(options.scroller)
+    const down = impulse >= 0
+    const fade = leavingEdge
+      ? 1
+      : down
+        ? endFade(options.scroller)
+        : startFade(options.scroller)
     if (fade <= 0.02) {
       goGate(0)
       impulse = 0
@@ -380,14 +425,25 @@ export function createFolio(options: {
     }
     goGate(1)
     const g = sampleGate()
-    spring.set(maxTilt * impulse * fade * g)
+    spring.set(tiltAngle(impulse * fade * g))
   }
 
-  function lean(amount: number, leavingEnd = false) {
+  function lean(amount: number, leavingEdge = false) {
     if (reduced) return
-    const next = clamp01(amount)
-    impulse = Math.max(next, impulse * 0.62 + next * 0.38)
-    applyLean(leavingEnd)
+    const next = clampSigned(amount)
+    const nextSign = Math.sign(next)
+    const prevSign = Math.sign(impulse)
+    if (nextSign !== 0 && prevSign !== 0 && nextSign !== prevSign) {
+      impulse = next
+    } else {
+      const dir = nextSign || prevSign || 1
+      const mag = Math.max(
+        Math.abs(next),
+        Math.abs(impulse) * 0.62 + Math.abs(next) * 0.38
+      )
+      impulse = mag * dir
+    }
+    applyLean(leavingEdge)
     if (idleTimer) clearTimeout(idleTimer)
     idleTimer = setTimeout(() => {
       impulse = 0
@@ -400,14 +456,17 @@ export function createFolio(options: {
     const dy = (event as WheelEvent).deltaY
     if (!dy) return
     lastWheelAt = performance.now()
-    const leavingEnd = endFade(options.scroller) <= 0.02 && dy < 0
-    if (!leavingEnd && endFade(options.scroller) <= 0.02) {
+    const atEnd = endFade(options.scroller) <= 0.02
+    const atStart = startFade(options.scroller) <= 0.02
+    const leavingEnd = atEnd && dy < 0
+    const leavingStart = atStart && dy > 0
+    if ((atEnd && !leavingEnd) || (atStart && !leavingStart)) {
       goGate(0)
       impulse = 0
       spring.set(0)
       return
     }
-    lean(leanFromDelta(dy), leavingEnd)
+    lean(leanFromDelta(dy), leavingEnd || leavingStart)
   }
 
   const onScroll = () => {
@@ -421,17 +480,25 @@ export function createFolio(options: {
       applyLean()
       return
     }
-    if (endFade(options.scroller) <= 0.02) {
+    const atEnd = endFade(options.scroller) <= 0.02
+    const atStart = startFade(options.scroller) <= 0.02
+    if (atEnd && vel >= 0) {
+      goGate(0)
+      impulse = 0
+      spring.set(0)
+      return
+    }
+    if (atStart && vel <= 0) {
       goGate(0)
       impulse = 0
       spring.set(0)
       return
     }
     if (now - lastWheelAt < WHEEL_SCROLL_LOCK_MS) {
-      applyLean()
+      applyLean(atEnd || atStart)
       return
     }
-    lean(clamp01(Math.abs(vel) / VEL_REF))
+    lean(clampSigned(vel / VEL_REF), (atEnd && vel < 0) || (atStart && vel > 0))
   }
 
   const wheelTarget: EventTarget = isWindow(options.scroller)
@@ -455,8 +522,6 @@ export function createFolio(options: {
     const signal = playAbort.current.signal
     const hold = detail.holdMs ?? 720
     const scroller = detail.scrollRoot ?? options.scroller
-    const maxTilt = runtime.maxTilt ?? DEFAULT_TILT
-
     playing = true
     if (idleTimer) clearTimeout(idleTimer)
     applyReduce()
@@ -483,7 +548,7 @@ export function createFolio(options: {
       impulse = 1
       gate = 1
       gateTarget = 1
-      spring.set(maxTilt)
+      spring.set(TILT_PEAK)
       await animateScroll(scroller, dest, Math.max(1400, hold + 700), signal)
       if (signal.aborted) {
         playing = false
@@ -502,7 +567,6 @@ export function createFolio(options: {
 
   return {
     setOptions(next) {
-      if (next.maxTilt !== undefined) runtime.maxTilt = next.maxTilt
       if (next.blur !== undefined) runtime.blur = next.blur
       if (next.perspective !== undefined) runtime.perspective = next.perspective
       if (next.returnMs !== undefined) runtime.returnMs = next.returnMs
@@ -524,6 +588,7 @@ export function createFolio(options: {
       options.plane.style.filter = ""
       options.plane.style.willChange = ""
       options.plane.style.backfaceVisibility = ""
+      options.plane.style.transformOrigin = ""
     },
   }
 }

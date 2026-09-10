@@ -1,11 +1,11 @@
 ---
 title: Folio
-description: The whole page leans back in perspective while you scroll, blurs, then springs flat when you stop.
+description: The page tips one way as you scroll down, the other as you scroll up, then springs flat when you stop.
 ---
 
 import { FolioDemo } from "@/registry/folio/folio-demo"
 
-A single sheet. Scroll and it tilts in 3D — blur rides the lean. Stop scrolling and it springs to the original plane. At the bottom of the page the lean lets go.
+A single sheet. Scroll down and it tips a few degrees one way; scroll up and it tips the other. The lean stays around 16° at a flick so a long page does not swing through the camera. Blur rides the traveling edge. Stop and it springs to the original plane. At the bottom the down-lean lets go; at the top the up-lean does.
 
 <FolioDemo />
 
@@ -19,7 +19,7 @@ Or install straight from the public GitHub source registry:
 
 ## Usage
 
-Use it as the scroll viewport. Children are the page. Wheel, touch, or trackpad tilts the sheet; idle returns it. Honors `prefers-reduced-motion` (no tilt, no blur).
+Use it as the scroll viewport. Children are the page. Wheel, touch, or trackpad tilts the sheet with the scroll — down one way, up the other. Idle returns it. Honors `prefers-reduced-motion` (no tilt, no blur).
 
 <FrameworkCode>
   <FrameworkReact>
@@ -100,8 +100,7 @@ export function App() {
 | Prop | Type | Default |
 | --- | --- | --- |
 | `children` | `ReactNode` / snippet | — |
-| `maxTilt` | `number` | `18` — peak `rotateX` in degrees |
-| `blur` | `number` | `6` — peak blur at the top of the sheet, none at the bottom |
+| `blur` | `number` | `4` — peak blur on the traveling edge |
 | `perspective` | `number` | `1000` — floor `1000` |
 | `returnMs` | `number` | `520` — time for the lean to come back after the bottom |
 | `windowScroll` | `boolean` | `false` |

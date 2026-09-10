@@ -43,8 +43,7 @@ export type FolioProps = FolioRuntimeOptions & {
 export function Folio({
   className,
   children,
-  maxTilt = 18,
-  blur = 6,
+  blur = 4,
   perspective = 1000,
   returnMs = 520,
   windowScroll = false,
@@ -67,7 +66,6 @@ export function Folio({
       plane,
       scroller,
       demoId,
-      maxTilt,
       blur,
       perspective,
       returnMs,
@@ -82,8 +80,8 @@ export function Folio({
   }, [windowScroll, contentSelector, demoId])
 
   useEffect(() => {
-    instanceRef.current?.setOptions({ maxTilt, blur, perspective, returnMs })
-  }, [maxTilt, blur, perspective, returnMs])
+    instanceRef.current?.setOptions({ blur, perspective, returnMs })
+  }, [blur, perspective, returnMs])
 
   if (windowScroll) return null
 
@@ -101,7 +99,7 @@ export function Folio({
         ref={planeRef}
         data-slot="folio-plane"
         aria-label={label}
-        className="relative min-h-full"
+        className="relative min-h-full overflow-x-clip [contain:paint]"
       >
         {children}
       </div>

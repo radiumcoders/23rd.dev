@@ -13,9 +13,7 @@
     class?: string
     /** Page content that leans while you scroll. */
     children?: import("svelte").Snippet
-    /** Peak `rotateX` in degrees while scrolling. Default `18`. */
-    maxTilt?: number
-    /** Peak blur in px at full tilt. Default `6`. */
+    /** Peak blur in px at full tilt. Default `4`. */
     blur?: number
     /** CSS perspective distance in px. Default `1000`. Floor `1000`. */
     perspective?: number
@@ -46,8 +44,7 @@
   let {
     class: className = "",
     children,
-    maxTilt = 18,
-    blur = 6,
+    blur = 4,
     perspective = 1000,
     returnMs = 520,
     windowScroll = false,
@@ -71,7 +68,6 @@
       plane,
       scroller,
       demoId,
-      maxTilt,
       blur,
       perspective,
       returnMs,
@@ -84,7 +80,7 @@
   })
 
   $effect(() => {
-    instance?.setOptions({ maxTilt, blur, perspective, returnMs })
+    instance?.setOptions({ blur, perspective, returnMs })
   })
 </script>
 
@@ -102,7 +98,7 @@
       bind:this={planeEl}
       data-slot="folio-plane"
       aria-label={label}
-      class="relative min-h-full"
+      class="relative min-h-full overflow-x-clip [contain:paint]"
     >
       {@render children?.()}
     </div>
