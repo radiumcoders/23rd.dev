@@ -1,0 +1,111 @@
+---
+title: Folio
+description: The whole page leans back in perspective while you scroll, blurs, then springs flat when you stop.
+---
+
+import { FolioDemo } from "@/registry/folio/folio-demo"
+
+A single sheet. Scroll and it tilts in 3D — blur rides the lean. Stop scrolling and it springs to the original plane. At the bottom of the page the lean lets go.
+
+<FolioDemo />
+
+## Installation
+
+<CliCommand item="folio" />
+
+Or install straight from the public GitHub source registry:
+
+<CliCommand item="folio" github />
+
+## Usage
+
+Use it as the scroll viewport. Children are the page. Wheel, touch, or trackpad tilts the sheet; idle returns it. Honors `prefers-reduced-motion` (no tilt, no blur).
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+"use client"
+
+import { Folio } from "@/components/ui/folio"
+
+export function Page() {
+  return (
+    <Folio className="h-svh bg-background">
+      <main className="px-10 py-24 text-foreground">
+        <h1 className="text-5xl font-medium tracking-tight">
+          The page leans back
+        </h1>
+        <p className="mt-6 max-w-md text-sm leading-relaxed text-foreground/70">
+          Put the site in children. Folio is the scroller.
+        </p>
+      </main>
+    </Folio>
+  )
+}
+```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import Folio from "$lib/components/ui/folio.svelte"
+</script>
+
+<Folio class="h-svh bg-background">
+  <main class="px-10 py-24 text-foreground">
+    <h1 class="text-5xl font-medium tracking-tight">
+      The page leans back
+    </h1>
+    <p class="mt-6 max-w-md text-sm leading-relaxed text-foreground/70">
+      Put the site in children. Folio is the scroller.
+    </p>
+  </main>
+</Folio>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+On a full document (window scroll), pass `windowScroll` and mark the page root with `data-folio-page`:
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+"use client"
+
+import { Folio } from "@/components/ui/folio"
+
+export function App() {
+  return (
+    <>
+      <div data-folio-page>{/* page content */}</div>
+      <Folio windowScroll />
+    </>
+  )
+}
+```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import Folio from "$lib/components/ui/folio.svelte"
+</script>
+
+<div data-folio-page><!-- page content --></div>
+<Folio windowScroll />
+```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+## Props
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` / snippet | — |
+| `maxTilt` | `number` | `18` — peak `rotateX` in degrees |
+| `blur` | `number` | `6` — peak blur at the top of the sheet, none at the bottom |
+| `perspective` | `number` | `1000` — floor `1000` |
+| `returnMs` | `number` | `520` — time for the lean to come back after the bottom |
+| `windowScroll` | `boolean` | `false` |
+| `contentSelector` | `string` | `[data-folio-page]` |
+| `label` | `string` | `Tilting page` |
+| `className` | `string` | React only |
+| `class` | `string` | Svelte only |

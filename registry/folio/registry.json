@@ -1,0 +1,31 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "items": [
+    {
+      "name": "folio",
+      "type": "registry:ui",
+      "title": "Folio",
+      "description": "The whole page leans back in perspective while you scroll, blurs, then springs flat when you stop.",
+      "files": [
+        {
+          "path": "folio.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/folio.tsx"
+        }
+      ]
+    },
+    {
+      "name": "folio-svelte",
+      "type": "registry:ui",
+      "title": "Folio",
+      "description": "The whole page leans back in perspective while you scroll, blurs, then springs flat when you stop.",
+      "files": [
+        {
+          "path": "folio.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/folio.svelte"
+        }
+      ]
+    }
+  ]
+}
