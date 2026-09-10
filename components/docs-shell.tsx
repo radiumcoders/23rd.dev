@@ -46,7 +46,13 @@ type FolderNode = {
 type RootNode = { type?: "root"; name: ReactNode; children: TreeNode[] }
 type TreeNode = PageNode | SeparatorNode | FolderNode
 
-const EDGE_BLUR_STDS = [1, 2, 4, 8, 16] as const
+const EDGE_BLUR_LAYERS = [
+  { std: 5, opaque: 0, fade: 24 },
+  { std: 3, opaque: 0, fade: 44 },
+  { std: 2, opaque: 10, fade: 66 },
+  { std: 1, opaque: 28, fade: 84 },
+  { std: 0.5, opaque: 50, fade: 100 },
+] as const
 
 function DocsEdgeBlurDefs({ uid }: { uid: string }) {
   return (
@@ -55,17 +61,17 @@ function DocsEdgeBlurDefs({ uid }: { uid: string }) {
       aria-hidden
     >
       <defs>
-        {EDGE_BLUR_STDS.map((std) => (
+        {EDGE_BLUR_LAYERS.map((layer, i) => (
           <filter
-            key={std}
-            id={`docs-edge-blur-${std}-${uid}`}
+            key={i}
+            id={`docs-edge-blur-${i}-${uid}`}
             x="-10%"
             y="-50%"
             width="120%"
             height="200%"
             colorInterpolationFilters="sRGB"
           >
-            <feGaussianBlur in="SourceGraphic" stdDeviation={std} />
+            <feGaussianBlur in="SourceGraphic" stdDeviation={layer.std} />
           </filter>
         ))}
       </defs>
@@ -81,26 +87,31 @@ function WindowEdgeFade({
   uid: string
 }) {
   const isTop = edge === "top"
-  const steps = isTop ? [...EDGE_BLUR_STDS].reverse() : EDGE_BLUR_STDS
+  const dir = isTop ? "to bottom" : "to top"
 
   return (
     <div
       aria-hidden
       className={cn(
-        "pointer-events-none absolute inset-x-0 z-10 flex h-28 flex-col",
+        "pointer-events-none absolute inset-x-0 z-10 h-16",
         isTop ? "top-0 rounded-t-2xl" : "bottom-0 rounded-b-2xl"
       )}
     >
-      {steps.map((std) => (
-        <div
-          key={std}
-          className="min-h-0 flex-1"
-          style={{
-            WebkitBackdropFilter: `blur(${std}px)`,
-            backdropFilter: `url(#docs-edge-blur-${std}-${uid})`,
-          }}
-        />
-      ))}
+      {EDGE_BLUR_LAYERS.map((layer, i) => {
+        const mask = `linear-gradient(${dir}, black ${layer.opaque}%, transparent ${layer.fade}%)`
+        return (
+          <div
+            key={i}
+            className="absolute inset-0"
+            style={{
+              backdropFilter: `url(#docs-edge-blur-${i}-${uid})`,
+              WebkitBackdropFilter: `url(#docs-edge-blur-${i}-${uid})`,
+              maskImage: mask,
+              WebkitMaskImage: mask,
+            }}
+          />
+        )
+      })}
     </div>
   )
 }
