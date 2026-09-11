@@ -12,6 +12,7 @@ import { ComponentPreview } from "@/components/component-preview"
 import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
+  DARK_BG,
   DARK_COLOR,
   DEFAULT_DENSITY,
   DEFAULT_GLOW,
@@ -60,9 +61,12 @@ export function PhosphorScoreDemo() {
     <>
       <ComponentPreview
         title="Phosphor Score"
-        stageClassName="min-h-0 overflow-hidden bg-background p-0"
+        stageClassName="min-h-0 overflow-hidden p-0"
       >
-        <div className="relative h-[56svh] w-full bg-background">
+        <div
+          className="relative h-[56svh] w-full overflow-hidden rounded-[inherit] bg-background"
+          style={theme === "dark" ? { backgroundColor: DARK_BG } : undefined}
+        >
           <PhosphorScore
             color={useAutoColor ? undefined : props.color}
             glow={props.glow}
