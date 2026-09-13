@@ -61,7 +61,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build OpenNext Worker
-        run: pnpm exec opennextjs-cloudflare build
+        run: |
+          pnpm og:build
+          pnpm exec opennextjs-cloudflare build
 
       - name: Upload preview version
         id: upload
