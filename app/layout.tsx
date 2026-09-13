@@ -10,12 +10,14 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "sonner"
 import {
+  OG_IMAGE_SIZE,
   SITE_AUTHOR,
   SITE_DESCRIPTION,
   SITE_KEYWORDS,
   SITE_NAME,
   SITE_TITLE,
   SITE_URL,
+  docsOgImagePath,
   rootJsonLd,
 } from "@/lib/seo"
 import { cn } from "@/lib/utils"
@@ -66,11 +68,21 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: docsOgImagePath(),
+        width: OG_IMAGE_SIZE.width,
+        height: OG_IMAGE_SIZE.height,
+        alt: SITE_TITLE,
+        type: "image/png",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
+    images: [docsOgImagePath()],
   },
   appleWebApp: {
     title: SITE_NAME,
