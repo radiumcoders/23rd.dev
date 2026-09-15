@@ -1,9 +1,5 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/header/graph.svg?title=23rd&subtitle=Opinionated+UI+components+for+shippers&logo=react&theme=zinc&align=center&mode=dark&bg=transparent" />
-    <img alt="23rd — Opinionated UI components for shippers" src="https://shieldcn.dev/header/graph.svg?title=23rd&subtitle=Opinionated+UI+components+for+shippers&logo=react&theme=zinc&align=center&mode=light&bg=transparent" />
-  </picture>
-</p>
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/6ca35d6c-ad78-423a-a797-41db8ce2bd51" />
+
 
 <p align="center">  
   <a href="https://23rd.dev"> 
