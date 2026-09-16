@@ -27,32 +27,34 @@ export default async function Page(props: {
 
   return (
     <div className="flex min-h-full w-full">
-      <article className="min-w-0 flex-1 px-6 py-8 md:px-10 md:py-10">
-        <JsonLd
-          data={docsJsonLd({
-            title: page.data.title,
-            description: page.data.description,
-            path: docsPath(params.slug),
-            slug: params.slug,
-          })}
-        />
-        <h1 className="text-3xl font-semibold tracking-tight">
-          {page.data.title}
-        </h1>
-        {page.data.description ? (
-          <p className="mt-3 text-lg text-muted-foreground">
-            {page.data.description}
-          </p>
-        ) : null}
-        <div className="prose mt-8">
-          <MDX
-            components={getMDXComponents({
-              a: createRelativeLink(source, page),
+      <div className="flex min-w-0 flex-1 justify-center px-6 py-8 md:px-10 md:py-12">
+        <article className="w-full min-w-0 max-w-2xl">
+          <JsonLd
+            data={docsJsonLd({
+              title: page.data.title,
+              description: page.data.description,
+              path: docsPath(params.slug),
+              slug: params.slug,
             })}
           />
-        </div>
-        <DocsPager tree={source.getPageTree()} url={page.url} />
-      </article>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {page.data.title}
+          </h1>
+          {page.data.description ? (
+            <p className="mt-3 text-lg text-muted-foreground">
+              {page.data.description}
+            </p>
+          ) : null}
+          <div className="prose mt-8">
+            <MDX
+              components={getMDXComponents({
+                a: createRelativeLink(source, page),
+              })}
+            />
+          </div>
+          <DocsPager tree={source.getPageTree()} url={page.url} />
+        </article>
+      </div>
       <DocsToc items={page.data.toc} />
     </div>
   )
