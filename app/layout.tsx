@@ -8,6 +8,7 @@ import { DocsSearchDialog } from "@/components/docs-search-dialog"
 import { JsonLd } from "@/components/json-ld"
 import { ThemeProvider } from "@/components/theme-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { THEME_BOOTSTRAP_SCRIPT } from "@/lib/theme-bootstrap"
 import { Toaster } from "sonner"
 import {
   OG_IMAGE_SIZE,
@@ -121,10 +122,16 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("font-sans antialiased", fontMono.variable, geist.variable)}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_SCRIPT }}
+        />
+      </head>
       <body className="flex min-h-screen flex-col">
         <JsonLd data={rootJsonLd()} />
         <ThemeProvider>
           <RootProvider
+            theme={{ enabled: false }}
             search={{
               links,
               SearchDialog: DocsSearchDialog,

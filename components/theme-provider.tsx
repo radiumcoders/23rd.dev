@@ -3,9 +3,9 @@
 import * as React from "react"
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes"
 
-// next-themes injects an inline <script> to prevent theme flicker.
-// React 19 warns about script tags inside components — false positive;
-// the script runs correctly during SSR.
+// next-themes also injects an inline <script> (see lib/theme-bootstrap.ts for the
+// copy that actually runs in <head> before first paint). React 19 warns about
+// script tags inside client components — the warning is noisy, not a failure.
 if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   const originalError = console.error
   console.error = (...args: unknown[]) => {
@@ -30,6 +30,12 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
       return
     }
 
+    // Cursor's browser overlay injects `data-cursor-ref` after paint.
+    // React reports that as a hydration mismatch; it is not the app.
+    if (message.includes("hydrat") && message.includes("data-cursor-ref")) {
+      return
+    }
+
     originalError.apply(console, args)
   }
 }
@@ -44,6 +50,7 @@ function ThemeProvider({
       defaultTheme="system"
       enableSystem
       disableTransitionOnChange
+      scriptProps={{ suppressHydrationWarning: true }}
       {...props}
     >
       <ThemeHotkey />

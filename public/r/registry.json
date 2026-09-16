@@ -296,6 +296,32 @@
       "type": "registry:ui"
     },
     {
+      "name": "shader-sky",
+      "title": "Shader Sky",
+      "description": "WebGL sky for landing heroes — clear blue with drifting clouds in light, storm gray in dark, optional window-glass film.",
+      "files": [
+        {
+          "path": "registry/shader-sky/shader-sky.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/shader-sky.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
+      "name": "shader-sky-svelte",
+      "title": "Shader Sky",
+      "description": "WebGL sky for landing heroes — clear blue with drifting clouds in light, storm gray in dark, optional window-glass film.",
+      "files": [
+        {
+          "path": "registry/shader-sky/shader-sky.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/shader-sky.svelte"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "stretchy-footer",
       "title": "Stretchy Footer",
       "description": "Dia-style rubber overscroll — rainbow aurora stretches up past the bottom, then snaps back.",
