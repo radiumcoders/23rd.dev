@@ -271,11 +271,10 @@ export function DocsSidebar({
     <Sidebar
       id={id}
       aria-label="Documentation"
-      variant="inset"
       collapsible="offcanvas"
       className={cn(className)}
     >
-      <SidebarHeader className="flex h-14 flex-row items-center gap-2 px-4">
+      <SidebarHeader className="flex h-14 flex-row items-center gap-2 border-b px-4 py-0">
         <Link
           href="/docs"
           className="flex min-w-0 items-center gap-2 text-sm font-medium"

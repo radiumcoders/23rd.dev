@@ -15,6 +15,7 @@ import { DocsSidebarTrigger } from "@/components/docs-sidebar-trigger"
 import { GithubStars } from "@/components/github-stars"
 import { Logo } from "@/components/logo"
 import { SearchTrigger } from "@/components/search-trigger"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { FrameworkProvider } from "@/lib/framework"
 import { cn } from "@/lib/utils"
 import {
@@ -28,7 +29,7 @@ import {
 const sidebarTokens: CSSProperties = {
   "--sidebar": "var(--background)",
   "--sidebar-foreground": "var(--foreground)",
-  "--sidebar-border": "transparent",
+  "--sidebar-border": "var(--border)",
   "--sidebar-accent": "color-mix(in oklch, var(--foreground) 6%, transparent)",
   "--sidebar-accent-foreground": "var(--foreground)",
   "--sidebar-ring": "var(--ring)",
@@ -93,8 +94,8 @@ function WindowEdgeFade({
     <div
       aria-hidden
       className={cn(
-        "pointer-events-none absolute inset-x-0 z-10 h-16",
-        isTop ? "top-0 rounded-t-2xl" : "bottom-0 rounded-b-2xl"
+        "pointer-events-none absolute inset-x-0 z-10 h-16 xl:right-56",
+        isTop ? "top-0" : "bottom-0"
       )}
     >
       {EDGE_BLUR_LAYERS.map((layer, i) => {
@@ -117,9 +118,7 @@ function WindowEdgeFade({
 }
 
 /**
- * Docs chrome: canvas sidebar + a real inset content window.
- * The window is a flex column; the article scrolls inside it so the ring,
- * corners, and shadow never have to be faked with overlays.
+ * Docs chrome: full-viewport panes split by borders.
  */
 export function DocsShell({
   tree,
@@ -161,11 +160,9 @@ export function DocsShell({
         <Sidebar
           id="docs-sidebar"
           aria-label="Documentation"
-          variant="inset"
           collapsible="offcanvas"
-          className="p-3"
         >
-          <SidebarHeader className="flex h-14 flex-row items-center gap-2 px-4">
+          <SidebarHeader className="flex h-14 flex-row items-center gap-2 border-b px-4 py-0">
             <Link
               href="/docs"
               className="flex min-w-0 items-center gap-2 text-sm font-medium"
@@ -179,24 +176,29 @@ export function DocsShell({
             <DocsSidebar tree={tree} embedded />
           </SidebarContent>
         </Sidebar>
-        <SidebarInset className="relative z-10 m-3 min-h-0 min-w-0 overflow-hidden rounded-2xl bg-background ring-1 ring-black/10 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_0_24px_rgba(0,0,0,0.06)] md:peer-data-[variant=inset]:m-3 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-2xl md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-3 dark:ring-white/12 dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_0_28px_rgba(0,0,0,0.35)]">
-          <div
-            ref={scrollRef}
-            data-docs-window-scroll
-            className="absolute inset-0 overflow-y-auto overscroll-y-contain pt-14 pb-10"
-          >
-            {children}
-          </div>
-          <DocsEdgeBlurDefs uid={blurUid} />
-          <WindowEdgeFade edge="top" uid={blurUid} />
-          <WindowEdgeFade edge="bottom" uid={blurUid} />
-          <header className="absolute inset-x-0 top-0 z-20 flex h-14 items-center gap-3 px-4 md:px-6">
-            <DocsSidebarTrigger showWhenCollapsed />
-            <div className="ml-auto flex items-center gap-1">
-              <GithubStars stars={githubStars} />
+        <SidebarInset className="min-h-0 min-w-0 overflow-hidden">
+          <header className="flex h-14 min-w-0 shrink-0 border-b">
+            <div className="flex min-w-0 flex-1 items-center gap-1 px-4">
+              <DocsSidebarTrigger showWhenCollapsed />
+              <div className="min-w-0 flex-1" />
+              <GithubStars stars={githubStars} className="shrink-0" />
+              <ThemeToggle />
+            </div>
+            <div className="flex w-56 shrink-0 items-center border-l px-2">
               <SearchTrigger />
             </div>
           </header>
+          <div className="relative min-h-0 flex-1 overflow-hidden">
+            <div
+              ref={scrollRef}
+              className="absolute inset-0 overflow-y-auto overscroll-y-contain"
+            >
+              {children}
+            </div>
+            <DocsEdgeBlurDefs uid={blurUid} />
+            <WindowEdgeFade edge="top" uid={blurUid} />
+            <WindowEdgeFade edge="bottom" uid={blurUid} />
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </FrameworkProvider>

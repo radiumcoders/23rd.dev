@@ -26,8 +26,8 @@ export default async function Page(props: {
   const MDX = page.data.body
 
   return (
-    <div className="w-full px-4 py-8 md:px-6 md:py-12">
-      <div className="mx-auto flex w-full max-w-5xl justify-center gap-12">
+    <div className="flex min-h-full w-full">
+      <div className="flex min-w-0 flex-1 justify-center px-6 py-8 md:px-10 md:py-12">
         <article className="w-full min-w-0 max-w-2xl">
           <JsonLd
             data={docsJsonLd({
@@ -54,8 +54,8 @@ export default async function Page(props: {
           </div>
           <DocsPager tree={source.getPageTree()} url={page.url} />
         </article>
-        <DocsToc items={page.data.toc} />
       </div>
+      <DocsToc items={page.data.toc} />
     </div>
   )
 }

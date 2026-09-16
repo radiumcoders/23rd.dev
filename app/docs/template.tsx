@@ -11,7 +11,7 @@ import { ViewTransition } from "react"
 export default function DocsTemplate({ children }: { children: ReactNode }) {
   return (
     <ViewTransition enter="page-blur" exit="page-blur" default="none">
-      <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+      <div className="min-h-full">{children}</div>
     </ViewTransition>
   )
 }
