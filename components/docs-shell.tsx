@@ -181,8 +181,8 @@ export function DocsShell({
             <div className="flex min-w-0 flex-1 items-center gap-1 px-4">
               <DocsSidebarTrigger showWhenCollapsed />
               <div className="min-w-0 flex-1" />
-              <ThemeToggle />
               <GithubStars stars={githubStars} className="shrink-0" />
+              <ThemeToggle />
             </div>
             <div className="flex w-56 shrink-0 items-center border-l px-2">
               <SearchTrigger />
