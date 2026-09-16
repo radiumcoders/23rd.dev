@@ -27,7 +27,7 @@ const DEFAULTS = {
   interactive: false,
   glass: false,
   glassSize: 7,
-  overlay: true,
+  overlay: false,
   colors: SKY_PALETTES[0]!,
 }
 

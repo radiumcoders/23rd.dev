@@ -26,7 +26,9 @@ export type ShaderSkyOptions = {
   glassSize?: number
   /**
    * Palette mode. Default `auto` follows shadcn / next-themes
-   * (`html.dark` class) so clear sky and rain swap with the site theme.
+   * (`html.dark` class) **only when `colors` is omitted**, so the stock
+   * clear-sky / rain palettes swap with the site theme. A custom palette
+   * stays put.
    */
   theme?: ShaderSkyTheme
   /** Fires whenever resolved dark mode changes (CSS fallback). */
@@ -63,6 +65,25 @@ export const DARK_FALLBACK = {
   ].join(", "),
 } as const
 
+export function skyFallback(colors: string[] | undefined, dark: boolean) {
+  if (colors && colors.length > 0) {
+    const c1 = colors[0] ?? LIGHT_COLORS[0]!
+    const c2 = colors[1] ?? LIGHT_COLORS[1]!
+    const c3 = colors[2] ?? LIGHT_COLORS[2]!
+    const c4 = colors[3] ?? LIGHT_COLORS[3]!
+    return {
+      backgroundColor: c2,
+      backgroundImage: [
+        `linear-gradient(180deg, ${c1} 0%, ${c2} 100%)`,
+        `radial-gradient(28% 18% at 22% 68%, ${c3} 0%, transparent 70%)`,
+        `radial-gradient(24% 16% at 74% 42%, ${c3} 0%, transparent 68%)`,
+        `radial-gradient(20% 14% at 88% 76%, ${c4} 0%, transparent 70%)`,
+      ].join(", "),
+    }
+  }
+  return dark ? DARK_FALLBACK : LIGHT_FALLBACK
+}
+
 const VERT = `
 attribute vec2 a_position;
 void main() {
@@ -81,7 +102,6 @@ uniform float u_intensity;
 uniform float u_amount;
 uniform float u_scale;
 uniform float u_variation;
-uniform float u_dark;
 uniform float u_glass;
 uniform float u_glassSize;
 uniform vec3 u_c1;
@@ -139,7 +159,8 @@ vec2 skyField(vec2 uv, float aspect, float t) {
     fbm(p + q * 1.35 + vec2(8.3, 2.8) - wind * 0.28)
   );
 
-  float big = fbm(p * 0.58 + r * 1.15 + wind * 0.2);
+  vec2 base = p * 0.58 + r * 1.15 + wind * 0.2;
+  float big = fbm(base);
   float small = fbm(p * mix(2.2, 1.35, scale) + q * 0.7 + vec2(t * 0.26, 0.1));
   float n = mix(big, mix(big, small, 0.55), variation);
   n = n * n * (3.0 - 2.0 * n);
@@ -154,8 +175,19 @@ vec2 skyField(vec2 uv, float aspect, float t) {
   density = clamp(density + farC * (1.0 - density * 0.4), 0.0, 1.0);
   density *= mix(0.78, 1.14, cover);
 
-  float shade = smoothstep(0.22, 0.78, n);
-  return vec2(clamp(density, 0.0, 1.0), clamp(shade, 0.0, 1.0));
+  // Sun from upper-right: denser along the light ray = self-shadow.
+  vec2 sun = vec2(0.22, 0.28);
+  float nLit = fbm(base + sun);
+  nLit = nLit * nLit * (3.0 - 2.0 * nLit);
+  float lift = clamp((n - nLit) * 2.6, -1.0, 1.0);
+
+  float mottling = fbm(p * 3.15 + q * 0.35 + vec2(2.4, -1.1));
+  float under = smoothstep(0.22, 0.86, n) * (1.0 - st.y * 0.48);
+  float shade = 0.40 + lift * 0.50 - under * 0.30;
+  shade = mix(shade, shade * mix(0.58, 1.32, mottling), 0.52);
+  shade = clamp(shade, 0.0, 1.0);
+
+  return vec2(clamp(density, 0.0, 1.0), shade);
 }
 
 void main() {
@@ -173,22 +205,19 @@ void main() {
   float density = field.x;
   float shade = field.y;
 
-  float h = pow(clamp(uv.y, 0.0, 1.0), mix(0.72, 0.82, u_dark));
+  float h = pow(clamp(uv.y, 0.0, 1.0), 0.76);
   vec3 sky = mix(u_c2, u_c1, h);
 
-  vec3 cloudTint = mix(u_c4, u_c3, shade);
+  vec3 belly = mix(u_c4, u_c1, 0.32) * 0.76;
+  vec3 body = mix(u_c4, u_c3, 0.58);
+  vec3 top = mix(u_c3, vec3(1.0), 0.52);
+  vec3 lit = mix(belly, body, smoothstep(0.12, 0.58, shade));
+  lit = mix(lit, top, smoothstep(0.55, 0.98, shade) * 0.72);
+  lit = mix(lit, belly, (1.0 - shade) * 0.22 * density);
+
   float alpha = density * mix(0.55, 1.12, clamp(u_intensity, 0.0, 1.0));
   alpha = clamp(alpha, 0.0, 1.0);
-
-  vec3 col;
-  if (u_dark < 0.5) {
-    col = mix(sky, cloudTint, alpha);
-  } else {
-    vec3 mass = mix(u_c4, u_c3, 0.4 + shade * 0.6);
-    vec3 lit = mix(mass, u_c2, shade * 0.16);
-    float storm = smoothstep(0.06, 0.82, alpha) * 0.78;
-    col = mix(sky, lit, storm);
-  }
+  vec3 col = mix(sky, lit, alpha);
 
   if (u_glass > 0.5) {
     float pane = smoothstep(0.50, 0.22, length(glassLocal));
@@ -363,7 +392,6 @@ export function createShaderSky(
   const uAmount = gl.getUniformLocation(program, "u_amount")
   const uScale = gl.getUniformLocation(program, "u_scale")
   const uVariation = gl.getUniformLocation(program, "u_variation")
-  const uDark = gl.getUniformLocation(program, "u_dark")
   const uGlass = gl.getUniformLocation(program, "u_glass")
   const uGlassSize = gl.getUniformLocation(program, "u_glassSize")
   const uC1 = gl.getUniformLocation(program, "u_c1")
@@ -456,7 +484,6 @@ export function createShaderSky(
     gl.uniform1f(uAmount, Math.min(1, Math.max(0, options.amount ?? 0.5)))
     gl.uniform1f(uScale, Math.min(1, Math.max(0, options.scale ?? 0.4)))
     gl.uniform1f(uVariation, Math.min(1, Math.max(0, options.variation ?? 0.7)))
-    gl.uniform1f(uDark, dark ? 1 : 0)
     gl.uniform1f(uGlass, options.glass ? 1 : 0)
     gl.uniform1f(uGlassSize, glassPx)
     gl.uniform3f(uC1, palette[0]![0], palette[0]![1], palette[0]![2])

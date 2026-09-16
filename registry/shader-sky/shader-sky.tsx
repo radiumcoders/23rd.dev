@@ -6,8 +6,7 @@ import { cn } from "@/lib/utils"
 
 import {
   createShaderSky,
-  DARK_FALLBACK,
-  LIGHT_FALLBACK,
+  skyFallback,
   resolveDark,
   type ShaderSkyInstance,
   type ShaderSkyOptions,
@@ -121,7 +120,7 @@ export function ShaderSky({
     theme,
   ])
 
-  const fallback = isDark ? DARK_FALLBACK : LIGHT_FALLBACK
+  const fallback = skyFallback(colors, isDark)
 
   return (
     <div

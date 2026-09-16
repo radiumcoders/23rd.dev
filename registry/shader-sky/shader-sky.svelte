@@ -5,8 +5,7 @@
   import { onMount } from "svelte"
   import {
     createShaderSky,
-    DARK_FALLBACK,
-    LIGHT_FALLBACK,
+    skyFallback,
     resolveDark,
     type ShaderSkyInstance,
     type ShaderSkyOptions,
@@ -102,7 +101,7 @@
     })
   })
 
-  const fallback = $derived(isDark ? DARK_FALLBACK : LIGHT_FALLBACK)
+  const fallback = $derived(skyFallback(colors, isDark))
 </script>
 
 <div
