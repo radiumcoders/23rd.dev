@@ -470,21 +470,21 @@ export function ControlColors({
             const hex = toHex6(color)
             return (
               <label
-                key={`${hex}-${index}`}
+                key={index}
                 className="relative size-9 cursor-pointer overflow-hidden rounded-2xl ring-1 ring-border/80 transition-[box-shadow] hover:ring-ring/40 focus-within:ring-3 focus-within:ring-ring/30"
               >
                 <span
                   aria-hidden
-                  className="absolute inset-0"
+                  className="pointer-events-none absolute inset-0"
                   style={{ backgroundColor: hex }}
                 />
                 <input
                   type="color"
-                  value={hex}
+                  value={hex.toLowerCase()}
                   aria-label={`${label} ${index + 1}`}
                   onChange={(e) => {
                     const next = colors.map((c, i) =>
-                      i === index ? e.target.value.toUpperCase() : c
+                      i === index ? toHex6(e.target.value) : c
                     )
                     onChange(next)
                   }}

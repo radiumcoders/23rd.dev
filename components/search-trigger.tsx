@@ -1,11 +1,17 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Dialog } from "@base-ui/react/dialog"
 import { useSearchContext } from "fumadocs-ui/contexts/search"
 import { RiSearchLine } from "@remixicon/react"
 
 export function SearchTrigger() {
   const { enabled, dialogHandle, hotKey } = useSearchContext()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   if (!enabled) return null
 
@@ -18,16 +24,20 @@ export function SearchTrigger() {
     >
       <RiSearchLine className="size-4" />
       <span className="hidden sm:inline">Search</span>
-      <span className="hidden items-center gap-0.5 sm:inline-flex">
-        {hotKey.map((k, i) => (
-          <kbd
-            key={i}
-            className="rounded-md bg-muted px-1.5 py-px font-sans text-[11px] font-medium text-muted-foreground"
-          >
-            {k.display}
-          </kbd>
-        ))}
-      </span>
+      {mounted ? (
+        <span className="hidden items-center gap-0.5 sm:inline-flex">
+          {hotKey.map((k, i) => (
+            <kbd
+              key={i}
+              className="rounded-md bg-muted px-1.5 py-px font-sans text-[11px] font-medium text-muted-foreground"
+            >
+              {k.display}
+            </kbd>
+          ))}
+        </span>
+      ) : (
+        <span className="hidden h-[18px] w-14 sm:inline-flex" />
+      )}
     </Dialog.Trigger>
   )
 }

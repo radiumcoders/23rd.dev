@@ -1,0 +1,31 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "items": [
+    {
+      "name": "shader-sky",
+      "type": "registry:ui",
+      "title": "Shader Sky",
+      "description": "WebGL sky for landing heroes — clear blue with drifting clouds in light, storm gray in dark, optional window-glass film.",
+      "files": [
+        {
+          "path": "shader-sky.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/shader-sky.tsx"
+        }
+      ]
+    },
+    {
+      "name": "shader-sky-svelte",
+      "type": "registry:ui",
+      "title": "Shader Sky",
+      "description": "WebGL sky for landing heroes — clear blue with drifting clouds in light, storm gray in dark, optional window-glass film.",
+      "files": [
+        {
+          "path": "shader-sky.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/shader-sky.svelte"
+        }
+      ]
+    }
+  ]
+}

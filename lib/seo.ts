@@ -52,7 +52,7 @@ export function isComponentPage(slug?: string[]): boolean {
 
 export const OG_IMAGE_SIZE = { width: 1200, height: 630 } as const
 
-/** Catch-alls cannot host `opengraph-image`; pages point at `/og/docs/.../image.png`. */
+/** Catch-alls cannot host `opengraph-image`; pages use static `/og/docs/.../image.png`. */
 export function docsOgImageSegments(slug?: string[]): string[] {
   return [...(slug ?? []), "image.png"]
 }
@@ -85,6 +85,7 @@ export function buildPageMetadata({
     width: OG_IMAGE_SIZE.width,
     height: OG_IMAGE_SIZE.height,
     alt: ogTitle,
+    type: "image/png",
   }
 
   return {
