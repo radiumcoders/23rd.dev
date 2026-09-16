@@ -26,36 +26,34 @@ export default async function Page(props: {
   const MDX = page.data.body
 
   return (
-    <div className="w-full px-4 py-8 md:px-6 md:py-12">
-      <div className="mx-auto flex w-full max-w-5xl justify-center gap-12">
-        <article className="w-full min-w-0 max-w-2xl">
-          <JsonLd
-            data={docsJsonLd({
-              title: page.data.title,
-              description: page.data.description,
-              path: docsPath(params.slug),
-              slug: params.slug,
+    <div className="flex min-h-full w-full">
+      <article className="min-w-0 flex-1 px-6 py-8 md:px-10 md:py-10">
+        <JsonLd
+          data={docsJsonLd({
+            title: page.data.title,
+            description: page.data.description,
+            path: docsPath(params.slug),
+            slug: params.slug,
+          })}
+        />
+        <h1 className="text-3xl font-semibold tracking-tight">
+          {page.data.title}
+        </h1>
+        {page.data.description ? (
+          <p className="mt-3 text-lg text-muted-foreground">
+            {page.data.description}
+          </p>
+        ) : null}
+        <div className="prose mt-8">
+          <MDX
+            components={getMDXComponents({
+              a: createRelativeLink(source, page),
             })}
           />
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {page.data.title}
-          </h1>
-          {page.data.description ? (
-            <p className="mt-3 text-lg text-muted-foreground">
-              {page.data.description}
-            </p>
-          ) : null}
-          <div className="prose mt-8">
-            <MDX
-              components={getMDXComponents({
-                a: createRelativeLink(source, page),
-              })}
-            />
-          </div>
-          <DocsPager tree={source.getPageTree()} url={page.url} />
-        </article>
-        <DocsToc items={page.data.toc} />
-      </div>
+        </div>
+        <DocsPager tree={source.getPageTree()} url={page.url} />
+      </article>
+      <DocsToc items={page.data.toc} />
     </div>
   )
 }
