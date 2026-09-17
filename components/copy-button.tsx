@@ -17,6 +17,7 @@ export type CopyButtonProps = {
   errorMessage?: string
   size?: CopyButtonSize
   className?: string
+  onCopied?: () => void
 }
 
 export function CopyButton({
@@ -27,6 +28,7 @@ export function CopyButton({
   errorMessage = "Couldn’t copy",
   size = "icon-sm",
   className,
+  onCopied,
 }: CopyButtonProps) {
   const [copied, setCopied] = useState(false)
   const timeoutRef = useRef<number | null>(null)
@@ -46,6 +48,7 @@ export function CopyButton({
       if (timeoutRef.current) window.clearTimeout(timeoutRef.current)
       setCopied(true)
       toast.success(successMessage)
+      onCopied?.()
       timeoutRef.current = window.setTimeout(() => setCopied(false), 1600)
     } catch {
       toast.error(errorMessage)
