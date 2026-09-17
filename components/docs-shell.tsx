@@ -178,17 +178,13 @@ export function DocsShell({
           </SidebarContent>
         </Sidebar>
         <SidebarInset className="min-h-0 min-w-0 overflow-hidden">
-          <header className="flex h-14 min-w-0 shrink-0 border-b">
-            <div className="flex min-w-0 flex-1 items-center gap-1 px-4">
-              <DocsSidebarTrigger showWhenCollapsed />
-              <div className="min-w-0 flex-1" />
-              <GithubSponsor className="shrink-0" />
-              <GithubStars stars={githubStars} className="shrink-0" />
-              <ThemeToggle />
-            </div>
-            <div className="flex w-56 shrink-0 items-center border-l px-2">
-              <SearchTrigger />
-            </div>
+          <header className="flex h-14 min-w-0 shrink-0 items-center gap-1 border-b px-4">
+            <DocsSidebarTrigger showWhenCollapsed />
+            <div className="min-w-0 flex-1" />
+            <GithubSponsor className="shrink-0" />
+            <GithubStars stars={githubStars} className="shrink-0" />
+            <SearchTrigger />
+            <ThemeToggle />
           </header>
           <div className="relative min-h-0 flex-1 overflow-hidden">
             <div
