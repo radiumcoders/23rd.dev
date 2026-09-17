@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation"
 
 import { DocsSidebar } from "@/components/docs-sidebar"
 import { DocsSidebarTrigger } from "@/components/docs-sidebar-trigger"
+import { GithubSponsor } from "@/components/github-sponsor"
 import { GithubStars } from "@/components/github-stars"
 import { Logo } from "@/components/logo"
 import { SearchTrigger } from "@/components/search-trigger"
@@ -181,6 +182,7 @@ export function DocsShell({
             <div className="flex min-w-0 flex-1 items-center gap-1 px-4">
               <DocsSidebarTrigger showWhenCollapsed />
               <div className="min-w-0 flex-1" />
+              <GithubSponsor className="shrink-0" />
               <GithubStars stars={githubStars} className="shrink-0" />
               <ThemeToggle />
             </div>
