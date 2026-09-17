@@ -4,6 +4,7 @@ import { useRef, type ComponentProps } from "react"
 import { CodeBlock, Pre } from "fumadocs-ui/components/codeblock"
 
 import { CopyButton } from "@/components/copy-button"
+import { trackEvent } from "@/components/tracwell-analytics"
 import { cn } from "@/lib/utils"
 
 function codeFromFigure(figure: HTMLElement | null) {
@@ -37,6 +38,7 @@ export function MdxPre({
               size="icon-xs"
               label="Copy code"
               getText={() => codeFromFigure(figureRef.current)}
+              onCopied={() => trackEvent("code_copied", { source: "docs" })}
             />
           ) : null}
         </div>

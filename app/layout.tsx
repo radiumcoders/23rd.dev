@@ -1,12 +1,12 @@
 import { Geist, Geist_Mono } from "next/font/google"
 import { RootProvider } from "fumadocs-ui/provider/next"
 import type { Metadata, Viewport } from "next"
-import Script from "next/script"
 import type { ReactNode } from "react"
 
 import { DocsSearchDialog } from "@/components/docs-search-dialog"
 import { JsonLd } from "@/components/json-ld"
 import { ThemeProvider } from "@/components/theme-provider"
+import { TracwellAnalytics } from "@/components/tracwell-analytics"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { THEME_BOOTSTRAP_SCRIPT } from "@/lib/theme-bootstrap"
 import { Toaster } from "sonner"
@@ -143,11 +143,7 @@ export default function RootLayout({
             </TooltipProvider>
           </RootProvider>
         </ThemeProvider>
-        <Script
-          defer
-          src="https://cloud.umami.is/script.js"
-          data-website-id="5a96c4a1-18ca-49b5-9cf9-b80c01c5ffa9"
-        />
+        <TracwellAnalytics />
       </body>
     </html>
   )

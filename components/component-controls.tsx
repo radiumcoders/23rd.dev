@@ -13,6 +13,7 @@ import {
 import { RiAddLine, RiRefreshLine } from "@remixicon/react"
 
 import { CopyButton } from "@/components/copy-button"
+import { trackEvent } from "@/components/tracwell-analytics"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
@@ -139,6 +140,12 @@ export function ComponentControls({
                 size="xs"
                 text={snippet}
                 label="Copy"
+                onCopied={() =>
+                  trackEvent("code_copied", {
+                    source: "component_snippet",
+                    ...(component ? { component } : {}),
+                  })
+                }
               />
             ) : null}
             {onReset ? (

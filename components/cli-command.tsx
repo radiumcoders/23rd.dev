@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react"
 
 import { CopyButton } from "@/components/copy-button"
 import { FrameworkSelect } from "@/components/framework-select"
+import { trackEvent } from "@/components/tracwell-analytics"
 import {
   BunIcon,
   NpmIcon,
@@ -217,6 +218,14 @@ export function CliCommand({
             text={activeCommand}
             label="Copy command"
             errorMessage="Couldn’t copy command"
+            onCopied={() =>
+              trackEvent("cli_command_copied", {
+                package_manager: manager,
+                framework,
+                source: github ? "github" : "registry",
+                ...(item ? { item } : {}),
+              })
+            }
           />
         </div>
       </div>
