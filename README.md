@@ -147,6 +147,61 @@ You can get the same PR comments from [Workers Builds](https://developers.cloudf
 
 Point `23rd.dev` DNS at the Worker when you’re ready to cut over from Vercel.
 
+## Sponsors (Creem)
+
+The [sponsors page](https://23rd.dev/sponsors) is the same empty-slot board as [shadscan](https://github.com/TheOrcDev/shadscan): Diamond **$250/mo**, Platinum **$100/mo**, Gold **$50/mo**, Silver **$20/mo**. Each empty slot opens a Creem payment link once those URLs are in env; until then it falls back to `mailto:sponsors@23rd.dev`.
+
+### 1. Create the Creem store
+
+1. Sign up at [creem.io](https://creem.io) and open the [dashboard](https://creem.io/dashboard).
+2. Leave **Test Mode** on (sidebar toggle) while you wire this up. Test and live products/keys are completely separate.
+3. Complete store details if the dashboard asks for them. Live payouts later need KYC/KYB under **Balances → Payout Account**.
+
+### 2. Create the four subscription products
+
+In **Products**, create one **recurring / every-month / USD** product per tier:
+
+| Product name  | Price | Env var                               |
+| ------------- | ----- | ------------------------------------- |
+| 23rd Diamond  | $250  | `CREEM_SPONSOR_DIAMOND_CHECKOUT_URL`  |
+| 23rd Platinum | $100  | `CREEM_SPONSOR_PLATINUM_CHECKOUT_URL` |
+| 23rd Gold     | $50   | `CREEM_SPONSOR_GOLD_CHECKOUT_URL`     |
+| 23rd Silver   | $20   | `CREEM_SPONSOR_SILVER_CHECKOUT_URL`   |
+
+On each product, set the success URL to `https://23rd.dev/sponsors/thanks` (or `http://localhost:3000/sponsors/thanks` in test). Click **Share** and copy the payment link (`https://www.creem.io/payment/prod_...`).
+
+You can do the same from the [Creem CLI](https://github.com/armitage-labs/homebrew-creem) after `creem login --api-key creem_test_...`:
+
+```bash
+creem products create \
+  --name "23rd Diamond" \
+  --description "Monthly Diamond sponsorship — logo, link, and release notes." \
+  --price 25000 \
+  --currency USD \
+  --billing-type recurring \
+  --billing-period every-month \
+  --tax-category saas
+```
+
+Prices are in cents (`25000` = $250.00). Repeat for `10000`, `5000`, and `2000`.
+
+### 3. Put the links in env
+
+Local Next.js (`pnpm dev`): copy `.env.example` → `.env.local`.
+
+Local OpenNext/Wrangler (`pnpm preview`): copy `.dev.vars.example` → `.dev.vars`.
+
+Production Worker: secrets, not `wrangler.jsonc` vars (keeps test/live links out of git):
+
+```bash
+npx wrangler secret put CREEM_SPONSOR_DIAMOND_CHECKOUT_URL
+npx wrangler secret put CREEM_SPONSOR_PLATINUM_CHECKOUT_URL
+npx wrangler secret put CREEM_SPONSOR_GOLD_CHECKOUT_URL
+npx wrangler secret put CREEM_SPONSOR_SILVER_CHECKOUT_URL
+```
+
+Paste the matching `https://` payment link when prompted. Redeploy after setting secrets. Switch the dashboard out of Test Mode and create **live** products (new IDs) before taking real payments.
+
 ## Contributing
 
 New components live under `registry/<name>/` with a vanilla engine, React/Svelte wrappers, and a `registry.json` (React item plus `<name>-svelte`), then get documented in `content/docs/components/`. Run `pnpm registry:build` before shipping registry changes.

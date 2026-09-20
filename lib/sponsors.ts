@@ -1,0 +1,100 @@
+const SPONSOR_CONTACT_EMAIL = "sponsors@23rd.dev"
+
+export type SponsorTierId = "diamond" | "platinum" | "gold" | "silver"
+
+export interface SponsorTier {
+  checkoutHref: string
+  gridClassName: string
+  id: SponsorTierId
+  monthlyPriceUsd: number
+  name: string
+  slotClassName: string
+  slotIds: readonly string[]
+}
+
+export const SPONSOR_THANKS_PATH = "/sponsors/thanks"
+
+const TIER_BLUEPRINTS = [
+  {
+    gridClassName: "grid-cols-1 sm:grid-cols-2",
+    id: "diamond",
+    monthlyPriceUsd: 250,
+    name: "Diamond",
+    slotClassName: "min-h-32",
+    slots: 4,
+  },
+  {
+    gridClassName: "grid-cols-2 sm:grid-cols-3",
+    id: "platinum",
+    monthlyPriceUsd: 100,
+    name: "Platinum",
+    slotClassName: "min-h-24",
+    slots: 6,
+  },
+  {
+    gridClassName: "grid-cols-2 sm:grid-cols-4",
+    id: "gold",
+    monthlyPriceUsd: 50,
+    name: "Gold",
+    slotClassName: "min-h-20",
+    slots: 8,
+  },
+  {
+    gridClassName: "grid-cols-3 sm:grid-cols-6",
+    id: "silver",
+    monthlyPriceUsd: 20,
+    name: "Silver",
+    slotClassName: "min-h-12",
+    slots: 12,
+  },
+] as const satisfies ReadonlyArray<
+  Omit<SponsorTier, "checkoutHref" | "slotIds"> & { slots: number }
+>
+
+export function sponsorCheckoutEnvKey(id: SponsorTierId): string {
+  return `CREEM_SPONSOR_${id.toUpperCase()}_CHECKOUT_URL`
+}
+
+export function buildSponsorContactHref(tierName: string): string {
+  const subject = encodeURIComponent(`23rd ${tierName} sponsorship`)
+  return `mailto:${SPONSOR_CONTACT_EMAIL}?subject=${subject}`
+}
+
+export function resolveSponsorCheckoutHref(
+  configuredUrl: string | undefined,
+  fallbackHref: string
+): string {
+  const trimmed = configuredUrl?.trim()
+  if (!trimmed) return fallbackHref
+
+  try {
+    const checkoutUrl = new URL(trimmed)
+    return checkoutUrl.protocol === "https:" ? checkoutUrl.href : fallbackHref
+  } catch {
+    return fallbackHref
+  }
+}
+
+function readCheckoutUrl(id: SponsorTierId): string | undefined {
+  // Dynamic lookup so Next.js does not inline the value at build time.
+  // Cloudflare Worker secrets are then available at request time.
+  return process.env[sponsorCheckoutEnvKey(id)]
+}
+
+export function getSponsorTiers(): SponsorTier[] {
+  return TIER_BLUEPRINTS.map((tier) => ({
+    checkoutHref: resolveSponsorCheckoutHref(
+      readCheckoutUrl(tier.id),
+      buildSponsorContactHref(tier.name)
+    ),
+    gridClassName: tier.gridClassName,
+    id: tier.id,
+    monthlyPriceUsd: tier.monthlyPriceUsd,
+    name: tier.name,
+    slotClassName: tier.slotClassName,
+    slotIds: Array.from(
+      { length: tier.slots },
+      (_, index) => `${tier.id}-${index + 1}`
+    ),
+  }))
+}

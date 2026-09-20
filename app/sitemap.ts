@@ -19,6 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }
 
   add("/docs", 1)
+  add("/sponsors", 0.6, "monthly")
 
   for (const param of source.generateParams()) {
     const page = source.getPage(param.slug)
