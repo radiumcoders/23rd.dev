@@ -25,9 +25,12 @@ export function SiteHeader({ githubStars }: { githubStars?: number | null }) {
         className="flex min-w-0 items-center gap-2 text-sm font-medium"
       >
         <Logo className="size-6 shrink-0" cornerRadius={4} />
-        <span className="truncate">23rd</span>
+        <span className="hidden truncate sm:inline">23rd</span>
       </Link>
-      <nav aria-label="Primary" className="flex min-w-0 items-center gap-1">
+      <nav
+        aria-label="Primary"
+        className="flex min-w-0 items-center gap-0.5 sm:gap-1"
+      >
         {NAV_LINKS.map((link) => {
           const isActive =
             pathname === link.href || pathname.startsWith(`${link.href}/`)
@@ -49,7 +52,10 @@ export function SiteHeader({ githubStars }: { githubStars?: number | null }) {
         })}
       </nav>
       <div className="min-w-0 flex-1" />
-      <GithubStars stars={githubStars} className="shrink-0" />
+      <GithubStars
+        stars={githubStars}
+        className="hidden shrink-0 sm:inline-flex"
+      />
       <ThemeToggle />
     </header>
   )
