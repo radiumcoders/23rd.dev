@@ -1,19 +1,17 @@
 import type { ReactNode } from "react"
 
-import { SponsorsHeader } from "@/components/sponsors-header"
+import { SiteFooter } from "@/components/site-footer"
+import { SiteHeader } from "@/components/site-header"
 import { getGithubStars } from "@/lib/github"
 
-export default async function SponsorsLayout({
-  children,
-}: {
-  children: ReactNode
-}) {
+export async function SiteShell({ children }: { children: ReactNode }) {
   const githubStars = await getGithubStars()
 
   return (
     <div className="flex min-h-svh flex-col bg-background text-foreground">
-      <SponsorsHeader githubStars={githubStars} />
+      <SiteHeader githubStars={githubStars} />
       {children}
+      <SiteFooter />
     </div>
   )
 }

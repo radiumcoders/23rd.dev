@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 export const metadata = buildPageMetadata({
   title: "Thank you",
   description:
-    "Your 23rd sponsorship is confirmed. Thank you for supporting the registry.",
+    "Your 23rd Partner Plan is confirmed. Thank you for supporting the registry.",
   path: "/sponsors/thanks",
 })
 
@@ -27,8 +27,8 @@ export default async function SponsorThanksPage({
         <Logo className="size-16" cornerRadius={8} />
         <h1 className="text-3xl font-semibold tracking-tight">Thank you</h1>
         <p className="text-balance text-muted-foreground">
-          Your sponsorship helps keep 23rd independent and shipping. We will add
-          your logo and link to the sponsors page shortly.
+          Your Partner Plan helps keep 23rd independent and shipping. We will
+          add your logo and link to the partners page shortly.
         </p>
         {checkoutId ? (
           <p className="font-mono text-xs text-muted-foreground">

@@ -4,13 +4,14 @@ import { Logo } from "@/components/logo"
 import { buttonVariants } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { buildPageMetadata } from "@/lib/seo"
+import { SUPPORT_EMAIL } from "@/lib/site"
 import { getSponsorTiers, type SponsorTier } from "@/lib/sponsors"
 import { cn } from "@/lib/utils"
 
 export const metadata = buildPageMetadata({
-  title: "Sponsor 23rd",
+  title: "Partners",
   description:
-    "Support opinionated open-source UI components. Each monthly tier puts your logo and name on this page, links to your site, and includes you in major release notes.",
+    "Paid 23rd Partner Plans ($20–$250/mo via Creem) place your logo and link on this page. The registry stays free.",
   path: "/sponsors",
   keywords: ["sponsors", "Creem", "open source sponsorship"],
 })
@@ -61,12 +62,26 @@ export default async function SponsorsPage() {
         <header className="flex flex-col items-center gap-4 pb-12 text-center">
           <Logo className="size-16" cornerRadius={8} />
           <h1 className="text-4xl font-semibold tracking-tight">
-            Sponsor 23rd
+            23rd partners
           </h1>
           <p className="max-w-xl text-balance text-muted-foreground">
-            Keep opinionated open-source UI components shipping. Each tier is a
-            recurring monthly sponsorship that puts your logo and name on this
-            page, links to your site, and includes you in major release notes.
+            Paid Partner Plans, billed monthly through Creem, buy a logo, name,
+            and link on this page. The component registry stays free. See{" "}
+            <a
+              href="/pricing"
+              className="text-foreground underline-offset-4 hover:underline"
+            >
+              pricing
+            </a>{" "}
+            for full plan details — Diamond $250/mo, Platinum $100/mo, Gold
+            $50/mo, Silver $20/mo. Support:{" "}
+            <a
+              href={`mailto:${SUPPORT_EMAIL}`}
+              className="text-foreground underline-offset-4 hover:underline"
+            >
+              {SUPPORT_EMAIL}
+            </a>
+            .
           </p>
         </header>
 

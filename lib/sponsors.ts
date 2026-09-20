@@ -1,9 +1,13 @@
-const SPONSOR_CONTACT_EMAIL = "sponsors@23rd.dev"
+import { SUPPORT_EMAIL } from "@/lib/site"
+
+const SPONSOR_CONTACT_EMAIL = SUPPORT_EMAIL
 
 export type SponsorTierId = "diamond" | "platinum" | "gold" | "silver"
 
 export interface SponsorTier {
   checkoutHref: string
+  description: string
+  features: readonly string[]
   gridClassName: string
   id: SponsorTierId
   monthlyPriceUsd: number
@@ -24,6 +28,14 @@ export const TEST_SPONSOR_CHECKOUT_URLS = {
 
 const TIER_BLUEPRINTS = [
   {
+    description:
+      "Flagship partner placement. Your brand leads the partners page and major 23rd releases.",
+    features: [
+      "Extra-large logo, name, and dofollow link on 23rd.dev/sponsors",
+      "Named in major release notes and the docs homepage shout-out",
+      "Priority email support for install and integration questions",
+      "Four exclusive Diamond slots",
+    ],
     gridClassName: "grid-cols-1 sm:grid-cols-2",
     id: "diamond",
     monthlyPriceUsd: 250,
@@ -32,6 +44,14 @@ const TIER_BLUEPRINTS = [
     slots: 4,
   },
   {
+    description:
+      "High-visibility partner plan for teams that want a prominent logo on 23rd.",
+    features: [
+      "Large logo, name, and dofollow link on 23rd.dev/sponsors",
+      "Named in major release notes",
+      "Email support for the registry",
+      "Six Platinum slots",
+    ],
     gridClassName: "grid-cols-2 sm:grid-cols-3",
     id: "platinum",
     monthlyPriceUsd: 100,
@@ -40,6 +60,13 @@ const TIER_BLUEPRINTS = [
     slots: 6,
   },
   {
+    description:
+      "Standard partner plan. Your logo and link sit on the public partners page.",
+    features: [
+      "Medium logo, name, and dofollow link on 23rd.dev/sponsors",
+      "Listed in major release notes",
+      "Eight Gold slots",
+    ],
     gridClassName: "grid-cols-2 sm:grid-cols-4",
     id: "gold",
     monthlyPriceUsd: 50,
@@ -48,6 +75,12 @@ const TIER_BLUEPRINTS = [
     slots: 8,
   },
   {
+    description:
+      "Entry partner plan. A compact listing on the public partners page.",
+    features: [
+      "Compact name and dofollow link on 23rd.dev/sponsors",
+      "Twelve Silver slots",
+    ],
     gridClassName: "grid-cols-3 sm:grid-cols-6",
     id: "silver",
     monthlyPriceUsd: 20,
@@ -95,6 +128,8 @@ export function getSponsorTiers(): SponsorTier[] {
       readCheckoutUrl(tier.id) || TEST_SPONSOR_CHECKOUT_URLS[tier.id],
       buildSponsorContactHref(tier.name)
     ),
+    description: tier.description,
+    features: tier.features,
     gridClassName: tier.gridClassName,
     id: tier.id,
     monthlyPriceUsd: tier.monthlyPriceUsd,

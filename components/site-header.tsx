@@ -11,14 +11,11 @@ import { cn } from "@/lib/utils"
 
 const NAV_LINKS = [
   { href: "/docs", label: "Docs" },
-  { href: "/sponsors", label: "Sponsors" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/sponsors", label: "Partners" },
 ] as const
 
-export function SponsorsHeader({
-  githubStars,
-}: {
-  githubStars?: number | null
-}) {
+export function SiteHeader({ githubStars }: { githubStars?: number | null }) {
   const pathname = usePathname()
 
   return (

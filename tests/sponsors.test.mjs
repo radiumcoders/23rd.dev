@@ -6,7 +6,10 @@ import { join } from "node:path"
 import { ROOT } from "../scripts/registry-lib.mjs"
 
 const sponsorsLib = readFileSync(join(ROOT, "lib/sponsors.ts"), "utf8")
-const sponsorsPage = readFileSync(join(ROOT, "app/sponsors/page.tsx"), "utf8")
+const sponsorsPage = readFileSync(
+  join(ROOT, "app/(marketing)/sponsors/page.tsx"),
+  "utf8"
+)
 const envExample = readFileSync(join(ROOT, ".env.example"), "utf8")
 const devVarsExample = readFileSync(join(ROOT, ".dev.vars.example"), "utf8")
 
@@ -67,7 +70,8 @@ test("Creem checkout env keys are documented and read at request time", () => {
 })
 
 test("checkout URLs must be https, otherwise mailto fallback is used", () => {
-  const fallback = "mailto:sponsors@23rd.dev?subject=23rd%20Gold%20sponsorship"
+  const fallback =
+    "mailto:sharmaji582009@gmail.com?subject=23rd%20Gold%20sponsorship"
 
   assert.equal(resolveSponsorCheckoutHref(undefined, fallback), fallback)
   assert.equal(resolveSponsorCheckoutHref("   ", fallback), fallback)
@@ -86,13 +90,13 @@ test("checkout URLs must be https, otherwise mailto fallback is used", () => {
 })
 
 test("sponsors page lists empty slots as Be here", () => {
-  assert.match(sponsorsPage, /Sponsor 23rd/)
+  assert.match(sponsorsPage, /23rd partners/)
   assert.match(sponsorsPage, /Be here/)
 })
 
 test("thank-you page mounts a confetti canvas", () => {
   const thanksPage = readFileSync(
-    join(ROOT, "app/sponsors/thanks/page.tsx"),
+    join(ROOT, "app/(marketing)/sponsors/thanks/page.tsx"),
     "utf8"
   )
   const confetti = readFileSync(
@@ -102,4 +106,50 @@ test("thank-you page mounts a confetti canvas", () => {
   assert.match(thanksPage, /ThanksConfetti/)
   assert.match(confetti, /prefers-reduced-motion/)
   assert.match(confetti, /spawnBurst/)
+})
+
+test("pricing, terms, privacy, and support email are linked from the site", () => {
+  const pricing = readFileSync(
+    join(ROOT, "app/(marketing)/pricing/page.tsx"),
+    "utf8"
+  )
+  const terms = readFileSync(
+    join(ROOT, "app/(marketing)/terms/page.tsx"),
+    "utf8"
+  )
+  const privacy = readFileSync(
+    join(ROOT, "app/(marketing)/privacy/page.tsx"),
+    "utf8"
+  )
+  const footer = readFileSync(join(ROOT, "components/site-footer.tsx"), "utf8")
+  const header = readFileSync(join(ROOT, "components/site-header.tsx"), "utf8")
+  const docsShell = readFileSync(
+    join(ROOT, "components/docs-shell.tsx"),
+    "utf8"
+  )
+  const pricingLink = readFileSync(
+    join(ROOT, "components/github-sponsor.tsx"),
+    "utf8"
+  )
+  const site = readFileSync(join(ROOT, "lib/site.ts"), "utf8")
+
+  assert.match(site, /sharmaji582009@gmail\.com/)
+  assert.match(pricing, /Partner Plans/)
+  assert.match(pricing, /\$250/)
+  assert.match(pricing, /\$100/)
+  assert.match(pricing, /\$50/)
+  assert.match(pricing, /\$20/)
+  assert.match(pricing, /Creem/)
+  assert.match(pricing, /SUPPORT_EMAIL/)
+  assert.match(terms, /Terms of Service/)
+  assert.match(privacy, /Privacy Policy/)
+  assert.match(header, /href: "\/pricing"/)
+  assert.match(site, /href: "\/terms"/)
+  assert.match(site, /href: "\/privacy"/)
+  assert.match(footer, /LEGAL_LINKS/)
+  assert.match(footer, /SUPPORT_EMAIL/)
+  assert.match(docsShell, /LEGAL_LINKS/)
+  assert.match(docsShell, /SUPPORT_EMAIL/)
+  assert.match(pricingLink, /href="\/pricing"/)
+  assert.doesNotMatch(pricingLink, /github\.com\/sponsors/)
 })

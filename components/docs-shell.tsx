@@ -17,11 +17,13 @@ import { GithubStars } from "@/components/github-stars"
 import { Logo } from "@/components/logo"
 import { SearchTrigger } from "@/components/search-trigger"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { LEGAL_LINKS, SUPPORT_EMAIL } from "@/lib/site"
 import { FrameworkProvider } from "@/lib/framework"
 import { cn } from "@/lib/utils"
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarInset,
   SidebarProvider,
@@ -176,6 +178,25 @@ export function DocsShell({
           <SidebarContent>
             <DocsSidebar tree={tree} embedded />
           </SidebarContent>
+          <SidebarFooter className="border-t px-3 py-3 text-xs text-muted-foreground">
+            <nav aria-label="Legal" className="flex flex-col gap-1.5">
+              {LEGAL_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="hover:text-foreground"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <a
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="break-all hover:text-foreground"
+              >
+                Support: {SUPPORT_EMAIL}
+              </a>
+            </nav>
+          </SidebarFooter>
         </Sidebar>
         <SidebarInset className="min-h-0 min-w-0 overflow-hidden">
           <header className="flex h-14 min-w-0 shrink-0 items-center gap-1 border-b px-4">
@@ -197,6 +218,25 @@ export function DocsShell({
             <WindowEdgeFade edge="top" uid={blurUid} />
             <WindowEdgeFade edge="bottom" uid={blurUid} />
           </div>
+          <footer className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t px-4 py-2 text-xs text-muted-foreground md:hidden">
+            <a
+              href={`mailto:${SUPPORT_EMAIL}`}
+              className="break-all hover:text-foreground"
+            >
+              Support: {SUPPORT_EMAIL}
+            </a>
+            <nav aria-label="Legal" className="flex flex-wrap gap-x-3 gap-y-1">
+              {LEGAL_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="hover:text-foreground"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </footer>
         </SidebarInset>
       </SidebarProvider>
     </FrameworkProvider>
