@@ -17,11 +17,12 @@
   ],
   "vars": {
     "NEXT_PRIVATE_MINIMAL_MODE": "1",
-    // Creem payment links: set as Worker secrets, not vars.
-    // wrangler secret put CREEM_SPONSOR_DIAMOND_CHECKOUT_URL
-    // wrangler secret put CREEM_SPONSOR_PLATINUM_CHECKOUT_URL
-    // wrangler secret put CREEM_SPONSOR_GOLD_CHECKOUT_URL
-    // wrangler secret put CREEM_SPONSOR_SILVER_CHECKOUT_URL
+    // Test-mode Creem payment links so PR previews can check out.
+    // Override with Worker secrets for live products.
+    "CREEM_SPONSOR_DIAMOND_CHECKOUT_URL": "https://creem.io/test/product/prod_4ZM6WkQrmCSBtFGCdYp7rZ",
+    "CREEM_SPONSOR_PLATINUM_CHECKOUT_URL": "https://creem.io/test/product/prod_7jEvtpKnPoVXOAZLBnoWfA",
+    "CREEM_SPONSOR_GOLD_CHECKOUT_URL": "https://creem.io/test/product/prod_MqDtYvXUGlGqgEz898MCA",
+    "CREEM_SPONSOR_SILVER_CHECKOUT_URL": "https://creem.io/test/product/prod_3aZ8AxbA2h43IRUMxigep0",
   },
   "observability": {
     "enabled": true,

@@ -56,6 +56,14 @@ test("Creem checkout env keys are documented and read at request time", () => {
   assert.match(sponsorsLib, /process\.env\[sponsorCheckoutEnvKey\(id\)\]/)
   assert.match(sponsorsPage, /getSponsorTiers\(\)/)
   assert.match(sponsorsPage, /await connection\(\)/)
+  for (const productId of [
+    "prod_4ZM6WkQrmCSBtFGCdYp7rZ",
+    "prod_7jEvtpKnPoVXOAZLBnoWfA",
+    "prod_MqDtYvXUGlGqgEz898MCA",
+    "prod_3aZ8AxbA2h43IRUMxigep0",
+  ]) {
+    assert.match(sponsorsLib, new RegExp(productId))
+  }
 })
 
 test("checkout URLs must be https, otherwise mailto fallback is used", () => {

@@ -149,7 +149,7 @@ Point `23rd.dev` DNS at the Worker when you’re ready to cut over from Vercel.
 
 ## Sponsors (Creem)
 
-The [sponsors page](https://23rd.dev/sponsors) is the same empty-slot board as [shadscan](https://github.com/TheOrcDev/shadscan): Diamond **$250/mo**, Platinum **$100/mo**, Gold **$50/mo**, Silver **$20/mo**. Each empty slot opens a Creem payment link once those URLs are in env; until then it falls back to `mailto:sponsors@23rd.dev`.
+The [sponsors page](https://23rd.dev/sponsors) is the same empty-slot board as [shadscan](https://github.com/TheOrcDev/shadscan): Diamond **$250/mo**, Platinum **$100/mo**, Gold **$50/mo**, Silver **$20/mo**. Test-mode Creem payment links are already wired, so empty slots open a real checkout. Pay with card `4111 1111 1111 1111`, any future expiry, any CVC. Override the env vars with live product URLs before taking real payments.
 
 ### 1. Create the Creem store
 

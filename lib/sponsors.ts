@@ -14,6 +14,14 @@ export interface SponsorTier {
 
 export const SPONSOR_THANKS_PATH = "/sponsors/thanks"
 
+/** Test-mode Creem payment links. Override with env for live products. */
+export const TEST_SPONSOR_CHECKOUT_URLS = {
+  diamond: "https://creem.io/test/product/prod_4ZM6WkQrmCSBtFGCdYp7rZ",
+  platinum: "https://creem.io/test/product/prod_7jEvtpKnPoVXOAZLBnoWfA",
+  gold: "https://creem.io/test/product/prod_MqDtYvXUGlGqgEz898MCA",
+  silver: "https://creem.io/test/product/prod_3aZ8AxbA2h43IRUMxigep0",
+} as const satisfies Record<SponsorTierId, string>
+
 const TIER_BLUEPRINTS = [
   {
     gridClassName: "grid-cols-1 sm:grid-cols-2",
@@ -84,7 +92,7 @@ function readCheckoutUrl(id: SponsorTierId): string | undefined {
 export function getSponsorTiers(): SponsorTier[] {
   return TIER_BLUEPRINTS.map((tier) => ({
     checkoutHref: resolveSponsorCheckoutHref(
-      readCheckoutUrl(tier.id),
+      readCheckoutUrl(tier.id) || TEST_SPONSOR_CHECKOUT_URLS[tier.id],
       buildSponsorContactHref(tier.name)
     ),
     gridClassName: tier.gridClassName,
