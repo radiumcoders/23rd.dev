@@ -89,3 +89,17 @@ test("sponsors page lists empty slots as Be here", () => {
   assert.match(sponsorsPage, /Sponsor 23rd/)
   assert.match(sponsorsPage, /Be here/)
 })
+
+test("thank-you page mounts a confetti canvas", () => {
+  const thanksPage = readFileSync(
+    join(ROOT, "app/sponsors/thanks/page.tsx"),
+    "utf8"
+  )
+  const confetti = readFileSync(
+    join(ROOT, "components/thanks-confetti.tsx"),
+    "utf8"
+  )
+  assert.match(thanksPage, /ThanksConfetti/)
+  assert.match(confetti, /prefers-reduced-motion/)
+  assert.match(confetti, /spawnBurst/)
+})

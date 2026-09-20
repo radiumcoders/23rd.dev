@@ -1,6 +1,7 @@
 import Link from "next/link"
 
 import { Logo } from "@/components/logo"
+import { ThanksConfetti } from "@/components/thanks-confetti"
 import { buttonVariants } from "@/components/ui/button"
 import { buildPageMetadata } from "@/lib/seo"
 import { cn } from "@/lib/utils"
@@ -20,8 +21,9 @@ export default async function SponsorThanksPage({
   const { checkout_id: checkoutId } = await searchParams
 
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-16">
-      <div className="flex max-w-md flex-col items-center gap-4 text-center">
+    <main className="relative flex flex-1 items-center justify-center px-4 py-16">
+      <ThanksConfetti />
+      <div className="relative z-10 flex max-w-md flex-col items-center gap-4 text-center">
         <Logo className="size-16" cornerRadius={8} />
         <h1 className="text-3xl font-semibold tracking-tight">Thank you</h1>
         <p className="text-balance text-muted-foreground">
