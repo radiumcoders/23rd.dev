@@ -65,7 +65,7 @@ Or pull straight from GitHub:
 pnpm dlx shadcn@latest add radiumcoders/23rd.dev/gooey-color-picker
 ```
 
-## Agent skill
+## Agent skill - IN BETA STAGE
 
 The 23rd agent skill teaches a coding agent every published registry component: which one fits, how to install it for React or Svelte, and the props that actually exist. It also knows when not to use a component.
 
