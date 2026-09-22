@@ -65,6 +65,24 @@ Or pull straight from GitHub:
 pnpm dlx shadcn@latest add radiumcoders/23rd.dev/gooey-color-picker
 ```
 
+## Agent skill
+
+The 23rd agent skill teaches a coding agent every published registry component: which one fits, how to install it for React or Svelte, and the props that actually exist. It also knows when not to use a component.
+
+[![skills.sh](https://skills.sh/b/radiumcoders/23rd.dev)](https://skills.sh/radiumcoders/23rd.dev)
+
+```bash
+npx skills add radiumcoders/23rd.dev --skill 23rd
+```
+
+Global install:
+
+```bash
+npx skills add radiumcoders/23rd.dev --skill 23rd -g
+```
+
+`skills/23rd/` is the copy the [skills CLI](https://skills.sh) discovers. `.cursor/skills/23rd/` is the same skill for Cursor `/23rd` in this repo. Docs: [23rd.dev/docs](https://23rd.dev/docs).
+
 ## Components
 
 | Component                                                                 | Install                    | Description                                                                        |
@@ -157,6 +175,7 @@ PRs that sharpen defaults, fix edge cases, or add tasteful components are welcom
 
 - [Documentation](https://23rd.dev/docs)
 - [Registry index](https://23rd.dev/r/registry.json)
+- [Agent skill on skills.sh](https://skills.sh/radiumcoders/23rd.dev)
 - [shadcn/ui](https://ui.shadcn.com)
 
 ---
