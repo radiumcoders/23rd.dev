@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { SPONSOR_CHECKOUT_COMING_SOON } from "@/lib/sponsors"
 import { cn } from "@/lib/utils"
 
 export function GithubSponsor({ className }: { className?: string }) {
@@ -12,6 +13,11 @@ export function GithubSponsor({ className }: { className?: string }) {
       )}
     >
       <span>Sponsor</span>
+      {SPONSOR_CHECKOUT_COMING_SOON ? (
+        <span className="font-mono text-[10px] font-medium tracking-wide uppercase">
+          Soon
+        </span>
+      ) : null}
     </Link>
   )
 }

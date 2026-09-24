@@ -101,8 +101,16 @@ export function buildSponsorContactHref(tierName: string): string {
   return `mailto:${SPONSOR_CONTACT_EMAIL}?subject=${subject}`
 }
 
-/** Creem test checkout stays off the page until the account is approved. */
+/**
+ * Live payment links are wired, but public checkout stays closed until Creem
+ * approves the store. Flip this off to open the slots.
+ */
+export const SPONSOR_CHECKOUT_COMING_SOON = true
+
+/** Test checkout, and any checkout while the store is still awaiting approval. */
 export function isSponsorCheckoutBlocked(href: string): boolean {
+  if (SPONSOR_CHECKOUT_COMING_SOON) return true
+
   try {
     const url = new URL(href)
     if (url.protocol !== "https:") return true
