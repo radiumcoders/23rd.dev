@@ -90,7 +90,7 @@ test("checkout URLs must be https, otherwise mailto fallback is used", () => {
 })
 
 test("sponsors page lists empty slots as Be here", () => {
-  assert.match(sponsorsPage, /23rd partners/)
+  assert.match(sponsorsPage, /Sponsor 23rd/)
   assert.match(sponsorsPage, /Be here/)
 })
 
@@ -108,11 +108,7 @@ test("thank-you page mounts a confetti canvas", () => {
   assert.match(confetti, /spawnBurst/)
 })
 
-test("pricing, terms, privacy, and support email are linked from the site", () => {
-  const pricing = readFileSync(
-    join(ROOT, "app/(marketing)/pricing/page.tsx"),
-    "utf8"
-  )
+test("sponsors prices, terms, privacy, and support email match the shadscan layout", () => {
   const terms = readFileSync(
     join(ROOT, "app/(marketing)/terms/page.tsx"),
     "utf8"
@@ -127,29 +123,37 @@ test("pricing, terms, privacy, and support email are linked from the site", () =
     join(ROOT, "components/docs-shell.tsx"),
     "utf8"
   )
-  const pricingLink = readFileSync(
+  const sponsorLink = readFileSync(
     join(ROOT, "components/github-sponsor.tsx"),
     "utf8"
   )
+  const legal = readFileSync(join(ROOT, "lib/legal.ts"), "utf8")
   const site = readFileSync(join(ROOT, "lib/site.ts"), "utf8")
+  const nextConfig = readFileSync(join(ROOT, "next.config.mjs"), "utf8")
 
-  assert.match(site, /sharmaji582009@gmail\.com/)
-  assert.match(pricing, /Partner Plans/)
-  assert.match(pricing, /\$250/)
-  assert.match(pricing, /\$100/)
-  assert.match(pricing, /\$50/)
-  assert.match(pricing, /\$20/)
-  assert.match(pricing, /Creem/)
-  assert.match(pricing, /SUPPORT_EMAIL/)
+  assert.match(legal, /sharmaji582009@gmail\.com/)
+  assert.match(sponsorsPage, /Sponsor 23rd/)
+  assert.match(sponsorsPage, /billed through Creem/)
+  assert.match(sponsorsLib, /monthlyPriceUsd: 250/)
+  assert.match(sponsorsLib, /monthlyPriceUsd: 100/)
+  assert.match(sponsorsLib, /monthlyPriceUsd: 50/)
+  assert.match(sponsorsLib, /monthlyPriceUsd: 20/)
   assert.match(terms, /Terms of Service/)
+  assert.match(terms, /LEGAL_CONTACT_EMAIL/)
   assert.match(privacy, /Privacy Policy/)
-  assert.match(header, /href: "\/pricing"/)
+  assert.match(privacy, /LEGAL_CONTACT_EMAIL/)
+  assert.match(header, /href: "\/sponsors"/)
+  assert.doesNotMatch(header, /\/pricing/)
   assert.match(site, /href: "\/terms"/)
   assert.match(site, /href: "\/privacy"/)
-  assert.match(footer, /LEGAL_LINKS/)
+  assert.match(footer, /FOOTER_LINKS/)
+  assert.match(footer, /aria-label="Secondary"/)
   assert.match(footer, /SUPPORT_EMAIL/)
-  assert.match(docsShell, /LEGAL_LINKS/)
+  assert.match(docsShell, /FOOTER_LINKS/)
   assert.match(docsShell, /SUPPORT_EMAIL/)
-  assert.match(pricingLink, /href="\/pricing"/)
-  assert.doesNotMatch(pricingLink, /github\.com\/sponsors/)
+  assert.match(sponsorLink, /href="\/sponsors"/)
+  assert.match(sponsorLink, />Sponsor</)
+  assert.doesNotMatch(sponsorLink, /github\.com\/sponsors/)
+  assert.match(nextConfig, /source: "\/pricing"/)
+  assert.match(nextConfig, /destination: "\/sponsors"/)
 })

@@ -19,10 +19,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }
 
   add("/docs", 1)
-  add("/pricing", 0.9, "monthly")
   add("/sponsors", 0.6, "monthly")
-  add("/terms", 0.3, "yearly")
-  add("/privacy", 0.3, "yearly")
+  add("/terms", 0.2, "yearly")
+  add("/privacy", 0.2, "yearly")
 
   for (const param of source.generateParams()) {
     const page = source.getPage(param.slug)

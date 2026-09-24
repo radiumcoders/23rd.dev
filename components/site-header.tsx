@@ -11,8 +11,7 @@ import { cn } from "@/lib/utils"
 
 const NAV_LINKS = [
   { href: "/docs", label: "Docs" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/sponsors", label: "Partners" },
+  { href: "/sponsors", label: "Sponsors" },
 ] as const
 
 export function SiteHeader({ githubStars }: { githubStars?: number | null }) {

@@ -1,88 +1,126 @@
-import { SUPPORT_EMAIL } from "@/lib/site"
+import {
+  LEGAL_CONTACT_EMAIL,
+  LEGAL_CONTACT_URL,
+  PRIVACY_LAST_UPDATED,
+  PRIVACY_LAST_UPDATED_ISO,
+} from "@/lib/legal"
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata = buildPageMetadata({
   title: "Privacy Policy",
   description:
-    "How 23rd.dev handles information, including Creem checkout data.",
+    "How 23rd processes website visits, local preferences, sponsorship checkout, and communications.",
   path: "/privacy",
 })
 
 export default function PrivacyPage() {
   return (
-    <main className="flex-1">
-      <article className="mx-auto w-full max-w-2xl px-4 pt-12 pb-24 sm:px-6 sm:pt-16">
-        <h1 className="text-4xl font-semibold tracking-tight">
-          Privacy Policy
-        </h1>
-        <p className="mt-3 text-sm text-muted-foreground">
-          Effective September 20, 2026
-        </p>
-
-        <div className="prose mt-10 space-y-6 text-sm leading-relaxed text-muted-foreground [&_a]:text-foreground [&_a]:underline-offset-4 hover:[&_a]:underline">
+    <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
+      <article className="max-w-3xl space-y-8 pb-12 text-sm leading-relaxed text-muted-foreground [&_a]:text-foreground [&_a]:underline-offset-4 hover:[&_a]:underline [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-foreground [&_li]:ml-5 [&_li]:list-disc [&_strong]:font-medium [&_strong]:text-foreground">
+        <header className="space-y-3">
+          <p className="font-mono text-sm text-muted-foreground">Legal</p>
+          <h1 className="text-4xl font-semibold tracking-tight text-foreground">
+            Privacy Policy
+          </h1>
           <p>
-            23rd.dev is a documentation site and shadcn registry operated by
-            radiumcoders (Jay). This policy describes what we collect when you
-            browse the Site or buy a Partner Plan.
-          </p>
-
-          <h2 className="text-lg font-semibold text-foreground">
-            Information we collect
-          </h2>
-          <p>
-            Browsing the docs does not require an account. The Site may store a
-            theme preference in your browser (localStorage) and may load
-            privacy-respecting analytics (Tracwell) to understand aggregate
-            traffic. We fetch public GitHub star counts for the repository.
+            <strong>Last updated:</strong>{" "}
+            <time dateTime={PRIVACY_LAST_UPDATED_ISO}>
+              {PRIVACY_LAST_UPDATED}
+            </time>
           </p>
           <p>
-            If you email us, we receive whatever you send, including your email
-            address, so we can reply.
+            23rd is a radiumcoders project. This policy explains how we process
+            information when you visit 23rd.dev, install from the registry, buy
+            a sponsorship, or contact us.
           </p>
+        </header>
 
-          <h2 className="text-lg font-semibold text-foreground">Payments</h2>
+        <section className="space-y-3">
+          <h2>At a glance</h2>
+          <ul className="space-y-2">
+            <li>
+              Browsing the docs and installing registry components does not
+              require an account.
+            </li>
+            <li>
+              Paid sponsorships are checked out through Creem. We do not store
+              full card numbers on 23rd.dev.
+            </li>
+            <li>
+              A theme preference may be stored in your browser. We do not sell
+              personal information.
+            </li>
+          </ul>
+        </section>
+
+        <section className="space-y-3">
+          <h2>Information we process</h2>
           <p>
-            Paid Partner Plans are checked out through Creem, the merchant of
-            record. Creem collects and processes billing details (such as name,
-            email, and payment method) under{" "}
-            <a href="https://www.creem.io/privacy">Creem’s privacy policy</a>.
-            We receive order and subscription information needed to deliver
-            partner placement (for example your email, plan, and the assets you
-            send us). We do not store full card numbers on 23rd.dev.
+            Our host may process standard request information such as IP
+            address, browser, requested URL, and timestamps to deliver and
+            secure the site. The site may load privacy-respecting analytics
+            (Tracwell) for aggregate traffic, and it fetches a public GitHub
+            star count for the repository.
           </p>
-
-          <h2 className="text-lg font-semibold text-foreground">
-            How we use information
-          </h2>
           <p>
-            We use it to operate the Site, fulfill Partner Plans, respond to
+            The theme choice stays in local storage under your browser and can
+            be cleared in browser settings.
+          </p>
+          <p>
+            If you email us, we receive your address and message so we can reply
+            and keep ordinary business records.
+          </p>
+        </section>
+
+        <section className="space-y-3">
+          <h2>Payments</h2>
+          <p>
+            Sponsorship checkout is hosted by Creem, the merchant of record.
+            Creem collects billing details under{" "}
+            <a href="https://www.creem.io/privacy">
+              Creem&apos;s privacy policy
+            </a>
+            . We receive the order information needed to place your logo, name,
+            and link, such as your email, plan, and the assets you send us.
+          </p>
+        </section>
+
+        <section className="space-y-3">
+          <h2>How we use information</h2>
+          <p>
+            We use it to operate the site, fulfill sponsorships, respond to
             support, and improve the registry. We do not sell personal
-            information.
+            information or share it for advertising.
           </p>
+        </section>
 
-          <h2 className="text-lg font-semibold text-foreground">Retention</h2>
+        <section className="space-y-3">
+          <h2>Retention</h2>
           <p>
             Support email is kept as long as needed to help you and meet legal
-            obligations. Creem retains payment records per its own policy.
-            Partner listing assets stay published while your subscription is
-            active and may remain in git history after cancellation.
+            obligations. Creem retains payment records under its own policy.
+            Sponsor listing assets stay published while a subscription is
+            active.
           </p>
+        </section>
 
-          <h2 className="text-lg font-semibold text-foreground">Your rights</h2>
+        <section className="space-y-3">
+          <h2>Your choices and rights</h2>
           <p>
             Depending on where you live, you may ask to access, correct, or
             delete personal information we hold. Contact{" "}
-            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. For billing
-            data held by Creem, use the Creem customer portal or Creem support
-            as well.
+            <a href={LEGAL_CONTACT_URL}>{LEGAL_CONTACT_EMAIL}</a>. For billing
+            data held by Creem, use the Creem customer portal as well.
           </p>
+        </section>
 
-          <h2 className="text-lg font-semibold text-foreground">Contact</h2>
+        <section className="space-y-3">
+          <h2>Contact</h2>
           <p>
-            Privacy questions:{" "}
-            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
+            For privacy questions or requests, email{" "}
+            <a href={LEGAL_CONTACT_URL}>{LEGAL_CONTACT_EMAIL}</a>.
           </p>
-        </div>
+        </section>
       </article>
     </main>
   )

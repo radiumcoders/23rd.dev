@@ -16,6 +16,11 @@ const config = {
         destination: "/docs",
         permanent: true,
       },
+      {
+        source: "/pricing",
+        destination: "/sponsors",
+        permanent: true,
+      },
     ]
   },
 }

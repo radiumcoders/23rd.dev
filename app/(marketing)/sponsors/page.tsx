@@ -4,14 +4,13 @@ import { Logo } from "@/components/logo"
 import { buttonVariants } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { buildPageMetadata } from "@/lib/seo"
-import { SUPPORT_EMAIL } from "@/lib/site"
 import { getSponsorTiers, type SponsorTier } from "@/lib/sponsors"
 import { cn } from "@/lib/utils"
 
 export const metadata = buildPageMetadata({
-  title: "Partners",
+  title: "Sponsor 23rd",
   description:
-    "Paid 23rd Partner Plans ($20–$250/mo via Creem) place your logo and link on this page. The registry stays free.",
+    "Recurring monthly sponsorships, billed through Creem, put your logo and link on this page. Diamond $250, Platinum $100, Gold $50, Silver $20.",
   path: "/sponsors",
   keywords: ["sponsors", "Creem", "open source sponsorship"],
 })
@@ -21,7 +20,7 @@ function SponsorSection({ tier }: { tier: SponsorTier }) {
     <section aria-label={`${tier.name} sponsors`}>
       <div className="flex flex-col gap-3">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="font-mono text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+          <h2 className="font-mono text-xs font-semibold text-muted-foreground uppercase">
             {tier.name}
           </h2>
           <p className="font-mono text-xs font-semibold text-foreground">
@@ -62,26 +61,13 @@ export default async function SponsorsPage() {
         <header className="flex flex-col items-center gap-4 pb-12 text-center">
           <Logo className="size-16" cornerRadius={8} />
           <h1 className="text-4xl font-semibold tracking-tight">
-            23rd partners
+            Sponsor 23rd
           </h1>
           <p className="max-w-xl text-balance text-muted-foreground">
-            Paid Partner Plans, billed monthly through Creem, buy a logo, name,
-            and link on this page. The component registry stays free. See{" "}
-            <a
-              href="/pricing"
-              className="text-foreground underline-offset-4 hover:underline"
-            >
-              pricing
-            </a>{" "}
-            for full plan details — Diamond $250/mo, Platinum $100/mo, Gold
-            $50/mo, Silver $20/mo. Support:{" "}
-            <a
-              href={`mailto:${SUPPORT_EMAIL}`}
-              className="text-foreground underline-offset-4 hover:underline"
-            >
-              {SUPPORT_EMAIL}
-            </a>
-            .
+            Keep opinionated open-source components shipping. Each tier is a
+            recurring monthly sponsorship, billed through Creem, that puts your
+            logo and name on this page, links to your site, and includes you in
+            major release notes. The component registry stays free.
           </p>
         </header>
 
