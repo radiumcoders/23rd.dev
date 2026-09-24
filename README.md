@@ -167,7 +167,7 @@ Point `23rd.dev` DNS at the Worker when you’re ready to cut over from Vercel.
 
 ## Sponsors (Creem)
 
-The [sponsors page](https://23rd.dev/sponsors) is the same empty-slot board as [shadscan](https://github.com/TheOrcDev/shadscan): Diamond **$250/mo**, Platinum **$100/mo**, Gold **$50/mo**, Silver **$20/mo**. Test-mode Creem payment links are already wired, so empty slots open a real checkout. Pay with card `4111 1111 1111 1111`, any future expiry, any CVC. Override the env vars with live product URLs before taking real payments.
+The [sponsors page](https://23rd.dev/sponsors) is the same empty-slot board as [shadscan](https://github.com/TheOrcDev/shadscan): Diamond **$250/mo**, Platinum **$100/mo**, Gold **$50/mo**, Silver **$20/mo**. Live Creem payment links are wired, so empty slots open checkout.
 
 ### 1. Create the Creem store
 
@@ -205,11 +205,13 @@ Prices are in cents (`25000` = $250.00). Repeat for `10000`, `5000`, and `2000`.
 
 ### 3. Put the links in env
 
+Live payment links are already in `wrangler.jsonc`, `.env.example`, `.dev.vars.example`, and the fallback in `lib/sponsors.ts`.
+
 Local Next.js (`pnpm dev`): copy `.env.example` → `.env.local`.
 
 Local OpenNext/Wrangler (`pnpm preview`): copy `.dev.vars.example` → `.dev.vars`.
 
-Production Worker: secrets, not `wrangler.jsonc` vars (keeps test/live links out of git):
+A Cloudflare Worker secret with the same name overrides the `wrangler.jsonc` var:
 
 ```bash
 npx wrangler secret put CREEM_SPONSOR_DIAMOND_CHECKOUT_URL
@@ -218,7 +220,7 @@ npx wrangler secret put CREEM_SPONSOR_GOLD_CHECKOUT_URL
 npx wrangler secret put CREEM_SPONSOR_SILVER_CHECKOUT_URL
 ```
 
-Paste the matching `https://` payment link when prompted. Redeploy after setting secrets. Switch the dashboard out of Test Mode and create **live** products (new IDs) before taking real payments.
+Paste the matching `https://` payment link when prompted. Redeploy after changing a secret.
 
 ## Contributing
 

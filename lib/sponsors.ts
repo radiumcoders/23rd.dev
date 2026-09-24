@@ -18,12 +18,12 @@ export interface SponsorTier {
 
 export const SPONSOR_THANKS_PATH = "/sponsors/thanks"
 
-/** Test-mode Creem payment links. Override with env for live products. */
-export const TEST_SPONSOR_CHECKOUT_URLS = {
-  diamond: "https://creem.io/test/product/prod_4ZM6WkQrmCSBtFGCdYp7rZ",
-  platinum: "https://creem.io/test/product/prod_7jEvtpKnPoVXOAZLBnoWfA",
-  gold: "https://creem.io/test/product/prod_MqDtYvXUGlGqgEz898MCA",
-  silver: "https://creem.io/test/product/prod_3aZ8AxbA2h43IRUMxigep0",
+/** Live Creem payment links. Env can still override per environment. */
+export const SPONSOR_CHECKOUT_URLS = {
+  diamond: "https://www.creem.io/payment/prod_1lz1o8e7HtglOuXbMRnSmc",
+  platinum: "https://www.creem.io/payment/prod_4kpDvyYwr6XnRuMSysnI3s",
+  gold: "https://www.creem.io/payment/prod_2NW3lMTPFHeOey3XhUYlM",
+  silver: "https://www.creem.io/payment/prod_3uz4xoRD5vVePnDwRIJxoi",
 } as const satisfies Record<SponsorTierId, string>
 
 const TIER_BLUEPRINTS = [
@@ -136,7 +136,7 @@ function readCheckoutUrl(id: SponsorTierId): string | undefined {
 export function getSponsorTiers(): SponsorTier[] {
   return TIER_BLUEPRINTS.map((tier) => ({
     checkoutHref: resolveSponsorCheckoutHref(
-      readCheckoutUrl(tier.id) || TEST_SPONSOR_CHECKOUT_URLS[tier.id],
+      readCheckoutUrl(tier.id) || SPONSOR_CHECKOUT_URLS[tier.id],
       buildSponsorContactHref(tier.name)
     ),
     description: tier.description,
