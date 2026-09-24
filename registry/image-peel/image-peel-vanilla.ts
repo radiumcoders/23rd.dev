@@ -2,7 +2,7 @@ export const IMAGE_PEEL_PLAY = "image-peel:play"
 /** Strips used to roll an edge peel into a cylinder. */
 export const IMAGE_PEEL_STRIPS = 42
 /** Cells along each side of a corner peel. */
-export const IMAGE_PEEL_GRID = 18
+export const IMAGE_PEEL_GRID = 26
 /** Curl radius as a fraction of the peel axis. */
 const RADIUS = 0.16
 
@@ -166,18 +166,20 @@ export function imagePeelPose(
   u: number,
   side: ImagePeelSide,
   progress: number,
-  amount: number
+  amount: number,
+  radius = RADIUS
 ): Pose {
+  const curl = radius > 0 ? radius : RADIUS
   const fromEnd = side === "bottom" || side === "right"
   const covered = clamp01(amount)
   const travel = clamp01(progress)
-  const tail = covered > 0.999 ? Math.PI * RADIUS : 0
+  const tail = covered > 0.999 ? Math.PI * curl : 0
   const distance = travel * (covered + tail)
   const tangent = fromEnd ? 1 - distance : distance
   const past = fromEnd ? u - tangent : tangent - u
 
   if (past <= 0) {
-    const band = past > -RADIUS ? 1 - -past / RADIUS : 0
+    const band = past > -curl ? 1 - -past / curl : 0
     const shade = Math.max(0, band) * 0.55 * Math.min(1, distance * 8)
     return {
       hidden: false,
@@ -189,7 +191,7 @@ export function imagePeelPose(
     }
   }
 
-  const theta = past / RADIUS
+  const theta = past / curl
   if (theta >= Math.PI) {
     return {
       hidden: true,
@@ -202,7 +204,7 @@ export function imagePeelPose(
   }
 
   const dir = fromEnd ? -1 : 1
-  const visualU = tangent + dir * RADIUS * Math.sin(theta)
+  const visualU = tangent + dir * curl * Math.sin(theta)
   const front = theta <= Math.PI / 2
   const rotMag = front ? theta : Math.PI - theta
   const sign = side === "top" || side === "left" ? -1 : 1
@@ -211,7 +213,7 @@ export function imagePeelPose(
     hidden: false,
     rotate: sign * rotMag * (180 / Math.PI),
     shift: visualU - u,
-    lift: RADIUS * (1 - Math.cos(theta)),
+    lift: curl * (1 - Math.cos(theta)),
     shade: (1 - Math.abs(Math.cos(theta))) * 0.78,
     front,
   }
@@ -392,12 +394,18 @@ export function createImagePeel(
       }
       const index = Number(strip.dataset.index ?? "0")
       const u = (index + 0.5) / count
+      const diag = Math.hypot(sheet.clientWidth, sheet.clientHeight)
+      const shortSide = Math.max(
+        1,
+        Math.min(sheet.clientWidth, sheet.clientHeight)
+      )
       const pose = corner
         ? imagePeelPose(
             cornerProgress(strip, grid, corner),
             "top",
             posed,
-            amount
+            amount,
+            (RADIUS * shortSide) / Math.max(1, diag)
           )
         : imagePeelPose(u, runtime.side, posed, amount)
       const front = strip.querySelector<HTMLElement>("[data-peel-front]")
@@ -423,10 +431,11 @@ export function createImagePeel(
       if (hidden) {
         strip.style.transform = "none"
       } else if (corner) {
-        const shiftX = pose.shift * corner.x * sheet.clientWidth
-        const shiftY = pose.shift * corner.y * sheet.clientHeight
-        const liftPx =
-          pose.lift * Math.hypot(sheet.clientWidth, sheet.clientHeight)
+        const along = pose.shift * diag
+        const unit = 1 / Math.hypot(corner.x, corner.y)
+        const shiftX = along * corner.x * unit
+        const shiftY = along * corner.y * unit
+        const liftPx = pose.lift * diag
         strip.style.transform = `translate3d(${shiftX}px, ${shiftY}px, ${liftPx}px) rotate3d(${corner.y}, ${-corner.x}, 0, ${pose.rotate}deg)`
       } else {
         const shiftPx = pose.shift * safeAxis
