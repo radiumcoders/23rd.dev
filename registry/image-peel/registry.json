@@ -1,0 +1,31 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "items": [
+    {
+      "name": "image-peel",
+      "type": "registry:ui",
+      "title": "Image Peel",
+      "description": "An image sticks, then peels away as you scroll. Pick the edge it lifts from and how much of the sheet comes off.",
+      "files": [
+        {
+          "path": "image-peel.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/image-peel.tsx"
+        }
+      ]
+    },
+    {
+      "name": "image-peel-svelte",
+      "type": "registry:ui",
+      "title": "Image Peel",
+      "description": "An image sticks, then peels away as you scroll. Pick the edge it lifts from and how much of the sheet comes off.",
+      "files": [
+        {
+          "path": "image-peel.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/image-peel.svelte"
+        }
+      ]
+    }
+  ]
+}

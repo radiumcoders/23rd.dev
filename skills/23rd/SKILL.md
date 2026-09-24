@@ -18,12 +18,12 @@ metadata:
 
 This folder is checked in twice and the copies must stay identical. `skills/23rd/` is the path the skills CLI and [skills.sh](https://skills.sh) discover. `.cursor/skills/23rd/` is what Cursor loads as `/23rd` in this repo.
 
-| File | Read it when |
-| --- | --- |
-| [components.md](components.md) | Picking a component, pitfalls, one working example |
-| [apis.md](apis.md) | Writing props, callbacks, or theme behavior |
-| [recipes.md](recipes.md) | Assembling a hero, 404, footer, or accent |
-| [conventions.md](conventions.md) | Adding a component to this repo |
+| File                             | Read it when                                       |
+| -------------------------------- | -------------------------------------------------- |
+| [components.md](components.md)   | Picking a component, pitfalls, one working example |
+| [apis.md](apis.md)               | Writing props, callbacks, or theme behavior        |
+| [recipes.md](recipes.md)         | Assembling a hero, 404, footer, or accent          |
+| [conventions.md](conventions.md) | Adding a component to this repo                    |
 
 Do not invent props, CSS variables, or variants. If a prop is not in [apis.md](apis.md), it does not exist.
 
@@ -72,10 +72,10 @@ import { ShaderGradient } from "@/components/ui/shader-gradient"
 
 npm dependencies the registry declares:
 
-| Item | React | Svelte |
-| --- | --- | --- |
-| `gooey-color-picker`, `tangle-footer`, `stretchy-footer` | `motion` | none |
-| every other item | none | none |
+| Item                                                     | React    | Svelte |
+| -------------------------------------------------------- | -------- | ------ |
+| `gooey-color-picker`, `tangle-footer`, `stretchy-footer` | `motion` | none   |
+| every other item                                         | none     | none   |
 
 Published index: `https://23rd.dev/r/registry.json`. Docs: `https://23rd.dev/docs`.
 
@@ -90,6 +90,7 @@ flowchart TD
   pick -->|Footer or page-end| foot{Treatment}
   pick -->|Full page 404| d404[dithered-404]
   pick -->|Scroll makes the page lean| folio[folio]
+  pick -->|Image peels away on scroll| peel[image-peel]
   pick -->|Character or wordmark| mark{Which}
   atmo -->|Quiet wash| sg[shader-gradient]
   atmo -->|Fire from the bottom| sf[shader-fire]
@@ -106,20 +107,21 @@ flowchart TD
 
 Disambiguation that agents get wrong:
 
-| User says | Use | Not |
-| --- | --- | --- |
-| Color picker, swatch, hex, hue, alpha, eyedropper | `gooey-color-picker` | Any shader. Shaders are not controls. |
-| Soft gradient behind a headline | `shader-gradient` | `gooey-color-picker`, `tangle-footer` |
-| Fire, embers, heat under a hero | `shader-fire` | `dithered-404` unless the page is a 404 |
-| 404 that burns under the cursor | `dithered-404` | `shader-fire` |
-| Footer of nested spinning sentences | `tangle-footer` | `stretchy-footer` |
-| Overscroll rubber band, aurora at the bottom | `stretchy-footer` | `tangle-footer` |
-| Page leans while scrolling | `folio` | `stretchy-footer` (that one stretches, it does not tilt) |
-| Stars that speed up when you scroll | `radiant-lines` | `logo-burst` |
-| Logo explodes into lines | `logo-burst` | `ascii-logo` |
-| ASCII letters that shove, scatter, and fall | `ascii-logo` | `ascii-fluid` (trails, not a wordmark) |
-| CRT notation, phosphor, staves | `phosphor-score` | `shader-sky` |
-| A face / orb / mascot | `live-orb` | `logo-burst` |
+| User says                                         | Use                  | Not                                                      |
+| ------------------------------------------------- | -------------------- | -------------------------------------------------------- |
+| Color picker, swatch, hex, hue, alpha, eyedropper | `gooey-color-picker` | Any shader. Shaders are not controls.                    |
+| Soft gradient behind a headline                   | `shader-gradient`    | `gooey-color-picker`, `tangle-footer`                    |
+| Fire, embers, heat under a hero                   | `shader-fire`        | `dithered-404` unless the page is a 404                  |
+| 404 that burns under the cursor                   | `dithered-404`       | `shader-fire`                                            |
+| Footer of nested spinning sentences               | `tangle-footer`      | `stretchy-footer`                                        |
+| Overscroll rubber band, aurora at the bottom      | `stretchy-footer`    | `tangle-footer`                                          |
+| Page leans while scrolling                        | `folio`              | `stretchy-footer` (that one stretches, it does not tilt) |
+| Image or sticker peels / curls off as you scroll  | `image-peel`         | `folio` (the page leans, it does not peel)               |
+| Stars that speed up when you scroll               | `radiant-lines`      | `logo-burst`                                             |
+| Logo explodes into lines                          | `logo-burst`         | `ascii-logo`                                             |
+| ASCII letters that shove, scatter, and fall       | `ascii-logo`         | `ascii-fluid` (trails, not a wordmark)                   |
+| CRT notation, phosphor, staves                    | `phosphor-score`     | `shader-sky`                                             |
+| A face / orb / mascot                             | `live-orb`           | `logo-burst`                                             |
 
 There is one variant enum in the whole registry: `LiveOrb` `variant` is `"white" | "black" | "webgl" | "custom"`. Nothing else has `variant`.
 
@@ -139,6 +141,8 @@ Same shell for `ShaderFire`, `ShaderSky`, `AsciiFluid`, `LogoBurst`, `PhosphorSc
 `RadiantLines` is transparent and warps with scroll. Inside an overflow div, pass the scroller (`containerRef` in React, `container` in Svelte) and make the canvas `sticky top-0 h-svh`. Omit the scroller to use the window.
 
 `Folio` and `StretchyFooter` are the scroller by default. Put the page in `children`. For a real document, set `windowScroll` and mark the tilting or lifting element (`data-folio-page` or `data-stretchy-page`).
+
+`ImagePeel` is a tall sticky section (`h-[240vh]` unless you override it). Pass `src`. The sheet sticks to the nearest scroll parent and curls off as that scroller moves. `children` is what shows underneath. `side` is the edge that lifts. `amount` is how much of the image peels away at the end of the scroll (`1` clears it). Transparent pixels stay transparent, so a die-cut sticker peels in its own shape.
 
 `TangleFooter` is a `<footer>`. It is not a background. Place it after the page.
 
@@ -169,21 +173,22 @@ Exceptions:
 
 Categories match `content/docs/components/meta.json`.
 
-| Name | Category | One line | Frameworks |
-| --- | --- | --- | --- |
-| `logo-burst` | Background | Hair-line tentacles explode from center, then breathe | React + Svelte |
-| `phosphor-score` | Background | Vertical CRT score; notes fall, bloom, flare | React + Svelte |
-| `radiant-lines` | Background | Hyperspace streaks; warp follows scroll | React + Svelte |
-| `ascii-fluid` | Background | Pointer trails quantized to an ASCII brightness ramp | React + Svelte |
-| `shader-gradient` | Shaders | Quiet WebGL wash behind heroes and empty states | React + Svelte |
-| `shader-fire` | Shaders | Sparse fire tongues rising from the bottom | React + Svelte |
-| `shader-sky` | Shaders | Clear sky or rain; optional dotted window glass | React + Svelte |
-| `tangle-footer` | Footers | Five nested SVG text ribbons | React + Svelte |
-| `stretchy-footer` | Footers | Dia-style rubber overscroll with an aurora floor | React + Svelte |
-| `live-orb` | Characters | Lit sphere; eyes follow the pointer | React + Svelte |
-| `ascii-logo` | Characters | ASCII wordmark: hover shove, click scatter / fall / gather | React + Svelte |
-| `dithered-404` | Pages | Bayer 404 burned by a fireball cursor, then reforms | React + Svelte |
-| `folio` | Sections | Page leans on scroll, then springs flat | React + Svelte |
+| Name                 | Category   | One line                                                      | Frameworks     |
+| -------------------- | ---------- | ------------------------------------------------------------- | -------------- |
+| `logo-burst`         | Background | Hair-line tentacles explode from center, then breathe         | React + Svelte |
+| `phosphor-score`     | Background | Vertical CRT score; notes fall, bloom, flare                  | React + Svelte |
+| `radiant-lines`      | Background | Hyperspace streaks; warp follows scroll                       | React + Svelte |
+| `ascii-fluid`        | Background | Pointer trails quantized to an ASCII brightness ramp          | React + Svelte |
+| `shader-gradient`    | Shaders    | Quiet WebGL wash behind heroes and empty states               | React + Svelte |
+| `shader-fire`        | Shaders    | Sparse fire tongues rising from the bottom                    | React + Svelte |
+| `shader-sky`         | Shaders    | Clear sky or rain; optional dotted window glass               | React + Svelte |
+| `tangle-footer`      | Footers    | Five nested SVG text ribbons                                  | React + Svelte |
+| `stretchy-footer`    | Footers    | Dia-style rubber overscroll with an aurora floor              | React + Svelte |
+| `live-orb`           | Characters | Lit sphere; eyes follow the pointer                           | React + Svelte |
+| `ascii-logo`         | Characters | ASCII wordmark: hover shove, click scatter / fall / gather    | React + Svelte |
+| `dithered-404`       | Pages      | Bayer 404 burned by a fireball cursor, then reforms           | React + Svelte |
+| `folio`              | Sections   | Page leans on scroll, then springs flat                       | React + Svelte |
+| `image-peel`         | Sections   | Image peels away as you scroll                                | React + Svelte |
 | `gooey-color-picker` | Components | Swatch opens into hue, alpha, and hex under an SVG goo filter | React + Svelte |
 
 ## Minimal installs that must be right

@@ -2,11 +2,11 @@
 
 Types below are what the React modules export. Svelte components take the same fields with these renames:
 
-| React | Svelte |
-| --- | --- |
-| `className` | `class` |
-| `children?: ReactNode` | `children?: Snippet` |
-| `scrollRef?: RefObject<HTMLElement \| null>` | `scrollEl?: HTMLElement` |
+| React                                           | Svelte                    |
+| ----------------------------------------------- | ------------------------- |
+| `className`                                     | `class`                   |
+| `children?: ReactNode`                          | `children?: Snippet`      |
+| `scrollRef?: RefObject<HTMLElement \| null>`    | `scrollEl?: HTMLElement`  |
 | `containerRef?: RefObject<HTMLElement \| null>` | `container?: HTMLElement` |
 
 Vanilla `onThemeChange` and `onHasGl` are not React props. The wrappers subscribe internally. `Dithered404` vanilla `onHideCursor` is also internal to the wrapper.
@@ -31,13 +31,13 @@ type GooeyColorPickerProps = {
 
 Also exported from the React module: `parseColor`, type `GooeyColor`.
 
-| Behavior | Rule |
-| --- | --- |
-| Controlled | `value !== undefined`. Updates come from the parent. |
-| Uncontrolled | `useState(() => parseColor(defaultValue ?? value))`. |
+| Behavior     | Rule                                                                          |
+| ------------ | ----------------------------------------------------------------------------- |
+| Controlled   | `value !== undefined`. Updates come from the parent.                          |
+| Uncontrolled | `useState(() => parseColor(defaultValue ?? value))`.                          |
 | Omitted both | `parseColor(undefined)` → `{ h: 320, s: 90, l: 58, a: 1 }` (`DEFAULT_COLOR`). |
-| `onChange` | Called with the next `GooeyColor` and `toCss` (`hsla(H S% L% / A)`). |
-| Strings | hex or `hsl()` / `hsla()`. Alpha in `hsla` may be 0–1 or a percent. |
+| `onChange`   | Called with the next `GooeyColor` and `toCss` (`hsla(H S% L% / A)`).          |
+| Strings      | hex or `hsl()` / `hsla()`. Alpha in `hsla` may be 0–1 or a percent.           |
 
 Not props: open state, eyedropper, goo filter id.
 
@@ -243,11 +243,11 @@ type StretchyFooterProps = {
 
 Modes:
 
-| Props | Behavior |
-| --- | --- |
+| Props                                  | Behavior                                               |
+| -------------------------------------- | ------------------------------------------------------ |
 | neither `scrollRef` nor `windowScroll` | This element is the scroller. `children` are the page. |
-| `scrollRef` set | Overlay only. Listeners bind to that element. |
-| `windowScroll` | Fixed bottom aurora. Lifts `contentSelector`. |
+| `scrollRef` set                        | Overlay only. Listeners bind to that element.          |
+| `windowScroll`                         | Fixed bottom aurora. Lifts `contentSelector`.          |
 
 React exports `playStretchyFooterDemo(detail?)` and `STRETCHY_FOOTER_PLAY` (`"stretchy-footer:play"`).
 
@@ -364,11 +364,38 @@ type FolioPlayDetail = {
 
 React exports `playFolioDemo`, `FOLIO_PLAY` (`"folio:play"`), `applyFolioFrame`. The Svelte component listens for that window event. Reduced motion: no tilt, no blur.
 
+## image-peel
+
+```ts
+type ImagePeelSide = "top" | "right" | "bottom" | "left"
+
+type ImagePeelProps = {
+  src: string
+  alt?: string // ""
+  side?: ImagePeelSide // "bottom"
+  amount?: number // 1, clamped 0–1
+  className?: string
+  children?: ReactNode
+  demoId?: string
+}
+```
+
+Not props: curl radius, scroll length, progress. Scroll position drives the peel. `amount` is how far the sheet lifts at the end of the section, not a live scrubber. Svelte uses `class` instead of `className`.
+
+```ts
+type ImagePeelPlayDetail = {
+  target?: string
+}
+```
+
+React exports `playImagePeel`, `IMAGE_PEEL_PLAY` (`"image-peel:play"`), `IMAGE_PEEL_STRIPS`, `imagePeelPose`. Reduced motion: no peel.
+
 ## Events that are not props
 
-| Name | Constant | Who listens |
-| --- | --- | --- |
-| `folio:play` | `FOLIO_PLAY` | Folio instances. `target` must match `demoId` when set. |
-| `stretchy-footer:play` | `STRETCHY_FOOTER_PLAY` | Stretchy footers. Same `target` / `demoId` rule. |
+| Name                   | Constant               | Who listens                                                  |
+| ---------------------- | ---------------------- | ------------------------------------------------------------ |
+| `folio:play`           | `FOLIO_PLAY`           | Folio instances. `target` must match `demoId` when set.      |
+| `image-peel:play`      | `IMAGE_PEEL_PLAY`      | Image Peel instances. `target` must match `demoId` when set. |
+| `stretchy-footer:play` | `STRETCHY_FOOTER_PLAY` | Stretchy footers. Same `target` / `demoId` rule.             |
 
 Use them to preview. Do not replace real scroll or overscroll with them in production UI.

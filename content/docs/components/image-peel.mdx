@@ -1,0 +1,67 @@
+---
+title: Image Peel
+description: An image sticks, then peels away as you scroll. Choose the edge and how much of it lifts.
+---
+
+import { ImagePeelDemo } from "@/registry/image-peel/image-peel-demo"
+
+A sticker on the page. Scroll and it curls off from the edge you pick, showing whatever sits underneath. `amount` is how much of the sheet comes away by the end of the scroll — `1` clears it, `0.5` stops halfway with the curl still resting there. Drop in any image.
+
+<ImagePeelDemo />
+
+## Installation
+
+<CliCommand item="image-peel" />
+
+Or install straight from the public GitHub source registry:
+
+<CliCommand item="image-peel" github />
+
+## Usage
+
+Give it a height and an image. The section is tall on purpose: the sheet sticks while you scroll through it, and the peel follows that travel. Children are what waits underneath. Honors `prefers-reduced-motion` (the sticker stays flat).
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+"use client"
+
+import { ImagePeel } from "@/components/ui/image-peel"
+
+export function Sticker() {
+  return (
+    <ImagePeel src="/sticker.png" alt="Sticker" side="bottom" amount={1}>
+      <div className="h-full bg-[#d5cbbd]" />
+    </ImagePeel>
+  )
+}
+```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import ImagePeel from "$lib/components/ui/image-peel.svelte"
+</script>
+
+<ImagePeel src="/sticker.png" alt="Sticker" side="bottom" amount={1}>
+  <div class="h-full bg-[#d5cbbd]"></div>
+</ImagePeel>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+Inside a smaller scroller, set the height to a multiple of that frame (`h-[240%]`). The sheet sticks to the nearest scroll parent, not always the window.
+
+## Props
+
+| Prop        | Type                                     | Default    |
+| ----------- | ---------------------------------------- | ---------- |
+| `src`       | `string`                                 | —          |
+| `alt`       | `string`                                 | `""`       |
+| `side`      | `"top" \| "right" \| "bottom" \| "left"` | `"bottom"` |
+| `amount`    | `number`                                 | `1`        |
+| `className` | `string`                                 | —          |
+| `children`  | `ReactNode`                              | —          |
+| `demoId`    | `string`                                 | —          |
+
+`amount` is clamped to `0`–`1`. `side` falls back to `"bottom"` if it is not one of those four edges. Transparent images keep their shape — a die-cut sticker peels as a sticker, not as a rectangle.

@@ -138,6 +138,32 @@
       "type": "registry:ui"
     },
     {
+      "name": "image-peel",
+      "title": "Image Peel",
+      "description": "An image sticks, then peels away as you scroll. Pick the edge it lifts from and how much of the sheet comes off.",
+      "files": [
+        {
+          "path": "registry/image-peel/image-peel.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/image-peel.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
+      "name": "image-peel-svelte",
+      "title": "Image Peel",
+      "description": "An image sticks, then peels away as you scroll. Pick the edge it lifts from and how much of the sheet comes off.",
+      "files": [
+        {
+          "path": "registry/image-peel/image-peel.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/image-peel.svelte"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "live-orb",
       "title": "Live Orb",
       "description": "An evenly lit sphere with two capsule eyes that follow the pointer — white, black, webgl, and custom variants.",

@@ -30,17 +30,17 @@ export function Hero() {
 
 Swap the component, keep the shell:
 
-| Brief | Component | Extra props |
-| --- | --- | --- |
-| Fire along the floor | `ShaderFire` | `height={0.45}` |
-| Pixel fire | `ShaderFire` | `dither pixelSize={1}` |
-| Blue sky | `ShaderSky` | leave `colors` unset |
-| Rain / dusk sky | `ShaderSky` | `theme="dark"` or `html.dark` |
-| Window glass | `ShaderSky` | `glass glassSize={7}` |
-| ASCII trails | `AsciiFluid` | `interactive` |
-| CRT score | `PhosphorScore` | parent `overflow-hidden`; do not expect a `d` key |
-| Burst, no mark | `LogoBurst` | no children |
-| Burst around a logo | `LogoBurst` | pass the mark as `children` |
+| Brief                | Component       | Extra props                                       |
+| -------------------- | --------------- | ------------------------------------------------- |
+| Fire along the floor | `ShaderFire`    | `height={0.45}`                                   |
+| Pixel fire           | `ShaderFire`    | `dither pixelSize={1}`                            |
+| Blue sky             | `ShaderSky`     | leave `colors` unset                              |
+| Rain / dusk sky      | `ShaderSky`     | `theme="dark"` or `html.dark`                     |
+| Window glass         | `ShaderSky`     | `glass glassSize={7}`                             |
+| ASCII trails         | `AsciiFluid`    | `interactive`                                     |
+| CRT score            | `PhosphorScore` | parent `overflow-hidden`; do not expect a `d` key |
+| Burst, no mark       | `LogoBurst`     | no children                                       |
+| Burst around a logo  | `LogoBurst`     | pass the mark as `children`                       |
 
 Svelte: `import ShaderGradient from "$lib/components/ui/shader-gradient.svelte"` and `class` on the section if you style the component itself.
 
@@ -191,6 +191,24 @@ Window mode:
 <div data-folio-page>{/* page */}</div>
 <Folio windowScroll />
 ```
+
+## Sticker that peels
+
+```tsx
+"use client"
+
+import { ImagePeel } from "@/components/ui/image-peel"
+
+export function Sticker() {
+  return (
+    <ImagePeel src="/sticker.png" alt="Sticker" side="right" amount={1}>
+      <div className="h-full bg-[#d5cbbd]" />
+    </ImagePeel>
+  )
+}
+```
+
+`side` is the edge that lifts. `amount` stops the peel early when it is below `1`. Inside a frame that scrolls, set `className="h-[240%]"`. There is no progress prop.
 
 ## Interactive accents
 

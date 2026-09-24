@@ -351,6 +351,31 @@ export function Page() {
 
 Pitfalls: there is no `tilt`, `angle`, or `intensity` prop. Reduced motion disables tilt and blur. React re-exports `playFolioDemo`, `FOLIO_PLAY` (`"folio:play"`), and `applyFolioFrame`. At the bottom the down-lean releases; at the top the up-lean releases.
 
+## image-peel
+
+Section. An image sticks to the scrollport and peels away as you scroll. The curl starts at `side` and travels until `amount` of the sheet has lifted. Children are the surface underneath.
+
+Best fit: a sticker, poster, or photo that should curl off the page.
+
+Not this: a page that leans (`folio`). Image Peel does not tilt the document.
+
+Deps: none. Key props: `src` (required), `alt` (`""`), `side` (`"bottom"` — `"top" | "right" | "bottom" | "left"`), `amount` (`1`, clamped `0`–`1`), `children`, `className`, `demoId`.
+
+```tsx
+"use client"
+import { ImagePeel } from "@/components/ui/image-peel"
+
+export function Sticker() {
+  return (
+    <ImagePeel src="/sticker.png" alt="Sticker" side="bottom" amount={1}>
+      <div className="h-full bg-[#d5cbbd]" />
+    </ImagePeel>
+  )
+}
+```
+
+Pitfalls: default height is `h-[240vh]` so the sheet has room to stick. Inside a nested scroller, pass `className="h-[240%]"` instead. There is no `progress` prop — scroll drives the peel. `amount` below `1` parks the curl; it does not change the radius. Reduced motion keeps the sticker flat. React re-exports `playImagePeel` and `IMAGE_PEEL_PLAY` (`"image-peel:play"`) for the docs preview. The curl radius is internal. Transparent images are masked, so a die-cut sticker does not peel as a rectangle.
+
 ## gooey-color-picker
 
 Component. A swatch opens into a hue wheel, alpha slider, and hex field. Blobs share an SVG goo filter. The trigger becomes close when open.
