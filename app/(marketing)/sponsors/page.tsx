@@ -47,12 +47,13 @@ function SponsorSection({ tier }: { tier: SponsorTier }) {
             <li className="flex" key={slotId}>
               {checkoutBlocked ? (
                 <span
+                  aria-disabled="true"
                   className={cn(
                     slotClassName,
-                    "cursor-default text-xs leading-snug text-balance whitespace-normal"
+                    "cursor-default text-xs leading-snug text-balance whitespace-normal hover:border-border hover:bg-transparent hover:text-muted-foreground dark:hover:bg-transparent"
                   )}
                 >
-                  On the way to approval
+                  Coming soon
                 </span>
               ) : (
                 <a
@@ -74,12 +75,20 @@ function SponsorSection({ tier }: { tier: SponsorTier }) {
 export default async function SponsorsPage() {
   await connection()
   const tiers = getSponsorTiers()
+  const checkoutComingSoon = tiers.every((tier) =>
+    isSponsorCheckoutBlocked(tier.checkoutHref)
+  )
 
   return (
     <main className="flex-1 overflow-x-clip">
       <div className="mx-auto w-full max-w-4xl px-4 pt-12 pb-24 sm:px-6 sm:pt-16">
         <header className="flex flex-col items-center gap-4 pb-12 text-center">
           <Logo className="size-16" cornerRadius={8} />
+          {checkoutComingSoon ? (
+            <p className="font-mono text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              Coming soon
+            </p>
+          ) : null}
           <h1 className="text-4xl font-semibold tracking-tight">
             Sponsor 23rd
           </h1>
@@ -89,6 +98,12 @@ export default async function SponsorsPage() {
             logo and name on this page, links to your site, and includes you in
             major release notes. The component registry stays free.
           </p>
+          {checkoutComingSoon ? (
+            <p className="max-w-xl text-sm text-balance text-muted-foreground">
+              Checkout opens after Creem approves the store. Slots stay reserved
+              until then.
+            </p>
+          ) : null}
         </header>
 
         <div className="flex flex-col gap-12">

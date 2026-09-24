@@ -93,7 +93,15 @@ test("checkout URLs must be https, otherwise mailto fallback is used", () => {
   )
 })
 
-function isSponsorCheckoutBlocked(href) {
+const sponsorCheckoutComingSoon =
+  /export const SPONSOR_CHECKOUT_COMING_SOON = true/.test(sponsorsLib)
+
+function isSponsorCheckoutBlocked(
+  href,
+  comingSoon = sponsorCheckoutComingSoon
+) {
+  if (comingSoon) return true
+
   try {
     const url = new URL(href)
     if (url.protocol !== "https:") return true
@@ -108,18 +116,27 @@ test("sponsors page lists empty slots as Be here", () => {
   assert.match(sponsorsPage, /Be here/)
 })
 
-test("Creem test checkout stays blocked until approval", () => {
+test("sponsor checkout stays coming soon until Creem approves", () => {
+  assert.equal(sponsorCheckoutComingSoon, true)
+  assert.match(sponsorsLib, /SPONSOR_CHECKOUT_COMING_SOON/)
+  assert.match(sponsorsLib, /if \(SPONSOR_CHECKOUT_COMING_SOON\) return true/)
   assert.match(sponsorsLib, /function isSponsorCheckoutBlocked/)
   assert.match(sponsorsLib, /pathname.startsWith\("\/test\/"\)/)
   assert.match(sponsorsPage, /isSponsorCheckoutBlocked\(tier\.checkoutHref\)/)
-  assert.match(sponsorsPage, /On the way to approval/)
+  assert.match(sponsorsPage, /Coming soon/)
+  assert.doesNotMatch(sponsorsPage, /On the way to approval/)
 
   for (const productId of [
     "prod_4ZM6WkQrmCSBtFGCdYp7rZ",
     "prod_7jEvtpKnPoVXOAZLBnoWfA",
     "prod_MqDtYvXUGlGqgEz898MCA",
     "prod_3aZ8AxbA2h43IRUMxigep0",
+    "prod_1lz1o8e7HtglOuXbMRnSmc",
   ]) {
+    assert.equal(
+      isSponsorCheckoutBlocked(`https://www.creem.io/payment/${productId}`),
+      true
+    )
     assert.equal(
       isSponsorCheckoutBlocked(`https://creem.io/test/product/${productId}`),
       true
@@ -127,8 +144,12 @@ test("Creem test checkout stays blocked until approval", () => {
   }
 
   assert.equal(
-    isSponsorCheckoutBlocked("https://www.creem.io/payment/prod_gold"),
+    isSponsorCheckoutBlocked("https://www.creem.io/payment/prod_gold", false),
     false
+  )
+  assert.equal(
+    isSponsorCheckoutBlocked("https://creem.io/test/product/prod_gold", false),
+    true
   )
   assert.equal(isSponsorCheckoutBlocked("mailto:radiumcoders@gmail.com"), true)
 })
@@ -192,6 +213,8 @@ test("sponsors prices, terms, privacy, and support email match the shadscan layo
   assert.match(docsShell, /SUPPORT_EMAIL/)
   assert.match(sponsorLink, /href="\/sponsors"/)
   assert.match(sponsorLink, />Sponsor</)
+  assert.match(sponsorLink, /SPONSOR_CHECKOUT_COMING_SOON/)
+  assert.match(sponsorLink, /Soon/)
   assert.doesNotMatch(sponsorLink, /github\.com\/sponsors/)
   assert.match(nextConfig, /source: "\/pricing"/)
   assert.match(nextConfig, /destination: "\/sponsors"/)
