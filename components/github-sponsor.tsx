@@ -1,22 +1,22 @@
 import { RiHeart3Line } from "@remixicon/react"
 
-import { getGithubSponsorUrl } from "@/lib/github"
 import { cn } from "@/lib/utils"
 
 export function GithubSponsor({ className }: { className?: string }) {
   return (
-    <a
-      href={getGithubSponsorUrl()}
-      target="_blank"
-      rel="noreferrer"
-      aria-label="Sponsor on GitHub"
+    <span
+      role="status"
+      title="On the way to approval"
+      aria-label="Sponsorship is on the way to approval"
       className={cn(
-        "inline-flex h-8 items-center gap-1.5 rounded-xl px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground",
+        "inline-flex h-8 cursor-default select-none items-center gap-1.5 rounded-xl px-2.5 text-sm text-muted-foreground",
         className
       )}
     >
-      <RiHeart3Line className="size-4" />
-      <span className="hidden sm:inline">Sponsor</span>
-    </a>
+      <RiHeart3Line className="size-4 shrink-0" aria-hidden />
+      <span className="hidden whitespace-nowrap sm:inline">
+        On the way to approval
+      </span>
+    </span>
   )
 }
