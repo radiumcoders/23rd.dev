@@ -101,6 +101,17 @@ export function buildSponsorContactHref(tierName: string): string {
   return `mailto:${SPONSOR_CONTACT_EMAIL}?subject=${subject}`
 }
 
+/** Creem test checkout stays off the page until the account is approved. */
+export function isSponsorCheckoutBlocked(href: string): boolean {
+  try {
+    const url = new URL(href)
+    if (url.protocol !== "https:") return true
+    return url.pathname === "/test" || url.pathname.startsWith("/test/")
+  } catch {
+    return true
+  }
+}
+
 export function resolveSponsorCheckoutHref(
   configuredUrl: string | undefined,
   fallbackHref: string

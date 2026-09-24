@@ -89,9 +89,44 @@ test("checkout URLs must be https, otherwise mailto fallback is used", () => {
   )
 })
 
+function isSponsorCheckoutBlocked(href) {
+  try {
+    const url = new URL(href)
+    if (url.protocol !== "https:") return true
+    return url.pathname === "/test" || url.pathname.startsWith("/test/")
+  } catch {
+    return true
+  }
+}
+
 test("sponsors page lists empty slots as Be here", () => {
   assert.match(sponsorsPage, /Sponsor 23rd/)
   assert.match(sponsorsPage, /Be here/)
+})
+
+test("Creem test checkout stays blocked until approval", () => {
+  assert.match(sponsorsLib, /function isSponsorCheckoutBlocked/)
+  assert.match(sponsorsLib, /pathname.startsWith\("\/test\/"\)/)
+  assert.match(sponsorsPage, /isSponsorCheckoutBlocked\(tier\.checkoutHref\)/)
+  assert.match(sponsorsPage, /On the way to approval/)
+
+  for (const productId of [
+    "prod_4ZM6WkQrmCSBtFGCdYp7rZ",
+    "prod_7jEvtpKnPoVXOAZLBnoWfA",
+    "prod_MqDtYvXUGlGqgEz898MCA",
+    "prod_3aZ8AxbA2h43IRUMxigep0",
+  ]) {
+    assert.equal(
+      isSponsorCheckoutBlocked(`https://creem.io/test/product/${productId}`),
+      true
+    )
+  }
+
+  assert.equal(
+    isSponsorCheckoutBlocked("https://www.creem.io/payment/prod_gold"),
+    false
+  )
+  assert.equal(isSponsorCheckoutBlocked("mailto:radiumcoders@gmail.com"), true)
 })
 
 test("thank-you page mounts a confetti canvas", () => {
