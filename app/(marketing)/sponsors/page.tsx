@@ -4,7 +4,11 @@ import { Logo } from "@/components/logo"
 import { buttonVariants } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { buildPageMetadata } from "@/lib/seo"
-import { getSponsorTiers, type SponsorTier } from "@/lib/sponsors"
+import {
+  getSponsorTiers,
+  isSponsorCheckoutBlocked,
+  type SponsorTier,
+} from "@/lib/sponsors"
 import { cn } from "@/lib/utils"
 
 export const metadata = buildPageMetadata({
@@ -31,21 +35,37 @@ function SponsorSection({ tier }: { tier: SponsorTier }) {
         <Separator />
       </div>
       <ul className={cn("grid gap-3 pt-4", tier.gridClassName)}>
-        {tier.slotIds.map((slotId, index) => (
-          <li className="flex" key={slotId}>
-            <a
-              href={tier.checkoutHref}
-              aria-label={`Sponsor 23rd at the ${tier.name} tier, slot ${index + 1}`}
-              className={cn(
-                buttonVariants({ variant: "outline" }),
-                "h-auto w-full border-dashed px-2 text-muted-foreground hover:border-foreground/40",
-                tier.slotClassName
+        {tier.slotIds.map((slotId, index) => {
+          const slotClassName = cn(
+            buttonVariants({ variant: "outline" }),
+            "h-auto w-full border-dashed px-2 text-center text-muted-foreground",
+            tier.slotClassName
+          )
+          const checkoutBlocked = isSponsorCheckoutBlocked(tier.checkoutHref)
+
+          return (
+            <li className="flex" key={slotId}>
+              {checkoutBlocked ? (
+                <span
+                  className={cn(
+                    slotClassName,
+                    "cursor-default text-xs leading-snug text-balance whitespace-normal"
+                  )}
+                >
+                  On the way to approval
+                </span>
+              ) : (
+                <a
+                  href={tier.checkoutHref}
+                  aria-label={`Sponsor 23rd at the ${tier.name} tier, slot ${index + 1}`}
+                  className={cn(slotClassName, "hover:border-foreground/40")}
+                >
+                  Be here
+                </a>
               )}
-            >
-              Be here
-            </a>
-          </li>
-        ))}
+            </li>
+          )
+        })}
       </ul>
     </section>
   )
