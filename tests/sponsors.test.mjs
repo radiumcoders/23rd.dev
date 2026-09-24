@@ -12,6 +12,7 @@ const sponsorsPage = readFileSync(
 )
 const envExample = readFileSync(join(ROOT, ".env.example"), "utf8")
 const devVarsExample = readFileSync(join(ROOT, ".dev.vars.example"), "utf8")
+const wranglerConfig = readFileSync(join(ROOT, "wrangler.jsonc"), "utf8")
 
 function resolveSponsorCheckoutHref(configuredUrl, fallbackHref) {
   const trimmed = configuredUrl?.trim()
@@ -60,12 +61,15 @@ test("Creem checkout env keys are documented and read at request time", () => {
   assert.match(sponsorsPage, /getSponsorTiers\(\)/)
   assert.match(sponsorsPage, /await connection\(\)/)
   for (const productId of [
-    "prod_4ZM6WkQrmCSBtFGCdYp7rZ",
-    "prod_7jEvtpKnPoVXOAZLBnoWfA",
-    "prod_MqDtYvXUGlGqgEz898MCA",
-    "prod_3aZ8AxbA2h43IRUMxigep0",
+    "prod_1lz1o8e7HtglOuXbMRnSmc",
+    "prod_4kpDvyYwr6XnRuMSysnI3s",
+    "prod_2NW3lMTPFHeOey3XhUYlM",
+    "prod_3uz4xoRD5vVePnDwRIJxoi",
   ]) {
     assert.match(sponsorsLib, new RegExp(productId))
+    assert.match(envExample, new RegExp(productId))
+    assert.match(devVarsExample, new RegExp(productId))
+    assert.match(wranglerConfig, new RegExp(productId))
   }
 })
 
