@@ -90,7 +90,7 @@ npx skills add radiumcoders/23rd.dev --skill 23rd -g
 | [ASCII Fluid](https://23rd.dev/docs/components/ascii-fluid)               | `@23rd/ascii-fluid`        | Mouse-trail WebGL fluid quantized to a clean ASCII brightness ramp                 |
 | [ASCII Logo](https://23rd.dev/docs/components/ascii-logo)                 | `@23rd/ascii-logo`         | Interactive ASCII wordmark — hover shove, then click to scatter, drop, and gather  |
 | [Gooey Color Picker](https://23rd.dev/docs/components/gooey-color-picker) | `@23rd/gooey-color-picker` | Floating swatch → hue wheel, alpha, hex — joined by an SVG gooey filter            |
-| [Image Peel](https://23rd.dev/docs/components/image-peel)                 | `@23rd/image-peel`         | An image sticks, then peels away as you scroll — edge or corner, light or dark     |
+| [Image Peel](https://23rd.dev/docs/components/image-peel)                 | `@23rd/image-peel`         | An image sticks, then peels away as you scroll — edge or corner, white paper back  |
 | [Logo Burst](https://23rd.dev/docs/components/logo-burst)                 | `@23rd/logo-burst`         | Hair-line tentacles explode from the center, then breathe — light and dark         |
 | [Phosphor Score](https://23rd.dev/docs/components/phosphor-score)         | `@23rd/phosphor-score`     | Vertical CRT sheet music — notes fall, bloom at the playhead, then exit in a flare |
 | [Radiant Lines](https://23rd.dev/docs/components/radiant-lines)           | `@23rd/radiant-lines`      | Hyperspace starfield background; warp speed driven by scroll                       |

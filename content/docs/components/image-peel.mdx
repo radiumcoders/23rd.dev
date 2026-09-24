@@ -5,7 +5,7 @@ description: An image sticks, then peels away as you scroll. Choose an edge or a
 
 import { ImagePeelDemo } from "@/registry/image-peel/image-peel-demo"
 
-A sticker on the page. Scroll and it curls off from an edge or a corner, showing whatever sits underneath. `amount` is how much of the sheet comes away by the end of the scroll — `1` clears it, `0.5` stops halfway with the curl still resting there. The paper on the back of the curl follows the page theme. Drop in any image.
+A sticker on the page. Scroll and it curls off from an edge or a corner, showing whatever sits underneath. `amount` is how much of the sheet comes away by the end of the scroll — `1` clears it, `0.5` stops halfway with the curl still resting there. The back of the sticker is white. Drop in any image.
 
 <ImagePeelDemo />
 
@@ -60,9 +60,8 @@ Inside a smaller scroller, set the height to a multiple of that frame (`h-[240%]
 | `alt`       | `string`                                                                                                                          | `""`       |
 | `side`      | `"top" \| "right" \| "bottom" \| "left" \| "top-left" \| "top-right" \| "bottom-left" \| "bottom-right"`                           | `"bottom"` |
 | `amount`    | `number`                                                                                                                          | `1`        |
-| `theme`     | `"light" \| "dark" \| "auto"`                                                                                                     | `"auto"`   |
 | `className` | `string`                                                                                                                          | —          |
 | `children`  | `ReactNode`                                                                                                                       | —          |
 | `demoId`    | `string`                                                                                                                          | —          |
 
-`amount` is clamped to `0`–`1`. `side` falls back to `"bottom"` when it is not one of those eight. Edges roll on a straight cylinder. Corners roll on the diagonal, so the curl leaves from that corner. `theme` `"auto"` follows `html.dark` / `html.light`, then `data-theme`, then the system. The paper back is warm white in light mode and a dark brown in dark mode. Transparent images keep their shape — a die-cut sticker peels as a sticker, not as a rectangle.
+`amount` is clamped to `0`–`1`. `side` falls back to `"bottom"` when it is not one of those eight. Edges roll on a straight cylinder. Corners roll on the diagonal, so the curl leaves from that corner. The back of the curl is `#FFFFFF`. Transparent images keep their shape — a die-cut sticker peels as a sticker, not as a rectangle.

@@ -11,7 +11,6 @@
     normalizeSide,
     type ImagePeelInstance,
     type ImagePeelSide,
-    type ImagePeelTheme,
   } from "./image-peel-vanilla"
 
   function cn(...parts: Array<string | false | null | undefined>) {
@@ -34,12 +33,6 @@
      * `1` clears the sheet. `0.5` stops halfway. Default `1`.
      */
     amount?: number
-    /**
-     * Paper color on the back of the curl.
-     * `"auto"` follows `html.dark` / `html.light`, then `data-theme`, then the system.
-     * Default `"auto"`.
-     */
-    theme?: ImagePeelTheme
     /** What is waiting under the sheet. */
     children?: import("svelte").Snippet
     /**
@@ -55,7 +48,6 @@
     alt = "",
     side = "bottom",
     amount = 1,
-    theme = "auto",
     children,
     demoId,
   }: Props = $props()
@@ -165,7 +157,7 @@
   })
 
   $effect(() => {
-    instance?.setOptions({ side: resolvedSide, amount, theme })
+    instance?.setOptions({ side: resolvedSide, amount })
   })
 </script>
 
@@ -180,14 +172,6 @@
     <div data-peel-reveal class="absolute inset-0">
       {@render children?.()}
     </div>
-    <img
-      data-peel-drop
-      src={src}
-      alt=""
-      aria-hidden="true"
-      draggable="false"
-      class="pointer-events-none absolute object-contain opacity-50 blur-2xl select-none"
-    />
     <div
       data-peel-sheet
       data-peel-grid={corner ? IMAGE_PEEL_GRID : undefined}
@@ -237,12 +221,7 @@
                 )}
               ></div>
             </div>
-            <div data-peel-back class="absolute inset-0">
-              <div
-                data-peel-shade
-                class="pointer-events-none absolute inset-0 bg-black opacity-0"
-              ></div>
-            </div>
+            <div data-peel-back class="absolute inset-0 bg-white"></div>
           </div>
         {/each}
       {/if}

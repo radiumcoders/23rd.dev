@@ -6,10 +6,8 @@ export const IMAGE_PEEL_GRID = 26
 /** Curl radius as a fraction of the peel axis. */
 const RADIUS = 0.16
 
-/** Paper on the back of the sheet in light mode. */
-export const LIGHT_BACK = "#F7F3EC"
-/** Paper on the back of the sheet in dark mode. */
-export const DARK_BACK = "#2A2622"
+/** Paper on the back of the sheet. */
+export const PEEL_BACK = "#FFFFFF"
 
 export type ImagePeelSide =
   | "top"
@@ -20,8 +18,6 @@ export type ImagePeelSide =
   | "top-right"
   | "bottom-left"
   | "bottom-right"
-
-export type ImagePeelTheme = "light" | "dark" | "auto"
 
 export type ImagePeelRuntimeOptions = {
   /**
@@ -35,12 +31,6 @@ export type ImagePeelRuntimeOptions = {
    * Default `1`.
    */
   amount?: number
-  /**
-   * Paper color on the back of the curl.
-   * `"auto"` follows `html.dark` / `html.light`, then `data-theme`, then the system.
-   * Default `"auto"`.
-   */
-  theme?: ImagePeelTheme
 }
 
 export type ImagePeelPlayDetail = {
@@ -64,8 +54,6 @@ const SIDES = new Set<ImagePeelSide>([
   "bottom-right",
 ])
 
-const THEMES = new Set<ImagePeelTheme>(["light", "dark", "auto"])
-
 type Pose = {
   hidden: boolean
   rotate: number
@@ -83,34 +71,6 @@ function clamp01(value: number) {
 export function normalizeSide(side: string | undefined): ImagePeelSide {
   if (side && SIDES.has(side as ImagePeelSide)) return side as ImagePeelSide
   return "bottom"
-}
-
-export function normalizeTheme(theme: string | undefined): ImagePeelTheme {
-  if (theme && THEMES.has(theme as ImagePeelTheme))
-    return theme as ImagePeelTheme
-  return "auto"
-}
-
-/** `html.dark` / `html.light`, then `data-theme`, then the system scheme. */
-export function isDarkTheme(): boolean {
-  if (typeof document === "undefined") return false
-  const root = document.documentElement
-  if (root.classList.contains("dark")) return true
-  if (root.classList.contains("light")) return false
-  const dataTheme = root.getAttribute("data-theme")
-  if (dataTheme === "dark") return true
-  if (dataTheme === "light") return false
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-}
-
-export function resolveDark(theme: ImagePeelTheme | undefined): boolean {
-  if (theme === "dark") return true
-  if (theme === "light") return false
-  return isDarkTheme()
-}
-
-export function peelBackColor(theme: ImagePeelTheme | undefined) {
-  return resolveDark(theme) ? DARK_BACK : LIGHT_BACK
 }
 
 function isHorizontal(side: ImagePeelSide) {
@@ -276,17 +236,13 @@ export function createImagePeel(
   root: HTMLElement,
   options: ImagePeelRuntimeOptions & { demoId?: string } = {}
 ): ImagePeelInstance {
-  const runtime: Required<
-    Pick<ImagePeelRuntimeOptions, "side" | "amount" | "theme">
-  > = {
+  const runtime: Required<Pick<ImagePeelRuntimeOptions, "side" | "amount">> = {
     side: normalizeSide(options.side),
     amount: options.amount ?? 1,
-    theme: normalizeTheme(options.theme),
   }
   const demoId = options.demoId
   const stage = root.querySelector<HTMLElement>("[data-peel-stage]")
   const sheet = root.querySelector<HTMLElement>("[data-peel-sheet]")
-  const drop = root.querySelector<HTMLElement>("[data-peel-drop]")
 
   let frame = 0
   let playing = 0
@@ -301,16 +257,6 @@ export function createImagePeel(
     schedule()
   }
   motion.addEventListener("change", onMotion)
-
-  const themeRoot = document.documentElement
-  const onTheme = () => schedule()
-  const themeObserver = new MutationObserver(onTheme)
-  themeObserver.observe(themeRoot, {
-    attributes: true,
-    attributeFilter: ["class", "data-theme"],
-  })
-  const colorScheme = window.matchMedia("(prefers-color-scheme: dark)")
-  colorScheme.addEventListener("change", onTheme)
 
   function strips() {
     if (!sheet) return []
@@ -352,12 +298,6 @@ export function createImagePeel(
     sheet.style.height = `${height}px`
     sheet.style.left = `${left}px`
     sheet.style.top = `${top}px`
-    if (drop) {
-      drop.style.width = `${width}px`
-      drop.style.height = `${height}px`
-      drop.style.left = `${left}px`
-      drop.style.top = `${top + Math.min(22, height * 0.035)}px`
-    }
   }
 
   function apply(progress: number) {
@@ -381,16 +321,12 @@ export function createImagePeel(
     const axis = horizontal ? sheet.clientHeight : sheet.clientWidth
     const safeAxis = Math.max(1, axis)
     const posed = reduce ? 0 : progress
-    const backColor = peelBackColor(runtime.theme)
-    const backShadow = resolveDark(runtime.theme)
-      ? "inset 0 0 22px rgba(0,0,0,0.55)"
-      : "inset 0 0 22px rgba(80,60,30,0.16)"
 
     for (const strip of faces) {
       const backFace = strip.querySelector<HTMLElement>("[data-peel-back]")
       if (backFace) {
-        backFace.style.background = backColor
-        backFace.style.boxShadow = backShadow
+        backFace.style.background = PEEL_BACK
+        backFace.style.boxShadow = "none"
       }
       const index = Number(strip.dataset.index ?? "0")
       const u = (index + 0.5) / count
@@ -454,11 +390,6 @@ export function createImagePeel(
         back.style.visibility = !pose.front && !hidden ? "visible" : "hidden"
       for (const shade of shades)
         shade.style.opacity = hidden ? "0" : String(pose.shade)
-    }
-
-    if (drop) {
-      const left = reduce ? 1 : 1 - clamp01(progress) * clamp01(amount)
-      drop.style.opacity = String(0.55 * left)
     }
   }
 
@@ -569,7 +500,6 @@ export function createImagePeel(
     setOptions(next) {
       if (next.side !== undefined) runtime.side = normalizeSide(next.side)
       if (next.amount !== undefined) runtime.amount = next.amount
-      if (next.theme !== undefined) runtime.theme = normalizeTheme(next.theme)
       schedule()
     },
     destroy() {
@@ -579,8 +509,6 @@ export function createImagePeel(
       frame = 0
       playing = 0
       motion.removeEventListener("change", onMotion)
-      colorScheme.removeEventListener("change", onTheme)
-      themeObserver.disconnect()
       window.removeEventListener(IMAGE_PEEL_PLAY, onPlay)
       for (const target of scrollers) {
         target.removeEventListener("scroll", onScroll)

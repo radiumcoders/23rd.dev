@@ -353,13 +353,13 @@ Pitfalls: there is no `tilt`, `angle`, or `intensity` prop. Reduced motion disab
 
 ## image-peel
 
-Section. An image sticks to the scrollport and peels away as you scroll. The curl starts at `side` — an edge or a corner — and travels until `amount` of the sheet has lifted. Children are the surface underneath. The paper back follows `theme`.
+Section. An image sticks to the scrollport and peels away as you scroll. The curl starts at `side` — an edge or a corner — and travels until `amount` of the sheet has lifted. Children are the surface underneath. The back of the sticker is white.
 
 Best fit: a sticker, poster, or photo that should curl off the page.
 
 Not this: a page that leans (`folio`). Image Peel does not tilt the document.
 
-Deps: none. Key props: `src` (required), `alt` (`""`), `side` (`"bottom"` — `"top" | "right" | "bottom" | "left" | "top-left" | "top-right" | "bottom-left" | "bottom-right"`), `amount` (`1`, clamped `0`–`1`), `theme` (`"auto"` — `"light" | "dark" | "auto"`), `children`, `className`, `demoId`.
+Deps: none. Key props: `src` (required), `alt` (`""`), `side` (`"bottom"` — `"top" | "right" | "bottom" | "left" | "top-left" | "top-right" | "bottom-left" | "bottom-right"`), `amount` (`1`, clamped `0`–`1`), `children`, `className`, `demoId`.
 
 ```tsx
 "use client"
@@ -374,7 +374,7 @@ export function Sticker() {
 }
 ```
 
-Pitfalls: default height is `h-[240vh]` so the sheet has room to stick. Inside a nested scroller, pass `className="h-[240%]"` instead. There is no `progress` prop — scroll drives the peel. `amount` below `1` parks the curl; it does not change the radius. Corners use a cell grid; edges use strips. Reduced motion keeps the sticker flat. `theme` `"auto"` follows `html.dark` / `html.light`, then `data-theme`, then the system. Paper back is `#F7F3EC` / `#2A2622`. React re-exports `playImagePeel` and `IMAGE_PEEL_PLAY` (`"image-peel:play"`) for the docs preview. The curl radius is internal. Transparent images are masked, so a die-cut sticker does not peel as a rectangle.
+Pitfalls: default height is `h-[240vh]` so the sheet has room to stick. Inside a nested scroller, pass `className="h-[240%]"` instead. There is no `progress` prop — scroll drives the peel. `amount` below `1` parks the curl; it does not change the radius. Corners use a cell grid; edges use strips. Reduced motion keeps the sticker flat. The back is `#FFFFFF`. There is no drop shadow. React re-exports `playImagePeel` and `IMAGE_PEEL_PLAY` (`"image-peel:play"`) for the docs preview. The curl radius is internal. Transparent images are masked, so a die-cut sticker does not peel as a rectangle.
 
 ## gooey-color-picker
 

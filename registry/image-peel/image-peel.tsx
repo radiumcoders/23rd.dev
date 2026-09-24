@@ -16,24 +16,19 @@ import {
 } from "./image-peel-vanilla"
 
 export {
-  DARK_BACK,
   IMAGE_PEEL_GRID,
   IMAGE_PEEL_PLAY,
   IMAGE_PEEL_STRIPS,
-  LIGHT_BACK,
+  PEEL_BACK,
   cornerDirection,
   imagePeelPose,
   isCornerSide,
-  isDarkTheme,
-  peelBackColor,
   playImagePeel,
-  resolveDark,
 } from "./image-peel-vanilla"
 export type {
   ImagePeelPlayDetail,
   ImagePeelRuntimeOptions,
   ImagePeelSide,
-  ImagePeelTheme,
 } from "./image-peel-vanilla"
 
 export type ImagePeelProps = ImagePeelRuntimeOptions & {
@@ -110,7 +105,6 @@ export function ImagePeel({
   alt = "",
   side = "bottom",
   amount = 1,
-  theme = "auto",
   children,
   demoId,
 }: ImagePeelProps) {
@@ -155,7 +149,6 @@ export function ImagePeel({
     instanceRef.current = createImagePeel(root, {
       side: resolvedSide,
       amount,
-      theme,
       demoId,
     })
     return () => {
@@ -165,8 +158,8 @@ export function ImagePeel({
   }, [resolvedSide, demoId, failed, src])
 
   useEffect(() => {
-    instanceRef.current?.setOptions({ side: resolvedSide, amount, theme })
-  }, [resolvedSide, amount, theme])
+    instanceRef.current?.setOptions({ side: resolvedSide, amount })
+  }, [resolvedSide, amount])
 
   return (
     <section
@@ -180,14 +173,6 @@ export function ImagePeel({
         <div data-peel-reveal className="absolute inset-0">
           {children}
         </div>
-        <img
-          data-peel-drop
-          src={src}
-          alt=""
-          aria-hidden
-          draggable={false}
-          className="pointer-events-none absolute object-contain opacity-50 blur-2xl select-none"
-        />
         <div
           data-peel-sheet
           data-peel-grid={corner ? IMAGE_PEEL_GRID : undefined}
@@ -273,12 +258,7 @@ export function ImagePeel({
                     )}
                   />
                 </div>
-                <div data-peel-back className="absolute inset-0">
-                  <div
-                    data-peel-shade
-                    className="pointer-events-none absolute inset-0 bg-black opacity-0"
-                  />
-                </div>
+                <div data-peel-back className="absolute inset-0 bg-white" />
               </div>
             ))
           )}
