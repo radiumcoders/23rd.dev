@@ -16,7 +16,10 @@ export function formatStarCount(count: number) {
   }).format(count)
 }
 
-/** Cached star count for the docs header. Revalidates every 10 minutes. */
+/** Star count is read from GitHub once a day. */
+export const GITHUB_STARS_REVALIDATE_SECONDS = 60 * 60 * 24
+
+/** Cached star count. Revalidates once a day. */
 export async function getGithubStars(): Promise<number | null> {
   try {
     const res = await fetch(`https://api.github.com/repos/${REPO}`, {
@@ -24,7 +27,7 @@ export async function getGithubStars(): Promise<number | null> {
         Accept: "application/vnd.github+json",
         "User-Agent": "23rd.dev",
       },
-      next: { revalidate: 600 },
+      next: { revalidate: GITHUB_STARS_REVALIDATE_SECONDS },
     })
     if (!res.ok) return null
     const data = (await res.json()) as { stargazers_count?: number }

@@ -1,8 +1,10 @@
 import { connection } from "next/server"
 
 import { Logo } from "@/components/logo"
+import { SiteStats } from "@/components/site-stats"
 import { buttonVariants } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { getGithubStars } from "@/lib/github"
 import { buildPageMetadata } from "@/lib/seo"
 import {
   getSponsorTiers,
@@ -72,6 +74,7 @@ function SponsorSection({ tier }: { tier: SponsorTier }) {
 }
 
 export default async function SponsorsPage() {
+  const githubStars = await getGithubStars()
   await connection()
   const tiers = getSponsorTiers()
 
@@ -91,7 +94,9 @@ export default async function SponsorsPage() {
           </p>
         </header>
 
-        <div className="flex flex-col gap-12">
+        <SiteStats githubStars={githubStars} />
+
+        <div className="mt-16 flex flex-col gap-12">
           {tiers.map((tier) => (
             <SponsorSection key={tier.id} tier={tier} />
           ))}

@@ -6,6 +6,9 @@ import { join } from "node:path"
 import { ROOT } from "../scripts/registry-lib.mjs"
 
 const sponsorsLib = readFileSync(join(ROOT, "lib/sponsors.ts"), "utf8")
+const githubLib = readFileSync(join(ROOT, "lib/github.ts"), "utf8")
+const siteStats = readFileSync(join(ROOT, "components/site-stats.tsx"), "utf8")
+const siteStatsLib = readFileSync(join(ROOT, "lib/site-stats.ts"), "utf8")
 const sponsorsPage = readFileSync(
   join(ROOT, "app/(marketing)/sponsors/page.tsx"),
   "utf8"
@@ -195,4 +198,27 @@ test("sponsors prices, terms, privacy, and support email match the shadscan layo
   assert.doesNotMatch(sponsorLink, /github\.com\/sponsors/)
   assert.match(nextConfig, /source: "\/pricing"/)
   assert.match(nextConfig, /destination: "\/sponsors"/)
+})
+
+test("sponsors page lists analytics and reads GitHub stars once a day", () => {
+  assert.match(sponsorsPage, /<SiteStats/)
+  assert.match(sponsorsPage, /getGithubStars\(\)/)
+  assert.match(githubLib, /GITHUB_STARS_REVALIDATE_SECONDS = 60 \* 60 \* 24/)
+  assert.match(githubLib, /revalidate: GITHUB_STARS_REVALIDATE_SECONDS/)
+  assert.match(siteStatsLib, /registry\.include\.length/)
+  for (const label of [
+    "Pageviews last month",
+    "GitHub stars",
+    "Components",
+    "For anything you build",
+    "Pageviews since launch",
+    "Visitors · estimated",
+    "Page views",
+    "Bounce rate · live",
+    "Avg. time · live",
+    "Views per visit",
+    "GitHub stars refresh daily",
+  ]) {
+    assert.ok(siteStats.includes(label), label)
+  }
 })
