@@ -367,20 +367,31 @@ React exports `playFolioDemo`, `FOLIO_PLAY` (`"folio:play"`), `applyFolioFrame`.
 ## image-peel
 
 ```ts
-type ImagePeelSide = "top" | "right" | "bottom" | "left"
+type ImagePeelSide =
+  | "top"
+  | "right"
+  | "bottom"
+  | "left"
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right"
+
+type ImagePeelTheme = "light" | "dark" | "auto"
 
 type ImagePeelProps = {
   src: string
   alt?: string // ""
   side?: ImagePeelSide // "bottom"
   amount?: number // 1, clamped 0–1
+  theme?: ImagePeelTheme // "auto"
   className?: string
   children?: ReactNode
   demoId?: string
 }
 ```
 
-Not props: curl radius, scroll length, progress. Scroll position drives the peel. `amount` is how far the sheet lifts at the end of the section, not a live scrubber. Svelte uses `class` instead of `className`.
+Not props: curl radius, scroll length, progress, grid size. Scroll position drives the peel. `amount` is how far the sheet lifts at the end of the section, not a live scrubber. Edges curl on a straight cylinder. Corners curl along the diagonal from that corner. `theme` `"auto"` follows `html.dark` / `html.light`, then `data-theme`, then the system. Paper back is `#F7F3EC` in light and `#2A2622` in dark. Svelte uses `class` instead of `className`.
 
 ```ts
 type ImagePeelPlayDetail = {
@@ -388,7 +399,7 @@ type ImagePeelPlayDetail = {
 }
 ```
 
-React exports `playImagePeel`, `IMAGE_PEEL_PLAY` (`"image-peel:play"`), `IMAGE_PEEL_STRIPS`, `imagePeelPose`. Reduced motion: no peel.
+React exports `playImagePeel`, `IMAGE_PEEL_PLAY` (`"image-peel:play"`), `IMAGE_PEEL_STRIPS`, `IMAGE_PEEL_GRID`, `imagePeelPose`, `LIGHT_BACK`, `DARK_BACK`. Reduced motion: no peel.
 
 ## Events that are not props
 

@@ -1,11 +1,11 @@
 ---
 title: Image Peel
-description: An image sticks, then peels away as you scroll. Choose the edge and how much of it lifts.
+description: An image sticks, then peels away as you scroll. Choose an edge or a corner, and how much of it lifts.
 ---
 
 import { ImagePeelDemo } from "@/registry/image-peel/image-peel-demo"
 
-A sticker on the page. Scroll and it curls off from the edge you pick, showing whatever sits underneath. `amount` is how much of the sheet comes away by the end of the scroll — `1` clears it, `0.5` stops halfway with the curl still resting there. Drop in any image.
+A sticker on the page. Scroll and it curls off from an edge or a corner, showing whatever sits underneath. `amount` is how much of the sheet comes away by the end of the scroll — `1` clears it, `0.5` stops halfway with the curl still resting there. The paper on the back of the curl follows the page theme. Drop in any image.
 
 <ImagePeelDemo />
 
@@ -30,8 +30,8 @@ import { ImagePeel } from "@/components/ui/image-peel"
 
 export function Sticker() {
   return (
-    <ImagePeel src="/sticker.png" alt="Sticker" side="bottom" amount={1}>
-      <div className="h-full bg-[#d5cbbd]" />
+    <ImagePeel src="/sticker.png" alt="Sticker" side="bottom-right" amount={1}>
+      <div className="h-full bg-background" />
     </ImagePeel>
   )
 }
@@ -43,8 +43,8 @@ export function Sticker() {
   import ImagePeel from "$lib/components/ui/image-peel.svelte"
 </script>
 
-<ImagePeel src="/sticker.png" alt="Sticker" side="bottom" amount={1}>
-  <div class="h-full bg-[#d5cbbd]"></div>
+<ImagePeel src="/sticker.png" alt="Sticker" side="bottom-right" amount={1}>
+  <div class="h-full bg-background"></div>
 </ImagePeel>
 ```
   </FrameworkSvelte>
@@ -54,14 +54,15 @@ Inside a smaller scroller, set the height to a multiple of that frame (`h-[240%]
 
 ## Props
 
-| Prop        | Type                                     | Default    |
-| ----------- | ---------------------------------------- | ---------- |
-| `src`       | `string`                                 | —          |
-| `alt`       | `string`                                 | `""`       |
-| `side`      | `"top" \| "right" \| "bottom" \| "left"` | `"bottom"` |
-| `amount`    | `number`                                 | `1`        |
-| `className` | `string`                                 | —          |
-| `children`  | `ReactNode`                              | —          |
-| `demoId`    | `string`                                 | —          |
+| Prop        | Type                                                                                                                              | Default    |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| `src`       | `string`                                                                                                                          | —          |
+| `alt`       | `string`                                                                                                                          | `""`       |
+| `side`      | `"top" \| "right" \| "bottom" \| "left" \| "top-left" \| "top-right" \| "bottom-left" \| "bottom-right"`                           | `"bottom"` |
+| `amount`    | `number`                                                                                                                          | `1`        |
+| `theme`     | `"light" \| "dark" \| "auto"`                                                                                                     | `"auto"`   |
+| `className` | `string`                                                                                                                          | —          |
+| `children`  | `ReactNode`                                                                                                                       | —          |
+| `demoId`    | `string`                                                                                                                          | —          |
 
-`amount` is clamped to `0`–`1`. `side` falls back to `"bottom"` if it is not one of those four edges. Transparent images keep their shape — a die-cut sticker peels as a sticker, not as a rectangle.
+`amount` is clamped to `0`–`1`. `side` falls back to `"bottom"` when it is not one of those eight. Edges roll on a straight cylinder. Corners roll on the diagonal, so the curl leaves from that corner. `theme` `"auto"` follows `html.dark` / `html.light`, then `data-theme`, then the system. The paper back is warm white in light mode and a dark brown in dark mode. Transparent images keep their shape — a die-cut sticker peels as a sticker, not as a rectangle.

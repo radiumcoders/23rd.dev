@@ -201,14 +201,14 @@ import { ImagePeel } from "@/components/ui/image-peel"
 
 export function Sticker() {
   return (
-    <ImagePeel src="/sticker.png" alt="Sticker" side="right" amount={1}>
-      <div className="h-full bg-[#d5cbbd]" />
+    <ImagePeel src="/sticker.png" alt="Sticker" side="bottom-right" amount={1}>
+      <div className="h-full bg-background" />
     </ImagePeel>
   )
 }
 ```
 
-`side` is the edge that lifts. `amount` stops the peel early when it is below `1`. Inside a frame that scrolls, set `className="h-[240%]"`. There is no progress prop.
+`side` is the edge or corner that lifts (`bottom-right` curls from that corner). `amount` stops the peel early when it is below `1`. `theme` defaults to `"auto"` and paints the paper back for light or dark. Inside a frame that scrolls, set `className="h-[240%]"`. There is no progress prop.
 
 ## Interactive accents
 

@@ -142,7 +142,7 @@ Same shell for `ShaderFire`, `ShaderSky`, `AsciiFluid`, `LogoBurst`, `PhosphorSc
 
 `Folio` and `StretchyFooter` are the scroller by default. Put the page in `children`. For a real document, set `windowScroll` and mark the tilting or lifting element (`data-folio-page` or `data-stretchy-page`).
 
-`ImagePeel` is a tall sticky section (`h-[240vh]` unless you override it). Pass `src`. The sheet sticks to the nearest scroll parent and curls off as that scroller moves. `children` is what shows underneath. `side` is the edge that lifts. `amount` is how much of the image peels away at the end of the scroll (`1` clears it). Transparent pixels stay transparent, so a die-cut sticker peels in its own shape.
+`ImagePeel` is a tall sticky section (`h-[240vh]` unless you override it). Pass `src`. The sheet sticks to the nearest scroll parent and curls off as that scroller moves. `children` is what shows underneath. `side` is the edge or corner that lifts (`top`, `right`, `bottom`, `left`, `top-left`, `top-right`, `bottom-left`, `bottom-right`). `amount` is how much of the image peels away at the end of the scroll (`1` clears it). `theme` is `"light" | "dark" | "auto"` and paints the paper back. Transparent pixels stay transparent, so a die-cut sticker peels in its own shape.
 
 `TangleFooter` is a `<footer>`. It is not a background. Place it after the page.
 
@@ -166,6 +166,7 @@ Exceptions:
 - `TangleFooter` paints `--tangle-ribbon` and `--tangle-text` on itself when `ribbon` / `textColor` are omitted. Pass those props to override. `background` omitted uses `#EFEAE2` / `#121210`.
 - `PhosphorScore` canvas is transparent in light mode (`LIGHT_BG`) and `#050505` in dark mode (`DARK_BG`). A dark phosphor field is a hard rectangle. Clip the parent (`overflow-hidden rounded-*`) if the square edge matters. Open issue: the docs preview border looks boxed ([#28](https://github.com/radiumcoders/23rd.dev/issues/28)).
 - `Folio` tilt peaks at an internal 16°. It is not a prop. On a Mac trackpad the lean is easy to miss ([#29](https://github.com/radiumcoders/23rd.dev/issues/29)). Do not add a tilt prop that does not exist. `playFolioDemo` only previews the lean; it is not the interaction.
+- `ImagePeel` paper back is `#F7F3EC` in light and `#2A2622` in dark. Corner sides curl on the diagonal; edges curl on a straight cylinder.
 
 `prefers-reduced-motion: reduce` is honored by the canvas and motion components (still frame, no tilt, no stretch, no tangle spin). Do not add a `reducedMotion` prop.
 

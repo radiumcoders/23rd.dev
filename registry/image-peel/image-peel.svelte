@@ -5,10 +5,13 @@
   import { onMount } from "svelte"
   import {
     createImagePeel,
+    IMAGE_PEEL_GRID,
     IMAGE_PEEL_STRIPS,
+    isCornerSide,
     normalizeSide,
     type ImagePeelInstance,
     type ImagePeelSide,
+    type ImagePeelTheme,
   } from "./image-peel-vanilla"
 
   function cn(...parts: Array<string | false | null | undefined>) {
@@ -21,13 +24,22 @@
     src: string
     /** Accessible name for the sheet. Default `""`. */
     alt?: string
-    /** Edge that lifts first. Default `"bottom"`. */
+    /**
+     * Edge or corner that lifts first.
+     * Default `"bottom"`.
+     */
     side?: ImagePeelSide
     /**
      * How much of the sheet peels away at the end of the scroll, from 0 to 1.
      * `1` clears the sheet. `0.5` stops halfway. Default `1`.
      */
     amount?: number
+    /**
+     * Paper color on the back of the curl.
+     * `"auto"` follows `html.dark` / `html.light`, then `data-theme`, then the system.
+     * Default `"auto"`.
+     */
+    theme?: ImagePeelTheme
     /** What is waiting under the sheet. */
     children?: import("svelte").Snippet
     /**
@@ -43,6 +55,7 @@
     alt = "",
     side = "bottom",
     amount = 1,
+    theme = "auto",
     children,
     demoId,
   }: Props = $props()
@@ -51,13 +64,7 @@
   let failed = $state(false)
   let instance: ImagePeelInstance | null = null
 
-  const strips = Array.from({ length: IMAGE_PEEL_STRIPS }, (_, index) => index)
-  function stickerMask(index: number, isHorizontal: boolean) {
-    const count = IMAGE_PEEL_STRIPS
-    const offset = (index / (count - 1)) * 100
-    const image = `url(${JSON.stringify(src)})`
-    const size = isHorizontal ? `100% ${count * 100}%` : `${count * 100}% 100%`
-    const position = isHorizontal ? `0% ${offset}%` : `${offset}% 0%`
+  function maskStyle(image: string, size: string, position: string) {
     return [
       `mask-image:${image}`,
       `-webkit-mask-image:${image}`,
@@ -71,15 +78,48 @@
     ].join(";")
   }
 
-  const shadeClass: Record<ImagePeelSide, string> = {
-    top: "bg-gradient-to-b from-black via-black/70 to-transparent",
-    bottom: "bg-gradient-to-t from-black via-black/70 to-transparent",
-    left: "bg-gradient-to-r from-black via-black/70 to-transparent",
-    right: "bg-gradient-to-l from-black via-black/70 to-transparent",
+  function stickerMask(index: number, isHorizontal: boolean) {
+    const count = IMAGE_PEEL_STRIPS
+    const offset = (index / (count - 1)) * 100
+    const image = `url(${JSON.stringify(src)})`
+    const size = isHorizontal ? `100% ${count * 100}%` : `${count * 100}% 100%`
+    const position = isHorizontal ? `0% ${offset}%` : `${offset}% 0%`
+    return maskStyle(image, size, position)
+  }
+
+  function cellMask(col: number, row: number) {
+    const count = IMAGE_PEEL_GRID
+    const image = `url(${JSON.stringify(src)})`
+    const position = `${(col / (count - 1)) * 100}% ${(row / (count - 1)) * 100}%`
+    const size = `${count * 100}% ${count * 100}%`
+    return maskStyle(image, size, position)
+  }
+
+  function shadeClassFor(value: ImagePeelSide) {
+    if (isCornerSide(value)) return "bg-black"
+    if (value === "top") return "bg-gradient-to-b from-black via-black/70 to-transparent"
+    if (value === "bottom")
+      return "bg-gradient-to-t from-black via-black/70 to-transparent"
+    if (value === "left") return "bg-gradient-to-r from-black via-black/70 to-transparent"
+    return "bg-gradient-to-l from-black via-black/70 to-transparent"
   }
 
   let resolvedSide = $derived(normalizeSide(side))
+  let corner = $derived(isCornerSide(resolvedSide))
   let horizontal = $derived(resolvedSide === "top" || resolvedSide === "bottom")
+  let cells = $derived(
+    corner
+      ? Array.from({ length: IMAGE_PEEL_GRID * IMAGE_PEEL_GRID }, (_, index) => ({
+          index,
+          col: index % IMAGE_PEEL_GRID,
+          row: Math.floor(index / IMAGE_PEEL_GRID),
+        }))
+      : Array.from({ length: IMAGE_PEEL_STRIPS }, (_, index) => ({
+          index,
+          col: 0,
+          row: index,
+        }))
+  )
 
   $effect(() => {
     const current = src
@@ -125,7 +165,7 @@
   })
 
   $effect(() => {
-    instance?.setOptions({ side: resolvedSide, amount })
+    instance?.setOptions({ side: resolvedSide, amount, theme })
   })
 </script>
 
@@ -136,7 +176,7 @@
   aria-label={alt || undefined}
   class={cn("relative h-[240vh]", className)}
 >
-  <div data-peel-stage class="sticky top-0 h-svh w-full">
+  <div data-peel-stage class="sticky top-0 h-svh w-full bg-background">
     <div data-peel-reveal class="absolute inset-0">
       {@render children?.()}
     </div>
@@ -148,26 +188,34 @@
       draggable="false"
       class="pointer-events-none absolute object-contain opacity-50 blur-2xl select-none"
     />
-    <div data-peel-sheet class="absolute perspective-[1100px]">
+    <div
+      data-peel-sheet
+      data-peel-grid={corner ? IMAGE_PEEL_GRID : undefined}
+      class="absolute perspective-[1100px]"
+    >
       {#if failed}
         <div class="flex h-full items-end bg-muted p-8 text-sm text-muted-foreground">
           This image didn't load.
         </div>
       {:else}
-        {#each strips as index (`${resolvedSide}-${index}`)}
+        {#each cells as cell (`${resolvedSide}-${cell.index}`)}
           <div
             data-peel-strip
-            data-index={index}
+            data-index={cell.index}
+            data-col={corner ? cell.col : undefined}
+            data-row={corner ? cell.row : undefined}
             aria-hidden="true"
             class={cn(
               "absolute [transform-style:preserve-3d]",
-              horizontal ? "inset-x-0" : "inset-y-0"
+              !corner && (horizontal ? "inset-x-0" : "inset-y-0")
             )}
-            style={`${
-              horizontal
-                ? `top:${(index / IMAGE_PEEL_STRIPS) * 100}%;height:calc(${100 / IMAGE_PEEL_STRIPS}% + 2px);`
-                : `left:${(index / IMAGE_PEEL_STRIPS) * 100}%;width:calc(${100 / IMAGE_PEEL_STRIPS}% + 2px);`
-            }${stickerMask(index, horizontal)}`}
+            style={corner
+              ? `left:${(cell.col / IMAGE_PEEL_GRID) * 100}%;top:${(cell.row / IMAGE_PEEL_GRID) * 100}%;width:calc(${100 / IMAGE_PEEL_GRID}% + 2px);height:calc(${100 / IMAGE_PEEL_GRID}% + 2px);${cellMask(cell.col, cell.row)}`
+              : `${
+                  horizontal
+                    ? `top:${(cell.index / IMAGE_PEEL_STRIPS) * 100}%;height:calc(${100 / IMAGE_PEEL_STRIPS}% + 2px);`
+                    : `left:${(cell.index / IMAGE_PEEL_STRIPS) * 100}%;width:calc(${100 / IMAGE_PEEL_STRIPS}% + 2px);`
+                }${stickerMask(cell.index, horizontal)}`}
           >
             <div data-peel-front class="absolute inset-0 overflow-hidden">
               <img
@@ -175,22 +223,21 @@
                 alt=""
                 draggable="false"
                 class="absolute max-w-none object-cover select-none"
-                style={horizontal
-                  ? `width:100%;height:${IMAGE_PEEL_STRIPS * 100}%;top:${-index * 100}%;left:0;`
-                  : `height:100%;width:${IMAGE_PEEL_STRIPS * 100}%;left:${-index * 100}%;top:0;`}
+                style={corner
+                  ? `width:${IMAGE_PEEL_GRID * 100}%;height:${IMAGE_PEEL_GRID * 100}%;left:${-cell.col * 100}%;top:${-cell.row * 100}%;`
+                  : horizontal
+                    ? `width:100%;height:${IMAGE_PEEL_STRIPS * 100}%;top:${-cell.index * 100}%;left:0;`
+                    : `height:100%;width:${IMAGE_PEEL_STRIPS * 100}%;left:${-cell.index * 100}%;top:0;`}
               />
               <div
                 data-peel-shade
                 class={cn(
                   "pointer-events-none absolute inset-0 opacity-0",
-                  shadeClass[resolvedSide]
+                  shadeClassFor(resolvedSide)
                 )}
               ></div>
             </div>
-            <div
-              data-peel-back
-              class="absolute inset-0 bg-[#f4f0e6] shadow-[inset_0_0_24px_rgba(0,0,0,0.18)] dark:bg-[#2a2824]"
-            >
+            <div data-peel-back class="absolute inset-0">
               <div
                 data-peel-shade
                 class="pointer-events-none absolute inset-0 bg-black opacity-0"

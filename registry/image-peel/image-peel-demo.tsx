@@ -19,7 +19,16 @@ import {
 const PREVIEW_DEMO_ID = "image-peel-preview"
 const SAMPLE = "/image-peel.png"
 
-const SIDES: ImagePeelSide[] = ["top", "right", "bottom", "left"]
+const SIDES: ImagePeelSide[] = [
+  "top",
+  "right",
+  "bottom",
+  "left",
+  "top-left",
+  "top-right",
+  "bottom-left",
+  "bottom-right",
+]
 
 export function ImagePeelDemo() {
   const [playing, setPlaying] = useState(false)
@@ -77,9 +86,9 @@ export function ImagePeelDemo() {
               amount={props.amount}
               className="h-[240%]"
             >
-              <div className="flex h-full items-end justify-center bg-[#d5cbbd] px-8 pb-16">
-                <p className="max-w-xs text-center text-sm leading-relaxed text-[#1d2440]/55">
-                  The desk, once the sticker lifts.
+              <div className="flex h-full items-end justify-center bg-background px-8 pb-16">
+                <p className="max-w-xs text-center text-sm leading-relaxed text-muted-foreground">
+                  Under the sheet, in whatever theme the page is using.
                 </p>
               </div>
             </ImagePeel>
