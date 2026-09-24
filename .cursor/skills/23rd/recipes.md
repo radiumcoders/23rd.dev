@@ -208,7 +208,7 @@ export function Sticker() {
 }
 ```
 
-`side` is the edge or corner that lifts (`bottom-right` curls from that corner). `amount` stops the peel early when it is below `1`. The back of the sticker is white. Inside a frame that scrolls, set `className="h-[240%]"`. There is no progress prop.
+`side` is the corner that lifts (`bottom-right` curls from that corner). `amount` stops the peel early when it is below `1`. The back of the sticker is white. Inside a frame that scrolls, set `className="h-[240%]"`. There is no progress prop.
 
 ## Interactive accents
 

@@ -1,7 +1,5 @@
 export const IMAGE_PEEL_PLAY = "image-peel:play"
-/** Strips used to roll an edge peel into a cylinder. */
-export const IMAGE_PEEL_STRIPS = 42
-/** Cells along each side of a corner peel. */
+/** Cells along each side of the corner peel. */
 export const IMAGE_PEEL_GRID = 26
 /** Curl radius as a fraction of the peel axis. */
 const RADIUS = 0.16
@@ -10,19 +8,12 @@ const RADIUS = 0.16
 export const PEEL_BACK = "#FFFFFF"
 
 export type ImagePeelSide =
-  | "top"
-  | "right"
-  | "bottom"
-  | "left"
-  | "top-left"
-  | "top-right"
-  | "bottom-left"
-  | "bottom-right"
+  "top-left" | "top-right" | "bottom-left" | "bottom-right"
 
 export type ImagePeelRuntimeOptions = {
   /**
-   * Edge or corner that lifts first.
-   * Default `"bottom"`.
+   * Corner that lifts first.
+   * Default `"bottom-right"`.
    */
   side?: ImagePeelSide
   /**
@@ -44,10 +35,6 @@ export type ImagePeelInstance = {
 }
 
 const SIDES = new Set<ImagePeelSide>([
-  "top",
-  "right",
-  "bottom",
-  "left",
   "top-left",
   "top-right",
   "bottom-left",
@@ -70,20 +57,7 @@ function clamp01(value: number) {
 
 export function normalizeSide(side: string | undefined): ImagePeelSide {
   if (side && SIDES.has(side as ImagePeelSide)) return side as ImagePeelSide
-  return "bottom"
-}
-
-function isHorizontal(side: ImagePeelSide) {
-  return side === "top" || side === "bottom"
-}
-
-export function isCornerSide(side: ImagePeelSide) {
-  return (
-    side === "top-left" ||
-    side === "top-right" ||
-    side === "bottom-left" ||
-    side === "bottom-right"
-  )
+  return "bottom-right"
 }
 
 function cornerProgress(
@@ -112,31 +86,27 @@ export function cornerDirection(side: ImagePeelSide) {
       return { x: 1, y: -1 }
     case "bottom-right":
       return { x: -1, y: -1 }
-    default:
-      return null
   }
 }
 
 /**
- * `u` is the strip center along the sheet, 0 at the top or left and 1 at
- * the bottom or right. The sheet stays flat until the tangent reaches it,
+ * `u` is the cell center along the diagonal, 0 at the peeling corner and 1
+ * at the opposite corner. The sheet stays flat until the tangent reaches it,
  * then rides a cylinder back over the part that is still stuck down.
  */
 export function imagePeelPose(
   u: number,
-  side: ImagePeelSide,
   progress: number,
   amount: number,
   radius = RADIUS
 ): Pose {
   const curl = radius > 0 ? radius : RADIUS
-  const fromEnd = side === "bottom" || side === "right"
   const covered = clamp01(amount)
   const travel = clamp01(progress)
   const tail = covered > 0.999 ? Math.PI * curl : 0
   const distance = travel * (covered + tail)
-  const tangent = fromEnd ? 1 - distance : distance
-  const past = fromEnd ? u - tangent : tangent - u
+  const tangent = distance
+  const past = tangent - u
 
   if (past <= 0) {
     const band = past > -curl ? 1 - -past / curl : 0
@@ -163,15 +133,13 @@ export function imagePeelPose(
     }
   }
 
-  const dir = fromEnd ? -1 : 1
-  const visualU = tangent + dir * curl * Math.sin(theta)
+  const visualU = tangent + curl * Math.sin(theta)
   const front = theta <= Math.PI / 2
   const rotMag = front ? theta : Math.PI - theta
-  const sign = side === "top" || side === "left" ? -1 : 1
 
   return {
     hidden: false,
-    rotate: sign * rotMag * (180 / Math.PI),
+    rotate: -rotMag * (180 / Math.PI),
     shift: visualU - u,
     lift: curl * (1 - Math.cos(theta)),
     shade: (1 - Math.abs(Math.cos(theta))) * 0.78,
@@ -313,14 +281,15 @@ export function createImagePeel(
     fitSticker()
 
     const amount = clamp01(runtime.amount)
-    const horizontal = isHorizontal(runtime.side)
     const corner = cornerDirection(runtime.side)
     const faces = strips()
-    const count = Math.max(1, faces.length)
-    const grid = Number(sheet.dataset.peelGrid || 0)
-    const axis = horizontal ? sheet.clientHeight : sheet.clientWidth
-    const safeAxis = Math.max(1, axis)
+    const grid = Number(sheet.dataset.peelGrid || IMAGE_PEEL_GRID)
     const posed = reduce ? 0 : progress
+    const diag = Math.hypot(sheet.clientWidth, sheet.clientHeight)
+    const shortSide = Math.max(
+      1,
+      Math.min(sheet.clientWidth, sheet.clientHeight)
+    )
 
     for (const strip of faces) {
       const backFace = strip.querySelector<HTMLElement>("[data-peel-back]")
@@ -328,22 +297,12 @@ export function createImagePeel(
         backFace.style.background = PEEL_BACK
         backFace.style.boxShadow = "none"
       }
-      const index = Number(strip.dataset.index ?? "0")
-      const u = (index + 0.5) / count
-      const diag = Math.hypot(sheet.clientWidth, sheet.clientHeight)
-      const shortSide = Math.max(
-        1,
-        Math.min(sheet.clientWidth, sheet.clientHeight)
+      const pose = imagePeelPose(
+        cornerProgress(strip, grid, corner),
+        posed,
+        amount,
+        (RADIUS * shortSide) / Math.max(1, diag)
       )
-      const pose = corner
-        ? imagePeelPose(
-            cornerProgress(strip, grid, corner),
-            "top",
-            posed,
-            amount,
-            (RADIUS * shortSide) / Math.max(1, diag)
-          )
-        : imagePeelPose(u, runtime.side, posed, amount)
       const front = strip.querySelector<HTMLElement>("[data-peel-front]")
       const back = strip.querySelector<HTMLElement>("[data-peel-back]")
       const shades = strip.querySelectorAll<HTMLElement>("[data-peel-shade]")
@@ -366,23 +325,13 @@ export function createImagePeel(
         : String(10 + Math.round(pose.lift * 100))
       if (hidden) {
         strip.style.transform = "none"
-      } else if (corner) {
+      } else {
         const along = pose.shift * diag
         const unit = 1 / Math.hypot(corner.x, corner.y)
         const shiftX = along * corner.x * unit
         const shiftY = along * corner.y * unit
         const liftPx = pose.lift * diag
         strip.style.transform = `translate3d(${shiftX}px, ${shiftY}px, ${liftPx}px) rotate3d(${corner.y}, ${-corner.x}, 0, ${pose.rotate}deg)`
-      } else {
-        const shiftPx = pose.shift * safeAxis
-        const liftPx = pose.lift * safeAxis
-        const rotate = horizontal
-          ? `rotateX(${pose.rotate}deg)`
-          : `rotateY(${pose.rotate}deg)`
-        const translate = horizontal
-          ? `translate3d(0px, ${shiftPx}px, ${liftPx}px)`
-          : `translate3d(${shiftPx}px, 0px, ${liftPx}px)`
-        strip.style.transform = `${translate} ${rotate}`
       }
       if (front)
         front.style.visibility = pose.front && !hidden ? "visible" : "hidden"

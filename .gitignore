@@ -31,7 +31,8 @@
 .registry-standalone
 
 # local CLI install demos
-/tmp-demos
+/tmp-demos/*
+!/tmp-demos/sticker-peel/
 
 # misc
 .DS_Store

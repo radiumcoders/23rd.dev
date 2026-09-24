@@ -368,10 +368,6 @@ React exports `playFolioDemo`, `FOLIO_PLAY` (`"folio:play"`), `applyFolioFrame`.
 
 ```ts
 type ImagePeelSide =
-  | "top"
-  | "right"
-  | "bottom"
-  | "left"
   | "top-left"
   | "top-right"
   | "bottom-left"
@@ -380,7 +376,7 @@ type ImagePeelSide =
 type ImagePeelProps = {
   src: string
   alt?: string // ""
-  side?: ImagePeelSide // "bottom"
+  side?: ImagePeelSide // "bottom-right"
   amount?: number // 1, clamped 0–1
   className?: string
   children?: ReactNode
@@ -388,7 +384,7 @@ type ImagePeelProps = {
 }
 ```
 
-Not props: curl radius, scroll length, progress, grid size, paper color. Scroll position drives the peel. `amount` is how far the sheet lifts at the end of the section, not a live scrubber. Edges curl on a straight cylinder. Corners curl along the diagonal from that corner. The back of the sheet is `#FFFFFF` (`PEEL_BACK`). There is no drop shadow behind the sticker. Svelte uses `class` instead of `className`.
+Not props: curl radius, scroll length, progress, grid size, paper color, edge sides. Scroll position drives the peel. `amount` is how far the sheet lifts at the end of the section, not a live scrubber. The curl leaves along the diagonal from `side`. The back of the sheet is `#FFFFFF` (`PEEL_BACK`). There is no drop shadow behind the sticker. Svelte uses `class` instead of `className`. Inspiration: [React Bits Sticker Peel](https://reactbits.dev/animations/sticker-peel).
 
 ```ts
 type ImagePeelPlayDetail = {
@@ -396,7 +392,7 @@ type ImagePeelPlayDetail = {
 }
 ```
 
-React exports `playImagePeel`, `IMAGE_PEEL_PLAY` (`"image-peel:play"`), `IMAGE_PEEL_STRIPS`, `IMAGE_PEEL_GRID`, `imagePeelPose`, `PEEL_BACK`. Reduced motion: no peel.
+React exports `playImagePeel`, `IMAGE_PEEL_PLAY` (`"image-peel:play"`), `IMAGE_PEEL_GRID`, `imagePeelPose`, `PEEL_BACK`. Reduced motion: no peel.
 
 ## Events that are not props
 

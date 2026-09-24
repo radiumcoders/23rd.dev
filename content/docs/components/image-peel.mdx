@@ -1,11 +1,11 @@
 ---
 title: Image Peel
-description: An image sticks, then peels away as you scroll. Choose an edge or a corner, and how much of it lifts.
+description: An image sticks, then peels away as you scroll. Choose a corner, and how much of it lifts.
 ---
 
 import { ImagePeelDemo } from "@/registry/image-peel/image-peel-demo"
 
-A sticker on the page. Scroll and it curls off from an edge or a corner, showing whatever sits underneath. `amount` is how much of the sheet comes away by the end of the scroll — `1` clears it, `0.5` stops halfway with the curl still resting there. The back of the sticker is white. Drop in any image.
+A sticker on the page. Scroll and it curls off from a corner, showing whatever sits underneath. `amount` is how much of the sheet comes away by the end of the scroll — `1` clears it, `0.5` stops halfway with the curl still resting there. The back of the sticker is white. Drop in any image.
 
 <ImagePeelDemo />
 
@@ -58,10 +58,14 @@ Inside a smaller scroller, set the height to a multiple of that frame (`h-[240%]
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------- | ---------- |
 | `src`       | `string`                                                                                                                          | —          |
 | `alt`       | `string`                                                                                                                          | `""`       |
-| `side`      | `"top" \| "right" \| "bottom" \| "left" \| "top-left" \| "top-right" \| "bottom-left" \| "bottom-right"`                           | `"bottom"` |
+| `side`      | `"top-left" \| "top-right" \| "bottom-left" \| "bottom-right"`                                                                    | `"bottom-right"` |
 | `amount`    | `number`                                                                                                                          | `1`        |
 | `className` | `string`                                                                                                                          | —          |
 | `children`  | `ReactNode`                                                                                                                       | —          |
 | `demoId`    | `string`                                                                                                                          | —          |
 
-`amount` is clamped to `0`–`1`. `side` falls back to `"bottom"` when it is not one of those eight. Edges roll on a straight cylinder. Corners roll on the diagonal, so the curl leaves from that corner. The back of the curl is `#FFFFFF`. Transparent images keep their shape — a die-cut sticker peels as a sticker, not as a rectangle.
+`amount` is clamped to `0`–`1`. `side` falls back to `"bottom-right"` when it is not one of those four corners. The curl rolls on the diagonal from that corner. The back of the curl is `#FFFFFF`. Transparent images keep their shape — a die-cut sticker peels as a sticker, not as a rectangle.
+
+## Inspiration
+
+The corner lift is in the same family as [Sticker Peel](https://reactbits.dev/animations/sticker-peel) on React Bits. That sticker peels on hover. This one peels as you scroll, from a corner, with a white back and no shadow behind it. A local copy of the React Bits component is in `tmp-demos/sticker-peel` for reference. It is not part of the registry.

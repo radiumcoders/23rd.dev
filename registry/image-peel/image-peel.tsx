@@ -7,22 +7,17 @@ import { cn } from "@/lib/utils"
 import {
   createImagePeel,
   IMAGE_PEEL_GRID,
-  IMAGE_PEEL_STRIPS,
-  isCornerSide,
   normalizeSide,
   type ImagePeelInstance,
   type ImagePeelRuntimeOptions,
-  type ImagePeelSide,
 } from "./image-peel-vanilla"
 
 export {
   IMAGE_PEEL_GRID,
   IMAGE_PEEL_PLAY,
-  IMAGE_PEEL_STRIPS,
   PEEL_BACK,
   cornerDirection,
   imagePeelPose,
-  isCornerSide,
   playImagePeel,
 } from "./image-peel-vanilla"
 export type {
@@ -46,17 +41,6 @@ export type ImagePeelProps = ImagePeelRuntimeOptions & {
   demoId?: string
 }
 
-function shadeClassFor(side: ImagePeelSide) {
-  if (isCornerSide(side)) return "bg-black"
-  if (side === "top")
-    return "bg-gradient-to-b from-black via-black/70 to-transparent"
-  if (side === "bottom")
-    return "bg-gradient-to-t from-black via-black/70 to-transparent"
-  if (side === "left")
-    return "bg-gradient-to-r from-black via-black/70 to-transparent"
-  return "bg-gradient-to-l from-black via-black/70 to-transparent"
-}
-
 function cellMask(src: string, col: number, row: number, count: number) {
   const image = `url(${JSON.stringify(src)})`
   const position = `${(col / (count - 1)) * 100}% ${(row / (count - 1)) * 100}%`
@@ -75,35 +59,15 @@ function cellMask(src: string, col: number, row: number, count: number) {
   }
 }
 
-function stickerMask(src: string, index: number, horizontal: boolean) {
-  const count = IMAGE_PEEL_STRIPS
-  const offset = (index / (count - 1)) * 100
-  const image = `url(${JSON.stringify(src)})`
-  const size = horizontal ? `100% ${count * 100}%` : `${count * 100}% 100%`
-  const position = horizontal ? `0% ${offset}%` : `${offset}% 0%`
-  return {
-    maskImage: image,
-    WebkitMaskImage: image,
-    maskRepeat: "no-repeat",
-    WebkitMaskRepeat: "no-repeat",
-    maskSize: size,
-    WebkitMaskSize: size,
-    maskPosition: position,
-    WebkitMaskPosition: position,
-    maskMode: "alpha",
-    WebkitMaskMode: "alpha",
-  }
-}
-
 /**
  * A sheet sticks to the scrollport and peels away as it travels through.
- * The curl starts on `side` and stops after `amount` of the image has lifted.
+ * The curl starts at a corner and stops after `amount` of the image has lifted.
  */
 export function ImagePeel({
   className,
   src,
   alt = "",
-  side = "bottom",
+  side = "bottom-right",
   amount = 1,
   children,
   demoId,
@@ -112,19 +76,14 @@ export function ImagePeel({
   const instanceRef = useRef<ImagePeelInstance | null>(null)
   const [failed, setFailed] = useState(false)
   const resolvedSide = normalizeSide(side)
-  const corner = isCornerSide(resolvedSide)
-  const horizontal = resolvedSide === "top" || resolvedSide === "bottom"
-  const cells = corner
-    ? Array.from({ length: IMAGE_PEEL_GRID * IMAGE_PEEL_GRID }, (_, index) => ({
-        index,
-        col: index % IMAGE_PEEL_GRID,
-        row: Math.floor(index / IMAGE_PEEL_GRID),
-      }))
-    : Array.from({ length: IMAGE_PEEL_STRIPS }, (_, index) => ({
-        index,
-        col: 0,
-        row: index,
-      }))
+  const cells = Array.from(
+    { length: IMAGE_PEEL_GRID * IMAGE_PEEL_GRID },
+    (_, index) => ({
+      index,
+      col: index % IMAGE_PEEL_GRID,
+      row: Math.floor(index / IMAGE_PEEL_GRID),
+    })
+  )
 
   useEffect(() => {
     setFailed(false)
@@ -175,7 +134,7 @@ export function ImagePeel({
         </div>
         <div
           data-peel-sheet
-          data-peel-grid={corner ? IMAGE_PEEL_GRID : undefined}
+          data-peel-grid={IMAGE_PEEL_GRID}
           className="absolute perspective-[1100px]"
         >
           {failed ? (
@@ -188,35 +147,17 @@ export function ImagePeel({
                 key={`${resolvedSide}-${index}`}
                 data-peel-strip
                 data-index={index}
-                data-col={corner ? col : undefined}
-                data-row={corner ? row : undefined}
+                data-col={col}
+                data-row={row}
                 aria-hidden
-                className={cn(
-                  "absolute [transform-style:preserve-3d]",
-                  !corner && (horizontal ? "inset-x-0" : "inset-y-0")
-                )}
-                style={
-                  corner
-                    ? {
-                        left: `${(col / IMAGE_PEEL_GRID) * 100}%`,
-                        top: `${(row / IMAGE_PEEL_GRID) * 100}%`,
-                        width: `calc(${100 / IMAGE_PEEL_GRID}% + 2px)`,
-                        height: `calc(${100 / IMAGE_PEEL_GRID}% + 2px)`,
-                        ...cellMask(src, col, row, IMAGE_PEEL_GRID),
-                      }
-                    : {
-                        ...(horizontal
-                          ? {
-                              top: `${(index / IMAGE_PEEL_STRIPS) * 100}%`,
-                              height: `calc(${100 / IMAGE_PEEL_STRIPS}% + 2px)`,
-                            }
-                          : {
-                              left: `${(index / IMAGE_PEEL_STRIPS) * 100}%`,
-                              width: `calc(${100 / IMAGE_PEEL_STRIPS}% + 2px)`,
-                            }),
-                        ...stickerMask(src, index, horizontal),
-                      }
-                }
+                className="absolute [transform-style:preserve-3d]"
+                style={{
+                  left: `${(col / IMAGE_PEEL_GRID) * 100}%`,
+                  top: `${(row / IMAGE_PEEL_GRID) * 100}%`,
+                  width: `calc(${100 / IMAGE_PEEL_GRID}% + 2px)`,
+                  height: `calc(${100 / IMAGE_PEEL_GRID}% + 2px)`,
+                  ...cellMask(src, col, row, IMAGE_PEEL_GRID),
+                }}
               >
                 <div
                   data-peel-front
@@ -227,35 +168,16 @@ export function ImagePeel({
                     alt=""
                     draggable={false}
                     className="absolute max-w-none object-cover select-none"
-                    style={
-                      corner
-                        ? {
-                            width: `${IMAGE_PEEL_GRID * 100}%`,
-                            height: `${IMAGE_PEEL_GRID * 100}%`,
-                            left: `${-col * 100}%`,
-                            top: `${-row * 100}%`,
-                          }
-                        : horizontal
-                          ? {
-                              width: "100%",
-                              height: `${IMAGE_PEEL_STRIPS * 100}%`,
-                              top: `${-index * 100}%`,
-                              left: 0,
-                            }
-                          : {
-                              height: "100%",
-                              width: `${IMAGE_PEEL_STRIPS * 100}%`,
-                              left: `${-index * 100}%`,
-                              top: 0,
-                            }
-                    }
+                    style={{
+                      width: `${IMAGE_PEEL_GRID * 100}%`,
+                      height: `${IMAGE_PEEL_GRID * 100}%`,
+                      left: `${-col * 100}%`,
+                      top: `${-row * 100}%`,
+                    }}
                   />
                   <div
                     data-peel-shade
-                    className={cn(
-                      "pointer-events-none absolute inset-0 opacity-0",
-                      shadeClassFor(resolvedSide)
-                    )}
+                    className="pointer-events-none absolute inset-0 bg-black opacity-0"
                   />
                 </div>
                 <div data-peel-back className="absolute inset-0 bg-white" />

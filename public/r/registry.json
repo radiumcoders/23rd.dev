@@ -140,7 +140,7 @@
     {
       "name": "image-peel",
       "title": "Image Peel",
-      "description": "An image sticks, then peels away as you scroll. Pick an edge or a corner and how much lifts. The back of the sticker is white.",
+      "description": "An image sticks, then peels away as you scroll. Pick a corner and how much lifts. The back of the sticker is white.",
       "files": [
         {
           "path": "registry/image-peel/image-peel.tsx",
@@ -153,7 +153,7 @@
     {
       "name": "image-peel-svelte",
       "title": "Image Peel",
-      "description": "An image sticks, then peels away as you scroll. Pick an edge or a corner and how much lifts. The back of the sticker is white.",
+      "description": "An image sticks, then peels away as you scroll. Pick a corner and how much lifts. The back of the sticker is white.",
       "files": [
         {
           "path": "registry/image-peel/image-peel.svelte",

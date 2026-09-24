@@ -20,10 +20,6 @@ const PREVIEW_DEMO_ID = "image-peel-preview"
 const SAMPLE = "/image-peel.png"
 
 const SIDES: ImagePeelSide[] = [
-  "top",
-  "right",
-  "bottom",
-  "left",
   "top-left",
   "top-right",
   "bottom-left",
@@ -35,7 +31,7 @@ export function ImagePeelDemo() {
   const [fileName, setFileName] = useState<string | null>(null)
   const { props, updateProp, resetProps, hasChanges } = usePreviewProps({
     src: SAMPLE,
-    side: "bottom" as ImagePeelSide,
+    side: "bottom-right" as ImagePeelSide,
     amount: 1,
   })
 
