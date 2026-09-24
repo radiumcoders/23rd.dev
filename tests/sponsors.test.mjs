@@ -71,7 +71,7 @@ test("Creem checkout env keys are documented and read at request time", () => {
 
 test("checkout URLs must be https, otherwise mailto fallback is used", () => {
   const fallback =
-    "mailto:sharmaji582009@gmail.com?subject=23rd%20Gold%20sponsorship"
+    "mailto:radiumcoders@gmail.com?subject=23rd%20Gold%20sponsorship"
 
   assert.equal(resolveSponsorCheckoutHref(undefined, fallback), fallback)
   assert.equal(resolveSponsorCheckoutHref("   ", fallback), fallback)
@@ -131,7 +131,7 @@ test("sponsors prices, terms, privacy, and support email match the shadscan layo
   const site = readFileSync(join(ROOT, "lib/site.ts"), "utf8")
   const nextConfig = readFileSync(join(ROOT, "next.config.mjs"), "utf8")
 
-  assert.match(legal, /sharmaji582009@gmail\.com/)
+  assert.match(legal, /radiumcoders@gmail\.com/)
   assert.match(sponsorsPage, /Sponsor 23rd/)
   assert.match(sponsorsPage, /billed through Creem/)
   assert.match(sponsorsLib, /monthlyPriceUsd: 250/)

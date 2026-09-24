@@ -1,4 +1,4 @@
-const LEGAL_CONTACT_EMAIL = "sharmaji582009@gmail.com"
+const LEGAL_CONTACT_EMAIL = "radiumcoders@gmail.com"
 const LEGAL_CONTACT_URL = `mailto:${LEGAL_CONTACT_EMAIL}`
 const LEGAL_LAST_UPDATED = "September 24, 2026"
 const LEGAL_LAST_UPDATED_ISO = "2026-09-24"
