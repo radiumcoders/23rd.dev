@@ -1,8 +1,7 @@
-export const SUPPORT_EMAIL = "sharmaji582009@gmail.com"
+export { LEGAL_CONTACT_EMAIL as SUPPORT_EMAIL } from "@/lib/legal"
 
-export const LEGAL_LINKS = [
-  { href: "/pricing", label: "Pricing" },
-  { href: "/sponsors", label: "Partners" },
-  { href: "/terms", label: "Terms of Service" },
-  { href: "/privacy", label: "Privacy Policy" },
+/** Same secondary links shadscan puts in the site footer. */
+export const FOOTER_LINKS = [
+  { href: "/privacy", label: "Privacy" },
+  { href: "/terms", label: "Terms" },
 ] as const
