@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutGroup, motion, useReducedMotion } from "motion/react"
+import { animate, useReducedMotion } from "motion/react"
 
 import { DocsSidebarTrigger } from "@/components/docs-sidebar-trigger"
 import { Logo } from "@/components/logo"
@@ -60,21 +60,9 @@ const markSpring = {
   mass: 0.7,
 }
 
-/** The open page's marker; slides between items as you navigate. */
-function ActiveTriad() {
-  const reduce = useReducedMotion() ?? false
+/** Room the marker takes before the open page's name. */
+const MARK_GUTTER = "translate-x-[21px]"
 
-  return (
-    <motion.span
-      layoutId="docs-sidebar-active"
-      aria-hidden
-      className="me-2.5 flex shrink-0"
-      transition={reduce ? { duration: 0 } : markSpring}
-    >
-      <Triad />
-    </motion.span>
-  )
-}
 
 function PageItem({
   node,
@@ -92,10 +80,18 @@ function PageItem({
           <Link href={node.url} aria-label={String(node.name ?? "Page")} />
         }
         isActive={active}
+        data-docs-active={active || undefined}
         className="h-8 gap-0 rounded-lg bg-transparent px-2 font-normal text-foreground/70 transition-colors duration-150 hover:bg-transparent hover:text-foreground active:bg-transparent data-active:bg-transparent data-active:font-medium data-active:text-foreground data-active:hover:bg-transparent"
       >
-        {active ? <ActiveTriad /> : null}
-        <span className="min-w-0 truncate">{node.name}</span>
+        {/* The name steps aside for the marker instead of jumping. */}
+        <span
+          className={cn(
+            "min-w-0 truncate transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+            active && MARK_GUTTER
+          )}
+        >
+          {node.name}
+        </span>
       </SidebarMenuButton>
     </SidebarMenuItem>
   )
@@ -157,6 +153,12 @@ function NavItems({
   })
 }
 
+/**
+ * One marker for the whole list that springs to the open page. It stays
+ * mounted across navigations — a shared-layout swap would need both the
+ * old and new marker at once, which the page's view transition doesn't
+ * reliably allow.
+ */
 function NavList({
   nodes,
   pathname,
@@ -164,12 +166,46 @@ function NavList({
   nodes: TreeNode[]
   pathname: string
 }) {
+  const listRef = React.useRef<HTMLDivElement>(null)
+  const markRef = React.useRef<HTMLSpanElement>(null)
+  const placed = React.useRef(false)
+  const reduce = useReducedMotion() ?? false
+
+  React.useLayoutEffect(() => {
+    const list = listRef.current
+    const mark = markRef.current
+    if (!list || !mark) return
+    const active = list.querySelector<HTMLElement>("[data-docs-active]")
+    if (!active) {
+      mark.style.opacity = "0"
+      placed.current = false
+      return
+    }
+    const box = list.getBoundingClientRect()
+    const row = active.getBoundingClientRect()
+    const y = row.top - box.top + (row.height - mark.offsetHeight) / 2
+    mark.style.opacity = "1"
+    // Land in place on first paint; spring there on every page after.
+    const jump = !placed.current || reduce
+    placed.current = true
+    // Motion places it either way, so it always knows where the marker is.
+    const flight = animate(mark, { y }, jump ? { duration: 0 } : markSpring)
+    return () => flight.stop()
+  }, [pathname, reduce])
+
   return (
-    <LayoutGroup id="docs-sidebar-tabs">
+    <div ref={listRef} className="relative">
+      <span
+        ref={markRef}
+        aria-hidden
+        className="pointer-events-none absolute top-0 left-2 flex opacity-0"
+      >
+        <Triad />
+      </span>
       <SidebarMenu>
         <NavItems nodes={nodes} pathname={pathname} />
       </SidebarMenu>
-    </LayoutGroup>
+    </div>
   )
 }
 
