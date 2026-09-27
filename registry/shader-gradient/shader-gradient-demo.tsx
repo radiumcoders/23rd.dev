@@ -47,6 +47,7 @@ export function ShaderGradientDemo() {
       intensity: DEFAULT_INTENSITY,
       grain: DEFAULT_GRAIN,
       interactive: true,
+      overlay: true,
       colors: palette,
     }),
     [palette]
@@ -82,32 +83,36 @@ export function ShaderGradientDemo() {
             interactive={props.interactive}
             colors={useAutoTheme ? undefined : props.colors}
           />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--background)_0%,transparent_58%)] opacity-40 dark:opacity-65"
-          />
-          <div className="relative z-10 flex size-full flex-col items-center justify-center px-8 text-center">
-            <p className="text-xs font-medium tracking-[0.2em] text-foreground/55 uppercase">
-              Landing
-            </p>
-            <h3 className="mt-3 max-w-lg text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
-              A first screen that already feels finished
-            </h3>
-            <p className="mt-3 max-w-sm text-sm leading-relaxed text-foreground/70">
-              Headline and a primary action sit on the wash. The shader stays in
-              the back.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-              <Button type="button">Install</Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="bg-background/70 backdrop-blur-sm"
-              >
-                View API
-              </Button>
-            </div>
-          </div>
+          {props.overlay ? (
+            <>
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--background)_0%,transparent_58%)] opacity-40 dark:opacity-65"
+              />
+              <div className="relative z-10 flex size-full flex-col items-center justify-center px-8 text-center">
+                <p className="text-xs font-medium tracking-[0.2em] text-foreground/55 uppercase">
+                  Landing
+                </p>
+                <h3 className="mt-3 max-w-lg text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
+                  A first screen that already feels finished
+                </h3>
+                <p className="mt-3 max-w-sm text-sm leading-relaxed text-foreground/70">
+                  Headline and a primary action sit on the wash. The shader
+                  stays in the back.
+                </p>
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+                  <Button type="button">Install</Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="bg-background/70 backdrop-blur-sm"
+                  >
+                    View API
+                  </Button>
+                </div>
+              </div>
+            </>
+          ) : null}
         </div>
       </ComponentPreview>
 
@@ -168,6 +173,12 @@ export function ShaderGradientDemo() {
           max={1}
           step={0.05}
           onChange={(v) => updateProp("grain", v)}
+        />
+        <ControlSwitch
+          label="Copy"
+          description="Headline over the gradient"
+          checked={props.overlay}
+          onChange={(v) => updateProp("overlay", v)}
         />
         <ControlSwitch
           label="Interactive"
