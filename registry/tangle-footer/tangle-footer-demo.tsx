@@ -11,7 +11,12 @@ import { ComponentPreview } from "@/components/component-preview"
 import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import { cn } from "@/lib/utils"
-import { TangleFooter } from "@/registry/tangle-footer/tangle-footer"
+import {
+  DEFAULT_SEED,
+  DEFAULT_SPEED,
+  DEFAULT_VINES,
+  TangleFooter,
+} from "@/registry/tangle-footer/tangle-footer"
 
 /** Matches TangleFooter theme defaults (uppercase for color inputs). */
 const LIGHT = {
@@ -66,8 +71,10 @@ export function TangleFooterDemo() {
 
   const defaults = useMemo(
     () => ({
-      height: 280,
-      seed: 23,
+      height: 320,
+      vines: DEFAULT_VINES,
+      speed: DEFAULT_SPEED,
+      seed: DEFAULT_SEED,
       ribbon: palette.ribbon,
       textColor: palette.textColor,
       stage: palette.stage,
@@ -120,6 +127,8 @@ export function TangleFooterDemo() {
             <TangleFooter
               background="transparent"
               height={props.height}
+              vines={props.vines}
+              speed={props.speed}
               seed={props.seed}
               ribbon={useAutoTheme ? undefined : props.ribbon}
               textColor={useAutoTheme ? undefined : props.textColor}
@@ -134,8 +143,10 @@ export function TangleFooterDemo() {
         onReset={resetProps}
         component="TangleFooter"
         snippetProps={{
-          height: props.height,
-          seed: props.seed,
+          height: props.height === 320 ? undefined : props.height,
+          vines: props.vines === DEFAULT_VINES ? undefined : props.vines,
+          speed: props.speed === DEFAULT_SPEED ? undefined : props.speed,
+          seed: props.seed === DEFAULT_SEED ? undefined : props.seed,
           ribbon: useAutoTheme ? undefined : props.ribbon,
           textColor: useAutoTheme ? undefined : props.textColor,
         }}
@@ -158,10 +169,26 @@ export function TangleFooterDemo() {
         <ControlSlider
           label="Height"
           value={props.height}
-          min={160}
-          max={420}
+          min={200}
+          max={480}
           step={10}
           onChange={(v) => updateProp("height", v)}
+        />
+        <ControlSlider
+          label="Vines"
+          value={props.vines}
+          min={1}
+          max={8}
+          step={1}
+          onChange={(v) => updateProp("vines", v)}
+        />
+        <ControlSlider
+          label="Speed"
+          value={props.speed}
+          min={0}
+          max={120}
+          step={2}
+          onChange={(v) => updateProp("speed", v)}
         />
         <ControlSlider
           label="Seed"
