@@ -42,6 +42,7 @@ export function ShaderFireDemo() {
       intensity: 0.55,
       height: 0.45,
       interactive: true,
+      overlay: true,
       dither: false,
       pixelSize: 1,
       colors: palette,
@@ -79,32 +80,36 @@ export function ShaderFireDemo() {
             pixelSize={props.pixelSize}
             colors={useAutoTheme ? undefined : props.colors}
           />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--background)_0%,transparent_58%)] opacity-40 dark:opacity-65"
-          />
-          <div className="relative z-10 flex size-full flex-col items-center justify-center px-8 text-center">
-            <p className="text-xs font-medium tracking-[0.2em] text-foreground/55 uppercase">
-              Atmosphere
-            </p>
-            <h3 className="mt-3 max-w-lg text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
-              Heat under the headline
-            </h3>
-            <p className="mt-3 max-w-sm text-sm leading-relaxed text-foreground/70">
-              Sparse tongues rise from the bottom. Copy stays in the quiet
-              middle; the fire stays a wash.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-              <Button type="button">Install</Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="bg-background/70 backdrop-blur-sm"
-              >
-                View API
-              </Button>
-            </div>
-          </div>
+          {props.overlay ? (
+            <>
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--background)_0%,transparent_58%)] opacity-40 dark:opacity-65"
+              />
+              <div className="relative z-10 flex size-full flex-col items-center justify-center px-8 text-center">
+                <p className="text-xs font-medium tracking-[0.2em] text-foreground/55 uppercase">
+                  Atmosphere
+                </p>
+                <h3 className="mt-3 max-w-lg text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
+                  Heat under the headline
+                </h3>
+                <p className="mt-3 max-w-sm text-sm leading-relaxed text-foreground/70">
+                  Sparse tongues rise from the bottom. Copy stays in the quiet
+                  middle; the fire stays a wash.
+                </p>
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+                  <Button type="button">Install</Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="bg-background/70 backdrop-blur-sm"
+                  >
+                    View API
+                  </Button>
+                </div>
+              </div>
+            </>
+          ) : null}
         </div>
       </ComponentPreview>
 
@@ -156,6 +161,12 @@ export function ShaderFireDemo() {
           max={0.85}
           step={0.05}
           onChange={(v) => updateProp("height", v)}
+        />
+        <ControlSwitch
+          label="Copy"
+          description="Headline over the fire"
+          checked={props.overlay}
+          onChange={(v) => updateProp("overlay", v)}
         />
         <ControlSwitch
           label="Interactive"
