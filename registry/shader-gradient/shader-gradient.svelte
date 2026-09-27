@@ -6,6 +6,10 @@
   import {
     createShaderGradient,
     DARK_FALLBACK,
+    DEFAULT_BLUR,
+    DEFAULT_GRAIN,
+    DEFAULT_INTENSITY,
+    DEFAULT_SPEED,
     LIGHT_FALLBACK,
     resolveDark,
     type ShaderGradientInstance,
@@ -23,9 +27,10 @@
   let {
     class: className = "",
     colors,
-    speed = 0.14,
-    blur = 0.7,
-    intensity = 0.95,
+    speed = DEFAULT_SPEED,
+    blur = DEFAULT_BLUR,
+    intensity = DEFAULT_INTENSITY,
+    grain = DEFAULT_GRAIN,
     interactive = true,
     theme = "auto",
   }: Props = $props()
@@ -58,6 +63,7 @@
       speed,
       blur,
       intensity,
+      grain,
       interactive,
       theme,
       onThemeChange: (dark) => {
@@ -82,6 +88,7 @@
       speed,
       blur,
       intensity,
+      grain,
       interactive,
       theme,
     })
