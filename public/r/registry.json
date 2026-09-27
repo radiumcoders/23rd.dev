@@ -351,10 +351,7 @@
     {
       "name": "tangle-footer",
       "title": "Tangle Footer",
-      "description": "A footer of tangled SVG ribbons — thick dark strokes with white text running along each path via textPath.",
-      "dependencies": [
-        "motion"
-      ],
+      "description": "A footer of tangled vines — ribbons curl into loops and weave over and under each other, with your copy running along them.",
       "files": [
         {
           "path": "registry/tangle-footer/tangle-footer.tsx",
@@ -367,7 +364,7 @@
     {
       "name": "tangle-footer-svelte",
       "title": "Tangle Footer",
-      "description": "A footer of tangled SVG ribbons — thick dark strokes with white text running along each path via textPath.",
+      "description": "A footer of tangled vines — ribbons curl into loops and weave over and under each other, with your copy running along them.",
       "dependencies": [],
       "files": [
         {
