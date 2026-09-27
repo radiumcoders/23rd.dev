@@ -14,6 +14,10 @@ import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
   DARK_COLORS,
+  DEFAULT_BLUR,
+  DEFAULT_GRAIN,
+  DEFAULT_INTENSITY,
+  DEFAULT_SPEED,
   LIGHT_COLORS,
   ShaderGradient,
 } from "@/registry/shader-gradient/shader-gradient"
@@ -38,9 +42,10 @@ export function ShaderGradientDemo() {
 
   const defaults = useMemo(
     () => ({
-      speed: 0.14,
-      blur: 0.7,
-      intensity: 0.95,
+      speed: DEFAULT_SPEED,
+      blur: DEFAULT_BLUR,
+      intensity: DEFAULT_INTENSITY,
+      grain: DEFAULT_GRAIN,
       interactive: true,
       colors: palette,
     }),
@@ -73,6 +78,7 @@ export function ShaderGradientDemo() {
             speed={props.speed}
             blur={props.blur}
             intensity={props.intensity}
+            grain={props.grain}
             interactive={props.interactive}
             colors={useAutoTheme ? undefined : props.colors}
           />
@@ -88,8 +94,8 @@ export function ShaderGradientDemo() {
               A first screen that already feels finished
             </h3>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-foreground/70">
-              Headline and a primary action sit on the wash. The shader stays
-              in the back.
+              Headline and a primary action sit on the wash. The shader stays in
+              the back.
             </p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
               <Button type="button">Install</Button>
@@ -110,10 +116,12 @@ export function ShaderGradientDemo() {
         onReset={resetProps}
         component="ShaderGradient"
         snippetProps={{
-          speed: props.speed,
-          blur: props.blur,
-          intensity: props.intensity,
-          interactive: props.interactive,
+          speed: props.speed === DEFAULT_SPEED ? undefined : props.speed,
+          blur: props.blur === DEFAULT_BLUR ? undefined : props.blur,
+          intensity:
+            props.intensity === DEFAULT_INTENSITY ? undefined : props.intensity,
+          grain: props.grain === DEFAULT_GRAIN ? undefined : props.grain,
+          interactive: props.interactive ? undefined : false,
           colors: useAutoTheme ? undefined : props.colors,
         }}
       >
@@ -122,9 +130,10 @@ export function ShaderGradientDemo() {
           colors={props.colors}
           palettes={[
             palette,
-            ["#E07A5F", "#F2CC8F", "#81B29A", "#3D405B"],
-            ["#0D1B2A", "#1B263B", "#415A77", "#778DA9"],
-            ["#F72585", "#7209B7", "#3A0CA3", "#4CC9F0"],
+            // Each cycles back to its first color, so neighbours stay close.
+            ["#FF6B6B", "#FFB36B", "#FFE08A", "#FF8FB1"],
+            ["#0B3D91", "#1F7A8C", "#6CC4A1", "#2E5EAA"],
+            ["#F72585", "#B5179E", "#7209B7", "#4361EE"],
           ]}
           onChange={(colors) => updateProp("colors", colors)}
         />
@@ -152,9 +161,17 @@ export function ShaderGradientDemo() {
           step={0.05}
           onChange={(v) => updateProp("intensity", v)}
         />
+        <ControlSlider
+          label="Grain"
+          value={props.grain}
+          min={0}
+          max={1}
+          step={0.05}
+          onChange={(v) => updateProp("grain", v)}
+        />
         <ControlSwitch
           label="Interactive"
-          description="Follow the pointer"
+          description="Swirl the flow around the pointer"
           checked={props.interactive}
           onChange={(v) => updateProp("interactive", v)}
         />

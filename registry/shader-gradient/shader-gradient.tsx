@@ -7,6 +7,10 @@ import { cn } from "@/lib/utils"
 import {
   createShaderGradient,
   DARK_FALLBACK,
+  DEFAULT_BLUR,
+  DEFAULT_GRAIN,
+  DEFAULT_INTENSITY,
+  DEFAULT_SPEED,
   LIGHT_FALLBACK,
   resolveDark,
   type ShaderGradientInstance,
@@ -16,6 +20,10 @@ import {
 export {
   DARK_COLORS,
   DARK_FALLBACK,
+  DEFAULT_BLUR,
+  DEFAULT_GRAIN,
+  DEFAULT_INTENSITY,
+  DEFAULT_SPEED,
   LIGHT_COLORS,
   LIGHT_FALLBACK,
 } from "./shader-gradient-vanilla"
@@ -33,15 +41,16 @@ export type ShaderGradientProps = Omit<
 }
 
 /**
- * Quiet WebGL atmosphere for heroes and empty states — soft-focus color
- * fields behind UI. Theme-aware light / dusk.
+ * A grainy liquid gradient for heroes and empty states — the palette flows
+ * through slow warped noise under a film grain. Theme-aware.
  */
 export function ShaderGradient({
   className,
   colors,
-  speed = 0.14,
-  blur = 0.7,
-  intensity = 0.95,
+  speed = DEFAULT_SPEED,
+  blur = DEFAULT_BLUR,
+  intensity = DEFAULT_INTENSITY,
+  grain = DEFAULT_GRAIN,
   interactive = true,
   theme = "auto",
 }: ShaderGradientProps) {
@@ -73,6 +82,7 @@ export function ShaderGradient({
       speed,
       blur,
       intensity,
+      grain,
       interactive,
       theme,
       onThemeChange: setIsDark,
@@ -91,11 +101,12 @@ export function ShaderGradient({
       speed,
       blur,
       intensity,
+      grain,
       interactive,
       theme,
       onThemeChange: setIsDark,
     })
-  }, [colors, speed, blur, intensity, interactive, theme])
+  }, [colors, speed, blur, intensity, grain, interactive, theme])
 
   const fallback = isDark ? DARK_FALLBACK : LIGHT_FALLBACK
 
