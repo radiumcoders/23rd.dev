@@ -137,12 +137,14 @@ test("detectVanillaImports finds every sibling *-vanilla specifier", () => {
   ])
 })
 
-test("published stretchy-footer-svelte inlines both vanilla engines", () => {
+test("published stretchy-footer inlines the shared engine", () => {
   const dir = join(ROOT, "registry/stretchy-footer")
-  const out = publishedFileContent(dir, "stretchy-footer.svelte")
-  assert.doesNotMatch(out, /from\s+["']\.\/[^"']+-vanilla["']/)
-  assert.match(out, /export function createSpring/)
-  assert.match(out, /export function applyResistance/)
+  for (const file of ["stretchy-footer.tsx", "stretchy-footer.svelte"]) {
+    const out = publishedFileContent(dir, file)
+    assert.doesNotMatch(out, /from\s+["']\.\/[^"']+-vanilla["']/)
+    assert.doesNotMatch(out, /from\s+["']motion/)
+    assert.match(out, /export function createStretchyFooter/)
+  }
 })
 
 test("makeStandalone keeps framework imports while dropping two vanilla engines", () => {

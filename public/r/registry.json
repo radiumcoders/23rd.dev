@@ -325,9 +325,6 @@
       "name": "stretchy-footer",
       "title": "Stretchy Footer",
       "description": "Dia-style rubber overscroll — rainbow aurora stretches up past the bottom, then snaps back.",
-      "dependencies": [
-        "motion"
-      ],
       "files": [
         {
           "path": "registry/stretchy-footer/stretchy-footer.tsx",
