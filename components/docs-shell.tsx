@@ -1,32 +1,24 @@
 "use client"
 
-import {
-  useEffect,
-  useId,
-  useRef,
-  type CSSProperties,
-  type ReactNode,
-} from "react"
+import type { CSSProperties, ReactNode } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { RiHeartFill } from "@remixicon/react"
 
 import { DocsSidebar } from "@/components/docs-sidebar"
 import { DocsSidebarTrigger } from "@/components/docs-sidebar-trigger"
-import { GithubSponsor } from "@/components/github-sponsor"
 import { GithubStars } from "@/components/github-stars"
 import { Logo } from "@/components/logo"
 import { SearchTrigger } from "@/components/search-trigger"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { FOOTER_LINKS, SUPPORT_EMAIL } from "@/lib/site"
 import { FrameworkProvider } from "@/lib/framework"
-import { cn } from "@/lib/utils"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarInset,
   SidebarProvider,
+  useSidebar,
 } from "@/components/ui/sidebar"
 
 const sidebarTokens: CSSProperties = {
@@ -50,78 +42,94 @@ type FolderNode = {
 type RootNode = { type?: "root"; name: ReactNode; children: TreeNode[] }
 type TreeNode = PageNode | SeparatorNode | FolderNode
 
-const EDGE_BLUR_LAYERS = [
-  { std: 5, opaque: 0, fade: 24 },
-  { std: 3, opaque: 0, fade: 44 },
-  { std: 2, opaque: 10, fade: 66 },
-  { std: 1, opaque: 28, fade: 84 },
-  { std: 0.5, opaque: 50, fade: 100 },
-] as const
-
-function DocsEdgeBlurDefs({ uid }: { uid: string }) {
+function Wordmark() {
   return (
-    <svg
-      className="pointer-events-none absolute size-0 overflow-hidden"
-      aria-hidden
+    <Link
+      href="/docs"
+      className="flex min-w-0 items-center gap-2.5 rounded-md text-[15px] font-semibold tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <defs>
-        {EDGE_BLUR_LAYERS.map((layer, i) => (
-          <filter
-            key={i}
-            id={`docs-edge-blur-${i}-${uid}`}
-            x="-10%"
-            y="-50%"
-            width="120%"
-            height="200%"
-            colorInterpolationFilters="sRGB"
-          >
-            <feGaussianBlur in="SourceGraphic" stdDeviation={layer.std} />
-          </filter>
-        ))}
-      </defs>
-    </svg>
+      <Logo className="size-6 shrink-0" cornerRadius={5} />
+      <span className="truncate">23rd</span>
+    </Link>
   )
 }
 
-function WindowEdgeFade({
-  edge,
-  uid,
+/** Logo, search, page tree, and the footer row — shared by desktop and the mobile sheet. */
+function SidebarBody({
+  tree,
+  githubStars,
 }: {
-  edge: "top" | "bottom"
-  uid: string
+  tree: RootNode
+  githubStars: number | null
 }) {
-  const isTop = edge === "top"
-  const dir = isTop ? "to bottom" : "to top"
+  return (
+    <>
+      <SidebarHeader className="gap-4 px-4 pt-6 pb-2">
+        <Wordmark />
+        <SearchTrigger variant="field" className="w-full" />
+      </SidebarHeader>
+      <SidebarContent className="px-2 pb-6">
+        <DocsSidebar tree={tree} embedded />
+      </SidebarContent>
+      <SidebarFooter className="mx-4 gap-3 border-t px-0 pt-3 pb-4">
+        <div className="flex items-center gap-1">
+          <GithubStars stars={githubStars} className="-ms-2.5" />
+          <ThemeToggle />
+          <Link
+            href="/sponsors"
+            className="ms-auto inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <RiHeartFill className="size-3.5" />
+            Sponsor
+          </Link>
+        </div>
+        <nav
+          aria-label="Secondary"
+          className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground"
+        >
+          {FOOTER_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="hover:text-foreground"
+            >
+              {link.label}
+            </Link>
+          ))}
+          <a
+            href={`mailto:${SUPPORT_EMAIL}`}
+            className="break-all hover:text-foreground"
+          >
+            {SUPPORT_EMAIL}
+          </a>
+        </nav>
+      </SidebarFooter>
+    </>
+  )
+}
+
+/** Below `md` the page tree lives in a sheet opened from the top bar. */
+function MobileSidebar({
+  tree,
+  githubStars,
+}: {
+  tree: RootNode
+  githubStars: number | null
+}) {
+  const { isMobile } = useSidebar()
+  if (!isMobile) return null
 
   return (
-    <div
-      aria-hidden
-      className={cn(
-        "pointer-events-none absolute inset-x-0 z-10 h-16 xl:right-56",
-        isTop ? "top-0" : "bottom-0"
-      )}
-    >
-      {EDGE_BLUR_LAYERS.map((layer, i) => {
-        const mask = `linear-gradient(${dir}, black ${layer.opaque}%, transparent ${layer.fade}%)`
-        return (
-          <div
-            key={i}
-            className="absolute inset-0"
-            style={{
-              backdropFilter: `url(#docs-edge-blur-${i}-${uid})`,
-              WebkitBackdropFilter: `url(#docs-edge-blur-${i}-${uid})`,
-              maskImage: mask,
-              WebkitMaskImage: mask,
-            }}
-          />
-        )
-      })}
-    </div>
+    <Sidebar id="docs-sidebar" aria-label="Documentation">
+      <SidebarBody tree={tree} githubStars={githubStars} />
+    </Sidebar>
   )
 }
 
 /**
- * Docs chrome: full-viewport panes split by borders.
+ * Docs chrome: page tree on the bench at the left, the page on an inset
+ * sheet (rendered by the page itself, so its table of contents can sit on
+ * the bench to the right).
  */
 export function DocsShell({
   tree,
@@ -132,115 +140,31 @@ export function DocsShell({
   children: ReactNode
   githubStars?: number | null
 }) {
-  const pathname = usePathname()
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const blurUid = useId().replace(/:/g, "")
-
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: 0 })
-  }, [pathname])
-
-  useEffect(() => {
-    const html = document.documentElement
-    const { overflow: htmlOverflow, scrollbarGutter } = html.style
-    const bodyOverflow = document.body.style.overflow
-    html.style.overflow = "hidden"
-    html.style.scrollbarGutter = "auto"
-    document.body.style.overflow = "hidden"
-    return () => {
-      html.style.overflow = htmlOverflow
-      html.style.scrollbarGutter = scrollbarGutter
-      document.body.style.overflow = bodyOverflow
-    }
-  }, [])
-
   return (
     <FrameworkProvider>
       <SidebarProvider
         style={sidebarTokens}
-        className="h-svh min-h-0 overflow-hidden bg-background"
+        className="min-h-svh bg-background"
       >
-        <Sidebar
-          id="docs-sidebar"
-          aria-label="Documentation"
-          collapsible="offcanvas"
-        >
-          <SidebarHeader className="flex h-14 flex-row items-center gap-2 border-b px-4 py-0">
-            <Link
-              href="/docs"
-              className="flex min-w-0 items-center gap-2 text-sm font-medium"
-            >
-              <Logo className="size-6 shrink-0" cornerRadius={4} />
-              <span className="truncate">23rd</span>
-            </Link>
-            <DocsSidebarTrigger className="ml-auto shrink-0" />
-          </SidebarHeader>
-          <SidebarContent>
-            <DocsSidebar tree={tree} embedded />
-          </SidebarContent>
-          <SidebarFooter className="border-t px-3 py-3 text-xs text-muted-foreground">
-            <a
-              href={`mailto:${SUPPORT_EMAIL}`}
-              className="break-all hover:text-foreground"
-            >
-              {SUPPORT_EMAIL}
-            </a>
-            <nav aria-label="Secondary" className="flex flex-col gap-1.5">
-              {FOOTER_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="hover:text-foreground"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          </SidebarFooter>
-        </Sidebar>
-        <SidebarInset className="min-h-0 min-w-0 overflow-hidden">
-          <header className="flex h-14 min-w-0 shrink-0 items-center gap-1 border-b px-4">
-            <DocsSidebarTrigger showWhenCollapsed />
-            <div className="min-w-0 flex-1" />
-            <GithubSponsor className="shrink-0" />
-            <GithubStars stars={githubStars} className="shrink-0" />
-            <SearchTrigger />
-            <ThemeToggle />
-          </header>
-          <div className="relative min-h-0 flex-1 overflow-hidden">
-            <div
-              ref={scrollRef}
-              className="absolute inset-0 overflow-y-auto overscroll-y-contain"
-            >
-              {children}
-            </div>
-            <DocsEdgeBlurDefs uid={blurUid} />
-            <WindowEdgeFade edge="top" uid={blurUid} />
-            <WindowEdgeFade edge="bottom" uid={blurUid} />
-          </div>
-          <footer className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t px-4 py-2 text-xs text-muted-foreground md:hidden">
-            <a
-              href={`mailto:${SUPPORT_EMAIL}`}
-              className="break-all underline-offset-4 hover:text-foreground hover:underline"
-            >
-              {SUPPORT_EMAIL}
-            </a>
-            <nav
-              aria-label="Secondary"
-              className="flex flex-wrap gap-x-3 gap-y-1"
-            >
-              {FOOTER_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="hover:text-foreground"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          </footer>
-        </SidebarInset>
+        <MobileSidebar tree={tree} githubStars={githubStars} />
+        <div className="mx-auto flex w-full max-w-[90rem] items-start">
+          <aside
+            aria-label="Documentation"
+            className="sticky top-0 hidden h-svh w-60 shrink-0 flex-col md:flex"
+          >
+            <SidebarBody tree={tree} githubStars={githubStars} />
+          </aside>
+          <main className="flex min-w-0 flex-1 flex-col">
+            <header className="flex h-14 items-center gap-2 px-3 md:hidden">
+              <DocsSidebarTrigger />
+              <Wordmark />
+              <div className="flex-1" />
+              <SearchTrigger />
+              <ThemeToggle />
+            </header>
+            {children}
+          </main>
+        </div>
       </SidebarProvider>
     </FrameworkProvider>
   )
