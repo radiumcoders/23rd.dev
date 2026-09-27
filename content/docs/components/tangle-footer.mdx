@@ -1,11 +1,11 @@
 ---
 title: Tangle Footer
-description: Tangled text vines — ribbons curl into loops and weave over and under each other while your copy runs along them.
+description: Tangled vines for the bottom of a page — clean pen lines that curl into loops and cross over and under each other.
 ---
 
 import { TangleFooterDemo } from "@/registry/tangle-footer/tangle-footer-demo"
 
-Vines run the width of the footer, curling into loops of every size off a wandering baseline. Each one is cut into short pieces with a random stacking order, so the vines pass over and under each other — and themselves — with a thin gap where they cross. Your phrases run along the ribbons as a slow marquee, through every loop. The vines grow in the first time the footer is seen. Change **Seed** for a new tangle. Press `d` to toggle the theme.
+A few vines run the width of the footer, curling into round loops off a wandering baseline and relaxing into waves between them. Where lines cross, the one on top clears a hairline gap around itself, so every crossing reads as over or under — including loops crossing themselves. It's transparent and drawn in the text color, so it sits on any page and follows light and dark. The vines grow in once, the first time the footer is seen, then hold still. Change **Seed** for a new tangle.
 
 ## Preview
 
@@ -21,27 +21,15 @@ Or install straight from the public GitHub source registry:
 
 ## Usage
 
-Drop it at the bottom of the page. It fills the width it's given at `height` px tall; pass phrases via `lines` and each vine picks one or two.
+Put it at the bottom of the page. It fills the width it's given, `height` px tall, in the current text color — set `className="text-muted-foreground"` (or `color`) to change it.
 
 <FrameworkCode>
   <FrameworkReact>
 ```tsx
-"use client"
-
 import { TangleFooter } from "@/components/ui/tangle-footer"
 
 export function SiteFooter() {
-  return (
-    <div className="mx-auto w-full max-w-7xl">
-      <TangleFooter
-        lines={[
-          "Ship something opinionated — less boilerplate, clearer decisions.",
-          "Knows what’s going on. Can you check in with them and see what’s next.",
-          "The new timeline should be ready by Friday, although it’s probably going to slip.",
-        ]}
-      />
-    </div>
-  )
+  return <TangleFooter className="text-foreground" />
 }
 ```
   </FrameworkReact>
@@ -51,35 +39,21 @@ export function SiteFooter() {
   import TangleFooter from "$lib/components/ui/tangle-footer.svelte"
 </script>
 
-<div class="mx-auto w-full max-w-7xl">
-  <TangleFooter
-    lines={[
-      "Ship something opinionated — less boilerplate, clearer decisions.",
-      "Knows what’s going on. Can you check in with them and see what’s next.",
-      "The new timeline should be ready by Friday, although it’s probably going to slip.",
-    ]}
-  />
-</div>
+<TangleFooter class="text-foreground" />
 ```
   </FrameworkSvelte>
 </FrameworkCode>
 
 ## Props
 
-| Prop         | Type                          | Default                                |
-| ------------ | ----------------------------- | -------------------------------------- |
-| `lines`      | `string[]`                    | built-in phrases                       |
-| `ribbon`     | `string`                      | theme (`#141414` / `#E8E4DC`)          |
-| `textColor`  | `string`                      | theme (`#F4F0E8` / `#161616`)          |
-| `background` | `string`                      | theme (`#EFEAE2` / `#121210`)          |
-| `height`     | `number`                      | `320` — px                             |
-| `vines`      | `number`                      | `4` — `1`–`12`                         |
-| `speed`      | `number`                      | `36` — px per second along the vines   |
-| `thickness`  | `number`                      | scales with width — ribbon width in px |
-| `seed`       | `number`                      | `23` — a new seed is a new tangle      |
-| `theme`      | `"light" \| "dark" \| "auto"` | `"auto"`                               |
-| `label`      | `string`                      | `Site footer`                          |
-| `className`  | `string`                      | React only                             |
-| `class`      | `string`                      | Svelte only                            |
+| Prop        | Type     | Default                                       |
+| ----------- | -------- | --------------------------------------------- |
+| `height`    | `number` | `320` — px                                    |
+| `vines`     | `number` | `3` — `1`–`12`                                |
+| `thickness` | `number` | scales with width — line width in px          |
+| `color`     | `string` | `currentColor`                                |
+| `seed`      | `number` | `23` — a new seed grows a new tangle          |
+| `className` | `string` | React only                                    |
+| `class`     | `string` | Svelte only                                   |
 
-`prefers-reduced-motion: reduce` shows the grown tangle with the copy standing still. The animation also pauses while the footer is off-screen or the tab is hidden.
+`prefers-reduced-motion: reduce` skips the grow-in and shows the finished tangle.

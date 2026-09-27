@@ -1,113 +1,38 @@
 "use client"
 
-import { useLayoutEffect, useMemo } from "react"
+import { useMemo } from "react"
 
 import {
   ComponentControls,
-  ControlColor,
   ControlSlider,
 } from "@/components/component-controls"
 import { ComponentPreview } from "@/components/component-preview"
-import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { usePreviewProps } from "@/hooks/use-preview-props"
-import { cn } from "@/lib/utils"
 import {
   DEFAULT_SEED,
-  DEFAULT_SPEED,
   DEFAULT_VINES,
   TangleFooter,
 } from "@/registry/tangle-footer/tangle-footer"
 
-/** Matches TangleFooter theme defaults (uppercase for color inputs). */
-const LIGHT = {
-  ribbon: "#141414",
-  textColor: "#F4F0E8",
-  stage: "#EFEAE2",
-}
-const DARK = {
-  ribbon: "#E8E4DC",
-  textColor: "#161616",
-  stage: "#121210",
-}
-
-type ThemePalette = typeof LIGHT
-
-function norm(hex: string) {
-  return hex.trim().toUpperCase()
-}
-
-function matchesPalette(
-  ribbon: string,
-  textColor: string,
-  stage: string,
-  palette: ThemePalette
-) {
-  return (
-    norm(ribbon) === norm(palette.ribbon) &&
-    norm(textColor) === norm(palette.textColor) &&
-    norm(stage) === norm(palette.stage)
-  )
-}
-
-/** True when colors are still one of the built-in theme triples. */
-function isStockThemePalette(ribbon: string, textColor: string, stage: string) {
-  return (
-    matchesPalette(ribbon, textColor, stage, LIGHT) ||
-    matchesPalette(ribbon, textColor, stage, DARK)
-  )
-}
-
-const LINES = [
-  "Ship something opinionated — less boilerplate, clearer decisions. ",
-  "Knows what’s going on. Can you check in with them and see what’s next. ",
-  "The new timeline should be ready by Friday, although it’s probably going to slip. ",
-  "Open the docs, grab a component, and make it yours in the codebase. ",
-  "Radiant lines, shader wash, gooey picker — install what you need and move. ",
-]
+/** Where the Thickness slider sits while the footer picks its own width. */
+const AUTO_THICKNESS = 2.5
 
 export function TangleFooterDemo() {
-  const theme = useHydratedTheme()
-  const palette: ThemePalette = theme === "dark" ? DARK : LIGHT
-
   const defaults = useMemo(
     () => ({
       height: 320,
       vines: DEFAULT_VINES,
-      speed: DEFAULT_SPEED,
+      thickness: AUTO_THICKNESS,
       seed: DEFAULT_SEED,
-      ribbon: palette.ribbon,
-      textColor: palette.textColor,
-      stage: palette.stage,
     }),
-    [palette]
+    []
   )
 
-  const { props, updateProp, resetProps, hasChanges, setProps } =
+  const { props, updateProp, resetProps, hasChanges } =
     usePreviewProps(defaults)
 
-  // Keep stock ribbon/text/stage on the active theme until the user picks custom colors.
-  useLayoutEffect(() => {
-    setProps((prev) => {
-      if (!isStockThemePalette(prev.ribbon, prev.textColor, prev.stage)) {
-        return prev
-      }
-      if (matchesPalette(prev.ribbon, prev.textColor, prev.stage, palette)) {
-        return prev
-      }
-      return {
-        ...prev,
-        ribbon: palette.ribbon,
-        textColor: palette.textColor,
-        stage: palette.stage,
-      }
-    })
-  }, [palette, setProps])
-
-  const useAutoTheme = isStockThemePalette(
-    props.ribbon,
-    props.textColor,
-    props.stage
-  )
+  const thickness =
+    props.thickness === AUTO_THICKNESS ? undefined : props.thickness
 
   return (
     <>
@@ -116,25 +41,13 @@ export function TangleFooterDemo() {
         stageClassName="min-h-0 overflow-hidden p-0"
         align="start"
       >
-        <div
-          className={cn(
-            "flex h-[56svh] w-full flex-col justify-end overflow-hidden rounded-[inherit]",
-            useAutoTheme && "bg-[#EFEAE2] dark:bg-[#121210]"
-          )}
-          style={useAutoTheme ? undefined : { backgroundColor: props.stage }}
-        >
-          <div className="w-full max-w-7xl self-center">
-            <TangleFooter
-              background="transparent"
-              height={props.height}
-              vines={props.vines}
-              speed={props.speed}
-              seed={props.seed}
-              ribbon={useAutoTheme ? undefined : props.ribbon}
-              textColor={useAutoTheme ? undefined : props.textColor}
-              lines={LINES}
-            />
-          </div>
+        <div className="flex h-[56svh] w-full flex-col justify-end overflow-hidden rounded-[inherit] bg-background text-foreground">
+          <TangleFooter
+            height={props.height}
+            vines={props.vines}
+            thickness={thickness}
+            seed={props.seed}
+          />
         </div>
       </ComponentPreview>
 
@@ -145,31 +58,14 @@ export function TangleFooterDemo() {
         snippetProps={{
           height: props.height === 320 ? undefined : props.height,
           vines: props.vines === DEFAULT_VINES ? undefined : props.vines,
-          speed: props.speed === DEFAULT_SPEED ? undefined : props.speed,
+          thickness,
           seed: props.seed === DEFAULT_SEED ? undefined : props.seed,
-          ribbon: useAutoTheme ? undefined : props.ribbon,
-          textColor: useAutoTheme ? undefined : props.textColor,
         }}
       >
-        <ControlColor
-          label="Stage"
-          value={props.stage}
-          onChange={(v) => updateProp("stage", v)}
-        />
-        <ControlColor
-          label="Ribbon"
-          value={props.ribbon}
-          onChange={(v) => updateProp("ribbon", v)}
-        />
-        <ControlColor
-          label="Text"
-          value={props.textColor}
-          onChange={(v) => updateProp("textColor", v)}
-        />
         <ControlSlider
           label="Height"
           value={props.height}
-          min={200}
+          min={160}
           max={480}
           step={10}
           onChange={(v) => updateProp("height", v)}
@@ -183,12 +79,12 @@ export function TangleFooterDemo() {
           onChange={(v) => updateProp("vines", v)}
         />
         <ControlSlider
-          label="Speed"
-          value={props.speed}
-          min={0}
-          max={120}
-          step={2}
-          onChange={(v) => updateProp("speed", v)}
+          label="Thickness"
+          value={props.thickness}
+          min={1}
+          max={6}
+          step={0.25}
+          onChange={(v) => updateProp("thickness", v)}
         />
         <ControlSlider
           label="Seed"
