@@ -14,16 +14,12 @@ export function MdxTable({
   return (
     <div
       data-slot="mdx-table"
-      className="not-prose my-6 w-full overflow-hidden rounded-2xl bg-muted/50"
+      className="not-prose my-6 w-full overflow-x-auto rounded-xl border bg-card"
     >
-      <div className="bg-muted/50 p-1">
-        <div className="overflow-x-auto rounded-[calc(var(--radius-2xl)-2px)] ring-[1px] ring-border/80 bg-background shadow-none">
-          <table
-            className={cn("w-full caption-bottom text-sm", className)}
-            {...props}
-          />
-        </div>
-      </div>
+      <table
+        className={cn("w-full caption-bottom text-sm", className)}
+        {...props}
+      />
     </div>
   )
 }
@@ -34,7 +30,7 @@ export function MdxTableHeader({
 }: HTMLAttributes<HTMLTableSectionElement>) {
   return (
     <thead
-      className={cn("border-b border-border/80 bg-muted/40", className)}
+      className={cn("border-b", className)}
       {...props}
     />
   )
@@ -59,7 +55,7 @@ export function MdxTableRow({
   return (
     <tr
       className={cn(
-        "border-b border-border/70 transition-colors hover:bg-muted/30",
+        "border-b transition-colors hover:bg-muted/40",
         className
       )}
       {...props}
@@ -74,7 +70,7 @@ export function MdxTableHead({
   return (
     <th
       className={cn(
-        "h-9 px-3.5 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground",
+        "h-10 px-4 text-left align-middle text-[13px] font-normal text-muted-foreground",
         className
       )}
       {...props}
@@ -89,7 +85,7 @@ export function MdxTableCell({
   return (
     <td
       className={cn(
-        "px-3.5 py-2.5 align-middle text-foreground/90",
+        "px-4 py-2.5 align-middle text-foreground [&_code]:font-mono [&_code]:text-[12.5px]",
         className
       )}
       {...props}

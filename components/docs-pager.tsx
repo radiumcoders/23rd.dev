@@ -25,17 +25,17 @@ function PagerLink({
     <Link
       href={item.url}
       className={cn(
-        "group flex min-w-0 flex-1 flex-col gap-1 rounded-2xl bg-muted/50 px-4 py-3 ring-1 ring-border/60 transition-colors",
-        "hover:bg-muted",
+        "group flex min-w-0 flex-1 flex-col gap-1.5 rounded-xl border bg-card px-4 py-3.5 transition-colors",
+        "hover:border-foreground/30",
         "focus-visible:ring-3 focus-visible:ring-ring/30 focus-visible:outline-none",
         isPrevious ? "items-start" : "items-end text-end"
       )}
     >
-      <span className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+      <span className="flex items-center gap-1 text-[13px] text-muted-foreground">
         {isPrevious ? (
           <>
             <RiArrowLeftLine className="size-3.5 transition-transform group-hover:-translate-x-0.5" />
-            Back
+            Previous
           </>
         ) : (
           <>
@@ -44,7 +44,7 @@ function PagerLink({
           </>
         )}
       </span>
-      <span className="w-full truncate text-sm font-medium">{pageName(item)}</span>
+      <span className="w-full truncate text-base font-medium">{pageName(item)}</span>
     </Link>
   )
 }
@@ -63,7 +63,7 @@ export function DocsPager({
   return (
     <nav
       aria-label="Docs pagination"
-      className="mt-12 flex flex-col gap-3 sm:flex-row"
+      className="mt-16 flex flex-col gap-3 sm:flex-row"
     >
       {previous ? (
         <PagerLink item={previous} direction="previous" />
