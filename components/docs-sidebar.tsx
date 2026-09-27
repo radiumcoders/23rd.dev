@@ -7,6 +7,7 @@ import { LayoutGroup, motion, useReducedMotion } from "motion/react"
 
 import { DocsSidebarTrigger } from "@/components/docs-sidebar-trigger"
 import { Logo } from "@/components/logo"
+import { Triad } from "@/components/triad"
 import {
   Sidebar,
   SidebarContent,
@@ -50,7 +51,7 @@ function isCurrent(pathname: string, url: string) {
 }
 
 const headingClassName =
-  "mt-4 mb-0.5 h-auto px-3 py-1 truncate text-[11px] font-medium tracking-[0.16em] text-foreground/35 uppercase first:mt-0"
+  "mt-6 mb-1 h-auto truncate px-2 py-1 font-mono text-[10.5px] font-normal tracking-[0.18em] text-muted-foreground/80 uppercase first:mt-0"
 
 const markSpring = {
   type: "spring" as const,
@@ -59,68 +60,42 @@ const markSpring = {
   mass: 0.7,
 }
 
-function DashMark({
-  layoutId,
-  opacity,
-}: {
-  layoutId: string
-  opacity: number
-}) {
+/** The open page's marker; slides between items as you navigate. */
+function ActiveTriad() {
   const reduce = useReducedMotion() ?? false
 
   return (
     <motion.span
-      layoutId={layoutId}
+      layoutId="docs-sidebar-active"
       aria-hidden
-      className="pointer-events-none ml-2 h-px min-w-3 flex-1 bg-[repeating-linear-gradient(90deg,currentColor_0_5px,transparent_5px_8px)]"
-      initial={false}
-      animate={{ opacity }}
+      className="me-2.5 flex shrink-0"
       transition={reduce ? { duration: 0 } : markSpring}
-    />
+    >
+      <Triad />
+    </motion.span>
   )
-}
-
-type TabHover = {
-  hoveredUrl: string | null
-  onHover: (url: string) => void
 }
 
 function PageItem({
   node,
   pathname,
-  indented = false,
-  hoveredUrl,
-  onHover,
 }: {
   node: PageNode
   pathname: string
-  indented?: boolean
-} & TabHover) {
+}) {
   const active = isCurrent(pathname, node.url)
-  const showHover = hoveredUrl === node.url && !active
 
   return (
-    <SidebarMenuItem
-      onPointerEnter={() => onHover(node.url)}
-      onMouseEnter={() => onHover(node.url)}
-    >
+    <SidebarMenuItem>
       <SidebarMenuButton
         render={
           <Link href={node.url} aria-label={String(node.name ?? "Page")} />
         }
         isActive={active}
-        className={cn(
-          "h-8 gap-0 overflow-visible rounded-lg bg-transparent font-normal text-foreground/45 transition-colors duration-200 hover:bg-transparent hover:text-foreground/80 active:bg-transparent data-active:bg-transparent data-active:font-normal data-active:text-foreground data-active:hover:bg-transparent data-active:hover:text-foreground [&>span:last-child]:overflow-visible [&>span:last-child]:text-clip",
-          indented && "pl-6"
-        )}
+        className="h-8 gap-0 rounded-lg bg-transparent px-2 font-normal text-foreground/70 transition-colors duration-150 hover:bg-transparent hover:text-foreground active:bg-transparent data-active:bg-transparent data-active:font-medium data-active:text-foreground data-active:hover:bg-transparent"
       >
+        {active ? <ActiveTriad /> : null}
         <span className="min-w-0 truncate">{node.name}</span>
-        {active ? (
-          <DashMark layoutId="docs-sidebar-selected-dashes" opacity={0.85} />
-        ) : null}
-        {showHover ? (
-          <DashMark layoutId="docs-sidebar-hover-dashes" opacity={0.4} />
-        ) : null}
       </SidebarMenuButton>
     </SidebarMenuItem>
   )
@@ -143,21 +118,12 @@ function folderKey(node: FolderNode, index: number) {
 function NavItems({
   nodes,
   pathname,
-  indented = false,
-  hoveredUrl,
-  onHover,
 }: {
   nodes: TreeNode[]
   pathname: string
-  indented?: boolean
-} & TabHover) {
-  let inSection = indented
-
+}) {
   return nodes.map((node, i) => {
     if (isSeparator(node)) {
-      if (node.name != null && node.name !== "") {
-        inSection = true
-      }
       return (
         <SeparatorItem
           key={`sep-${String(node.name ?? "")}-${i}`}
@@ -167,16 +133,7 @@ function NavItems({
     }
 
     if (isPage(node)) {
-      return (
-        <PageItem
-          key={node.url}
-          node={node}
-          pathname={pathname}
-          indented={inSection}
-          hoveredUrl={hoveredUrl}
-          onHover={onHover}
-        />
-      )
+      return <PageItem key={node.url} node={node} pathname={pathname} />
     }
 
     if (isFolder(node)) {
@@ -185,25 +142,13 @@ function NavItems({
       return (
         <React.Fragment key={folderKey(node, i)}>
           {node.index ? (
-            <PageItem
-              node={node.index}
-              pathname={pathname}
-              indented={inSection}
-              hoveredUrl={hoveredUrl}
-              onHover={onHover}
-            />
+            <PageItem node={node.index} pathname={pathname} />
           ) : hasSectionedChildren ? null : (
             <SidebarGroupLabel className={headingClassName}>
               {node.name}
             </SidebarGroupLabel>
           )}
-          <NavItems
-            nodes={node.children}
-            pathname={pathname}
-            indented={inSection || hasSectionedChildren || !node.index}
-            hoveredUrl={hoveredUrl}
-            onHover={onHover}
-          />
+          <NavItems nodes={node.children} pathname={pathname} />
         </React.Fragment>
       )
     }
@@ -215,27 +160,14 @@ function NavItems({
 function NavList({
   nodes,
   pathname,
-  indented = false,
 }: {
   nodes: TreeNode[]
   pathname: string
-  indented?: boolean
 }) {
-  const [hoveredUrl, setHoveredUrl] = React.useState<string | null>(null)
-
   return (
     <LayoutGroup id="docs-sidebar-tabs">
-      <SidebarMenu
-        onPointerLeave={() => setHoveredUrl(null)}
-        onMouseLeave={() => setHoveredUrl(null)}
-      >
-        <NavItems
-          nodes={nodes}
-          pathname={pathname}
-          indented={indented}
-          hoveredUrl={hoveredUrl}
-          onHover={(url) => setHoveredUrl(url)}
-        />
+      <SidebarMenu>
+        <NavItems nodes={nodes} pathname={pathname} />
       </SidebarMenu>
     </LayoutGroup>
   )
