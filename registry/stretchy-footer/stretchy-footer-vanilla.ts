@@ -1,22 +1,22 @@
+/** Gradient stops, top to bottom: magenta through sunlight to deep navy. */
 export const DEFAULT_COLORS = [
-  "#FF3B30",
-  "#FF9500",
-  "#FFCC00",
-  "#34C759",
-  "#00C7BE",
-  "#32ADE6",
-  "#007AFF",
-  "#5856D6",
-  "#AF52DE",
-  "#FF2D55",
+  "#FF1AE6",
+  "#FF2E5E",
+  "#FF8A1A",
+  "#FFC81F",
+  "#E2E6EC",
+  "#8DB6E6",
+  "#2F74DC",
+  "#1459E3",
+  "#1C2566",
 ]
 
 export const DEFAULT_MAX_STRETCH = 280
-export const DEFAULT_COLUMNS = 48
+export const DEFAULT_COLUMNS = 9
 /** Gaussian blur on the aurora, in px. */
-export const DEFAULT_BLUR = 14
-/** White floor bloom opacity (0–1). */
-export const DEFAULT_GLOW = 0.22
+export const DEFAULT_BLUR = 16
+/** White floor bloom opacity (0–1). Off by default. */
+export const DEFAULT_GLOW = 0
 export const DEFAULT_STIFFNESS = 380
 export const DEFAULT_DAMPING = 32
 
@@ -33,8 +33,10 @@ const MOMENTUM_GAP_MS = 180
 const COAST_EVENTS = 6
 const MASS = 0.35
 const REST = 0.15
-/** Shortest column as a share of the stretch. */
-const MIN_COLUMN = 0.28
+/** Edge columns stand this share of the centre one; the rest step evenly. */
+const EDGE_COLUMN = 0.55
+/** The top of each column fades in over this share of its height. */
+const TOP_FADE = 0.12
 /** Field opacity ramps in over this share of `maxStretch`. */
 const FADE_IN = 0.08
 /** Physics substep, in seconds. */
@@ -43,17 +45,20 @@ const STEP = 1 / 120
 export type StretchyFooterOptions = {
   /** Peak stretch in px. Default `280`. */
   maxStretch?: number
-  /** Spectrum stops across the aurora columns, any CSS colors. */
+  /**
+   * Gradient stops from the top of each column down to the floor, any CSS
+   * colors. Every column carries the whole gradient, squeezed to its height.
+   */
   colors?: string[]
   /** Spring stiffness. Default `380`. */
   stiffness?: number
   /** Spring damping. Default `32`. */
   damping?: number
-  /** How many aurora columns. Default `48`. */
+  /** How many aurora columns, stepping down from the middle. Default `9`. */
   columns?: number
-  /** Gaussian blur on the aurora, in px. Default `14`. */
+  /** Gaussian blur on the aurora, in px. Default `16`. */
   blur?: number
-  /** White floor bloom opacity (0–1). Default `0.22`. */
+  /** White floor bloom opacity (0–1). Default `0`. */
   glow?: number
   /**
    * Optional id for docs demos. `playStretchyFooterDemo({ target })` only
@@ -118,11 +123,11 @@ export async function playStretchyFooterDemo(
   )
 }
 
-/** Bell curve across the columns: tall in the middle, short at the edges. */
+/** Stepped pyramid: the middle column is tallest, each step out is shorter. */
 export function columnScale(index: number, count: number): number {
   if (count <= 1) return 1
   const t = (index / (count - 1)) * 2 - 1
-  return Math.exp(-t * t * 2.2)
+  return 1 - (1 - EDGE_COLUMN) * Math.abs(t)
 }
 
 /** Overscroll distance → stretch. Linear at first, never past `max`. */
@@ -173,22 +178,31 @@ function nestedCanScroll(
   return false
 }
 
-/** A vertical strip of `color`: solid at the floor, fading out at the top. */
-function makeStrip(color: string) {
+const STRIP = 256
+
+/**
+ * One column's gradient, `colors` spread from just under the top to the
+ * floor, with the top fading in. Columns stretch it to their own height.
+ */
+function makeStrip(colors: string[]) {
   const strip = document.createElement("canvas")
   strip.width = 1
-  strip.height = 64
+  strip.height = STRIP
   const g = strip.getContext("2d")
   if (!g) return strip
-  g.fillStyle = color
-  g.fillRect(0, 0, 1, 64)
-  const fade = g.createLinearGradient(0, 0, 0, 64)
+  const bands = g.createLinearGradient(0, 0, 0, STRIP)
+  colors.forEach((color, i) => {
+    const at = colors.length > 1 ? i / (colors.length - 1) : 1
+    bands.addColorStop(TOP_FADE * 0.8 + (1 - TOP_FADE * 0.8) * at, color)
+  })
+  g.fillStyle = bands
+  g.fillRect(0, 0, 1, STRIP)
+  const fade = g.createLinearGradient(0, 0, 0, STRIP * TOP_FADE)
   fade.addColorStop(0, "rgba(0,0,0,0)")
-  fade.addColorStop(0.55, "rgba(0,0,0,0.6)")
   fade.addColorStop(1, "rgba(0,0,0,1)")
   g.globalCompositeOperation = "destination-in"
   g.fillStyle = fade
-  g.fillRect(0, 0, 1, 64)
+  g.fillRect(0, 0, 1, STRIP)
   return strip
 }
 
@@ -220,8 +234,8 @@ const atRest = (s: Spring) =>
 
 /**
  * Dia-style rubber overscroll. Pull past the bottom of `scroller` and the
- * content lifts on a spring while an aurora of blurred columns stretches up
- * from the floor; each column has its own spring, so the edge wobbles as it
+ * content lifts on a spring while a stepped pyramid of blurred gradient
+ * columns stretches up from the floor; each column has its own spring, so the edge wobbles as it
  * snaps back. Idle unless stretched.
  */
 export function createStretchyFooter(
@@ -240,7 +254,7 @@ export function createStretchyFooter(
     numberOr(options.stiffness, DEFAULT_STIFFNESS, 10, 4000)
   const dampingOf = () => numberOr(options.damping, DEFAULT_DAMPING, 0, 400)
   const countOf = () =>
-    Math.round(numberOr(options.columns, DEFAULT_COLUMNS, 8, 96))
+    Math.round(numberOr(options.columns, DEFAULT_COLUMNS, 3, 96))
 
   /** Overscroll the user has put in, in px. The stretch is its rubber band. */
   let distance = 0
@@ -248,20 +262,19 @@ export function createStretchyFooter(
   let forced: number | null = null
   const lift: Spring = { x: 0, v: 0, target: 0 }
   let columns: (Spring & { share: number })[] = []
-  let strips: HTMLCanvasElement[] = []
+  let strip = document.createElement("canvas")
   const bloom = makeBloom()
 
   const rebuildColumns = () => {
     const count = countOf()
     const target = lift.target
     columns = Array.from({ length: count }, (_, i) => {
-      const share = Math.max(MIN_COLUMN, columnScale(i, count))
+      const share = columnScale(i, count)
       return { x: lift.x * share, v: 0, target: target * share, share }
     })
   }
-  const rebuildStrips = () => {
-    const colors = options.colors?.length ? options.colors : DEFAULT_COLORS
-    strips = colors.map(makeStrip)
+  const rebuildStrip = () => {
+    strip = makeStrip(options.colors?.length ? options.colors : DEFAULT_COLORS)
   }
 
   const size = { w: 0, pad: 0, scale: 1 }
@@ -350,9 +363,18 @@ export function createStretchyFooter(
       if (h < 0.5) continue
       const x0 = edge(i)
       const x1 = edge(i + 1)
-      const strip = strips[i % strips.length]!
       ctx!.drawImage(strip, x0, floor - h, x1 - x0, h)
-      ctx!.drawImage(strip, 0, 63, 1, 1, x0, floor, x1 - x0, bottom - floor)
+      ctx!.drawImage(
+        strip,
+        0,
+        STRIP - 1,
+        1,
+        1,
+        x0,
+        floor,
+        x1 - x0,
+        bottom - floor
+      )
     }
 
     const glow = glowOf()
@@ -532,7 +554,7 @@ export function createStretchyFooter(
   const ro = new ResizeObserver(layout)
   if (canvas.parentElement) ro.observe(canvas.parentElement)
 
-  rebuildStrips()
+  rebuildStrip()
   rebuildColumns()
   layout()
 
@@ -542,7 +564,7 @@ export function createStretchyFooter(
       const prevMax = maxOf()
       const prevBlur = blurOf()
       options = { ...options, ...next }
-      if (options.colors !== prevColors) rebuildStrips()
+      if (options.colors !== prevColors) rebuildStrip()
       if (countOf() !== columns.length) rebuildColumns()
       if (maxOf() !== prevMax || blurOf() !== prevBlur) layout()
       if (forced !== null) forced = Math.min(forced, maxOf())
