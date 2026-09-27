@@ -40,6 +40,9 @@ export function PhosphorScoreDemo() {
       speed: DEFAULT_SPEED,
       density: DEFAULT_DENSITY,
       seed: DEFAULT_SEED,
+      rotateX: 0,
+      rotateY: 0,
+      rotateZ: 0,
       sway: true,
     }),
     [stock]
@@ -71,6 +74,9 @@ export function PhosphorScoreDemo() {
             speed={props.speed}
             density={props.density}
             seed={props.seed}
+            rotateX={props.rotateX}
+            rotateY={props.rotateY}
+            rotateZ={props.rotateZ}
             sway={props.sway}
             theme="auto"
           />
@@ -88,6 +94,9 @@ export function PhosphorScoreDemo() {
           density:
             props.density === DEFAULT_DENSITY ? undefined : props.density,
           seed: props.seed === DEFAULT_SEED ? undefined : props.seed,
+          rotateX: props.rotateX || undefined,
+          rotateY: props.rotateY || undefined,
+          rotateZ: props.rotateZ || undefined,
           sway: props.sway ? undefined : false,
         }}
       >
@@ -127,6 +136,30 @@ export function PhosphorScoreDemo() {
           max={99}
           step={1}
           onChange={(v) => updateProp("seed", v)}
+        />
+        <ControlSlider
+          label="Rotate X"
+          value={props.rotateX}
+          min={-70}
+          max={70}
+          step={1}
+          onChange={(v) => updateProp("rotateX", v)}
+        />
+        <ControlSlider
+          label="Rotate Y"
+          value={props.rotateY}
+          min={-70}
+          max={70}
+          step={1}
+          onChange={(v) => updateProp("rotateY", v)}
+        />
+        <ControlSlider
+          label="Rotate Z"
+          value={props.rotateZ}
+          min={-180}
+          max={180}
+          step={1}
+          onChange={(v) => updateProp("rotateZ", v)}
         />
         <ControlSwitch
           label="Sway"

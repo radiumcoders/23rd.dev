@@ -61,6 +61,9 @@ export function PhosphorScore({
   density = DEFAULT_DENSITY,
   sway = true,
   seed = DEFAULT_SEED,
+  rotateX = 0,
+  rotateY = 0,
+  rotateZ = 0,
   theme = "auto",
 }: PhosphorScoreProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -76,6 +79,9 @@ export function PhosphorScore({
       density,
       sway,
       seed,
+      rotateX,
+      rotateY,
+      rotateZ,
       theme,
     })
     return () => {
@@ -94,9 +100,23 @@ export function PhosphorScore({
       density,
       sway,
       seed,
+      rotateX,
+      rotateY,
+      rotateZ,
       theme,
     })
-  }, [color, glow, speed, density, sway, seed, theme])
+  }, [
+    color,
+    glow,
+    speed,
+    density,
+    sway,
+    seed,
+    rotateX,
+    rotateY,
+    rotateZ,
+    theme,
+  ])
 
   return (
     <div

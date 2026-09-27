@@ -26,6 +26,9 @@
     density = DEFAULT_DENSITY,
     sway = true,
     seed = DEFAULT_SEED,
+    rotateX = 0,
+    rotateY = 0,
+    rotateZ = 0,
     theme = "auto",
   }: Props = $props()
 
@@ -51,6 +54,9 @@
       density,
       sway,
       seed,
+      rotateX,
+      rotateY,
+      rotateZ,
       theme,
     })
     return () => {
@@ -67,6 +73,9 @@
       density,
       sway,
       seed,
+      rotateX,
+      rotateY,
+      rotateZ,
       theme,
     })
   })
