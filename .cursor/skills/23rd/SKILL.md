@@ -74,7 +74,7 @@ npm dependencies the registry declares:
 
 | Item | React | Svelte |
 | --- | --- | --- |
-| `gooey-color-picker`, `tangle-footer`, `stretchy-footer` | `motion` | none |
+| `gooey-color-picker` | `motion` | none |
 | every other item | none | none |
 
 Published index: `https://23rd.dev/r/registry.json`. Docs: `https://23rd.dev/docs`.
@@ -99,7 +99,6 @@ flowchart TD
   atmo -->|Hair-line explosion| lb[logo-burst]
   atmo -->|Falling sheet music| ps[phosphor-score]
   foot -->|Rubber overscroll aurora| st[stretchy-footer]
-  foot -->|Spinning text ribbons| tf[tangle-footer]
   mark -->|Eyes that track the pointer| orb[live-orb]
   mark -->|ASCII wordmark, click to scatter| al[ascii-logo]
 ```
@@ -109,11 +108,10 @@ Disambiguation that agents get wrong:
 | User says | Use | Not |
 | --- | --- | --- |
 | Color picker, swatch, hex, hue, alpha, eyedropper | `gooey-color-picker` | Any shader. Shaders are not controls. |
-| Soft gradient behind a headline | `shader-gradient` | `gooey-color-picker`, `tangle-footer` |
+| Soft gradient behind a headline | `shader-gradient` | `gooey-color-picker` |
 | Fire, embers, heat under a hero | `shader-fire` | `dithered-404` unless the page is a 404 |
 | 404 that burns under the cursor | `dithered-404` | `shader-fire` |
-| Footer of nested spinning sentences | `tangle-footer` | `stretchy-footer` |
-| Overscroll rubber band, aurora at the bottom | `stretchy-footer` | `tangle-footer` |
+| Overscroll rubber band, aurora at the bottom | `stretchy-footer` | `folio` |
 | Page leans while scrolling | `folio` | `stretchy-footer` (that one stretches, it does not tilt) |
 | Stars that speed up when you scroll | `radiant-lines` | `logo-burst` |
 | Logo explodes into lines | `logo-burst` | `ascii-logo` |
@@ -140,8 +138,6 @@ Same shell for `ShaderFire`, `ShaderSky`, `AsciiFluid`, `LogoBurst`, `PhosphorSc
 
 `Folio` and `StretchyFooter` are the scroller by default. Put the page in `children`. For a real document, set `windowScroll` and mark the tilting or lifting element (`data-folio-page` or `data-stretchy-page`).
 
-`TangleFooter` is a `<footer>`. It is not a background. Place it after the page.
-
 `GooeyColorPicker` is an inline control. It opens upward from the trigger. Give it room (`overflow-visible`); do not clip it in `overflow-hidden`.
 
 `LiveOrb` is a fixed square (`size`, default `280`). It does not fill the viewport. The body stays put; only the eyes move.
@@ -159,11 +155,10 @@ Exceptions:
 
 - Passing `colors` to `ShaderGradient`, `ShaderFire`, or `ShaderSky` replaces the stock palette and does not swap with dark mode. Omit `colors` to get the light/dark pair.
 - Passing `color` (and `backgroundColor` where it exists) overrides ink. Omit it to follow the theme.
-- `TangleFooter` paints `--tangle-ribbon` and `--tangle-text` on itself when `ribbon` / `textColor` are omitted. Pass those props to override. `background` omitted uses `#EFEAE2` / `#121210`.
 - `PhosphorScore` canvas is transparent in light mode (`LIGHT_BG`) and `#050505` in dark mode (`DARK_BG`). A dark phosphor field is a hard rectangle. Clip the parent (`overflow-hidden rounded-*`) if the square edge matters. Open issue: the docs preview border looks boxed ([#28](https://github.com/radiumcoders/23rd.dev/issues/28)).
 - `Folio` tilt peaks at an internal 16°. It is not a prop. On a Mac trackpad the lean is easy to miss ([#29](https://github.com/radiumcoders/23rd.dev/issues/29)). Do not add a tilt prop that does not exist. `playFolioDemo` only previews the lean; it is not the interaction.
 
-`prefers-reduced-motion: reduce` is honored by the canvas and motion components (still frame, no tilt, no stretch, no tangle spin). Do not add a `reducedMotion` prop.
+`prefers-reduced-motion: reduce` is honored by the canvas and motion components (still frame, no tilt, no stretch). Do not add a `reducedMotion` prop.
 
 ## Catalog
 
@@ -178,7 +173,6 @@ Categories match `content/docs/components/meta.json`.
 | `shader-gradient` | Shaders | Quiet WebGL wash behind heroes and empty states | React + Svelte |
 | `shader-fire` | Shaders | Sparse fire tongues rising from the bottom | React + Svelte |
 | `shader-sky` | Shaders | Clear sky or rain; optional dotted window glass | React + Svelte |
-| `tangle-footer` | Footers | Five nested SVG text ribbons | React + Svelte |
 | `stretchy-footer` | Footers | Dia-style rubber overscroll with an aurora floor | React + Svelte |
 | `live-orb` | Characters | Lit sphere; eyes follow the pointer | React + Svelte |
 | `ascii-logo` | Characters | ASCII wordmark: hover shove, click scatter / fall / gather | React + Svelte |
@@ -229,29 +223,6 @@ export function Accent() {
       onChange={(color, css) => {
         console.log(color, css)
       }}
-    />
-  )
-}
-```
-
-Ribbon footer (not an overscroll effect):
-
-```bash
-pnpm dlx shadcn@latest add @23rd/tangle-footer
-```
-
-```tsx
-"use client"
-
-import { TangleFooter } from "@/components/ui/tangle-footer"
-
-export function SiteFooter() {
-  return (
-    <TangleFooter
-      lines={[
-        "Ship something opinionated.",
-        "Install what you need and move.",
-      ]}
     />
   )
 }

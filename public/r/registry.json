@@ -347,33 +347,6 @@
         }
       ],
       "type": "registry:ui"
-    },
-    {
-      "name": "tangle-footer",
-      "title": "Tangle Footer",
-      "description": "A footer of tangled vines — clean pen lines that curl into loops and cross over and under each other.",
-      "files": [
-        {
-          "path": "registry/tangle-footer/tangle-footer.tsx",
-          "type": "registry:ui",
-          "target": "components/ui/tangle-footer.tsx"
-        }
-      ],
-      "type": "registry:ui"
-    },
-    {
-      "name": "tangle-footer-svelte",
-      "title": "Tangle Footer",
-      "description": "A footer of tangled vines — clean pen lines that curl into loops and cross over and under each other.",
-      "dependencies": [],
-      "files": [
-        {
-          "path": "registry/tangle-footer/tangle-footer.svelte",
-          "type": "registry:file",
-          "target": "src/lib/components/ui/tangle-footer.svelte"
-        }
-      ],
-      "type": "registry:ui"
     }
   ]
 }
