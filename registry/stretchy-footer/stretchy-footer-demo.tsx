@@ -12,15 +12,15 @@ import { ComponentPreview } from "@/components/component-preview"
 import { Button } from "@/components/ui/button"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
-  playStretchyFooterDemo,
-  StretchyFooter,
-} from "@/registry/stretchy-footer/stretchy-footer"
-import {
   DEFAULT_BLUR,
   DEFAULT_COLORS,
   DEFAULT_COLUMNS,
   DEFAULT_GLOW,
-} from "@/registry/stretchy-footer/stretchy-footer-vanilla"
+  DEFAULT_MAX_STRETCH,
+  DEFAULT_STIFFNESS,
+  playStretchyFooterDemo,
+  StretchyFooter,
+} from "@/registry/stretchy-footer/stretchy-footer"
 
 const PREVIEW_DEMO_ID = "stretchy-footer-preview"
 
@@ -49,7 +49,7 @@ export function StretchyFooterDemo() {
       colors: SPECTRUM,
       maxStretch: 220,
       columns: DEFAULT_COLUMNS,
-      stiffness: 380,
+      stiffness: DEFAULT_STIFFNESS,
       blur: DEFAULT_BLUR,
       glow: DEFAULT_GLOW,
     }),
@@ -82,7 +82,6 @@ export function StretchyFooterDemo() {
       >
         <div className="relative h-[56svh] w-full overflow-hidden rounded-[inherit] bg-background">
           <StretchyFooter
-            key={props.stiffness}
             demoId={PREVIEW_DEMO_ID}
             scrollRef={scrollerRef}
             contentSelector="[data-stretchy-preview]"
@@ -97,7 +96,7 @@ export function StretchyFooterDemo() {
 
           <div
             ref={scrollerRef}
-            className="no-scrollbar relative z-10 h-full overflow-y-auto overscroll-contain"
+            className="relative z-10 no-scrollbar h-full overflow-y-auto overscroll-contain"
           >
             <div
               data-stretchy-preview
@@ -132,10 +131,14 @@ export function StretchyFooterDemo() {
           colors: colorsEqual(props.colors, DEFAULT_COLORS)
             ? undefined
             : props.colors,
-          maxStretch: props.maxStretch === 280 ? undefined : props.maxStretch,
+          maxStretch:
+            props.maxStretch === DEFAULT_MAX_STRETCH
+              ? undefined
+              : props.maxStretch,
           columns:
             props.columns === DEFAULT_COLUMNS ? undefined : props.columns,
-          stiffness: props.stiffness === 380 ? undefined : props.stiffness,
+          stiffness:
+            props.stiffness === DEFAULT_STIFFNESS ? undefined : props.stiffness,
           blur: props.blur === DEFAULT_BLUR ? undefined : props.blur,
           glow: props.glow === DEFAULT_GLOW ? undefined : props.glow,
         }}
