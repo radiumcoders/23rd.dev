@@ -45,7 +45,12 @@ export function ComponentPreview({
       <div
         style={screenTokens}
         className={cn(
-          "relative flex min-h-[36svh] w-full items-center justify-center overflow-hidden rounded-xl bg-background p-8 text-foreground ring-1 ring-border",
+          "relative isolate flex min-h-[36svh] w-full items-center justify-center overflow-hidden rounded-xl bg-background p-8 text-foreground",
+          // WebGL canvases and backdrop blurs sit on their own compositor
+          // layers, which a rounded overflow clip can miss; a clip-path
+          // rounds them too. It would clip an outer ring, so the edge is an
+          // inset ring drawn over everything instead.
+          "[clip-path:inset(0_round_var(--radius-xl))] after:pointer-events-none after:absolute after:inset-0 after:z-50 after:rounded-[inherit] after:ring-1 after:ring-border after:ring-inset",
           align === "start" && "items-start justify-start",
           align === "end" && "items-end justify-end",
           stageClassName
