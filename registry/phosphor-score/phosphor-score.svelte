@@ -5,19 +5,14 @@
   import { onMount } from "svelte"
   import {
     createPhosphorScore,
-    DARK_BG,
     DEFAULT_DENSITY,
     DEFAULT_GLOW,
     DEFAULT_SEED,
     DEFAULT_SPEED,
-    resolveDark,
     type PhosphorScoreInstance,
     type PhosphorScoreOptions,
+    type PhosphorScoreTheme,
   } from "./phosphor-score-vanilla"
-
-  function cn(...parts: Array<string | false | null | undefined>) {
-    return parts.filter(Boolean).join(" ")
-  }
 
   interface Props extends Omit<PhosphorScoreOptions, "onThemeChange"> {
     class?: string
@@ -34,12 +29,20 @@
     theme = "auto",
   }: Props = $props()
 
+  /**
+   * Background before the first frame, so dark mode never flashes light.
+   * `#050505` is `DARK_BG`; Tailwind needs the literal.
+   */
+  const SURFACE: Record<PhosphorScoreTheme, string> = {
+    auto: "bg-background dark:bg-[#050505]",
+    dark: "bg-[#050505]",
+    light: "bg-background",
+  }
+
   let canvas: HTMLCanvasElement | undefined = $state()
-  let isDark = $state(false)
   let instance: PhosphorScoreInstance | null = null
 
   onMount(() => {
-    isDark = resolveDark(theme)
     if (!canvas) return
     instance = createPhosphorScore(canvas, {
       color,
@@ -49,9 +52,6 @@
       sway,
       seed,
       theme,
-      onThemeChange: (dark) => {
-        isDark = dark
-      },
     })
     return () => {
       instance?.destroy()
@@ -76,44 +76,13 @@
   data-slot="phosphor-score"
   role="img"
   aria-label="Falling phosphor sheet music"
-  class={cn("absolute inset-0 overflow-hidden bg-background", className)}
-  style={isDark ? `background-color: ${DARK_BG}` : ""}
+  class={[
+    "absolute inset-0 overflow-hidden",
+    SURFACE[theme] ?? SURFACE.auto,
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ")}
 >
   <canvas bind:this={canvas} class="absolute inset-0 size-full"></canvas>
-  <div
-    aria-hidden="true"
-    class="pointer-events-none absolute inset-x-0 top-0 z-10 h-40 backdrop-blur-xl mask-[linear-gradient(to_bottom,black,transparent)]"
-  ></div>
-  <div
-    aria-hidden="true"
-    class="pointer-events-none absolute inset-x-0 top-0 z-10 h-24 backdrop-blur-md mask-[linear-gradient(to_bottom,black,transparent)]"
-  ></div>
-  <div
-    aria-hidden="true"
-    class={cn(
-      "pointer-events-none absolute inset-x-0 top-0 z-10 h-28",
-      !isDark && "bg-linear-to-b from-background/65 to-transparent"
-    )}
-    style={isDark
-      ? "background-image: linear-gradient(to bottom, rgba(5,5,5,0.7), transparent)"
-      : ""}
-  ></div>
-  <div
-    aria-hidden="true"
-    class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-40 backdrop-blur-xl mask-[linear-gradient(to_top,black,transparent)]"
-  ></div>
-  <div
-    aria-hidden="true"
-    class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 backdrop-blur-md mask-[linear-gradient(to_top,black,transparent)]"
-  ></div>
-  <div
-    aria-hidden="true"
-    class={cn(
-      "pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28",
-      !isDark && "bg-linear-to-t from-background/65 to-transparent"
-    )}
-    style={isDark
-      ? "background-image: linear-gradient(to top, rgba(5,5,5,0.7), transparent)"
-      : ""}
-  ></div>
 </div>

@@ -12,10 +12,10 @@ import { ComponentPreview } from "@/components/component-preview"
 import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
-  DARK_BG,
   DARK_COLOR,
   DEFAULT_DENSITY,
   DEFAULT_GLOW,
+  DEFAULT_SEED,
   DEFAULT_SPEED,
   LIGHT_COLOR,
   PhosphorScore,
@@ -39,6 +39,7 @@ export function PhosphorScoreDemo() {
       glow: DEFAULT_GLOW,
       speed: DEFAULT_SPEED,
       density: DEFAULT_DENSITY,
+      seed: DEFAULT_SEED,
       sway: true,
     }),
     [stock]
@@ -63,15 +64,13 @@ export function PhosphorScoreDemo() {
         title="Phosphor Score"
         stageClassName="min-h-0 overflow-hidden p-0"
       >
-        <div
-          className="relative h-[56svh] w-full overflow-hidden rounded-[inherit] bg-background"
-          style={theme === "dark" ? { backgroundColor: DARK_BG } : undefined}
-        >
+        <div className="relative h-[56svh] w-full overflow-hidden rounded-[inherit]">
           <PhosphorScore
             color={useAutoColor ? undefined : props.color}
             glow={props.glow}
             speed={props.speed}
             density={props.density}
+            seed={props.seed}
             sway={props.sway}
             theme="auto"
           />
@@ -88,6 +87,7 @@ export function PhosphorScoreDemo() {
           speed: props.speed === DEFAULT_SPEED ? undefined : props.speed,
           density:
             props.density === DEFAULT_DENSITY ? undefined : props.density,
+          seed: props.seed === DEFAULT_SEED ? undefined : props.seed,
           sway: props.sway ? undefined : false,
         }}
       >
@@ -119,6 +119,14 @@ export function PhosphorScoreDemo() {
           max={1.8}
           step={0.05}
           onChange={(v) => updateProp("density", v)}
+        />
+        <ControlSlider
+          label="Seed"
+          value={props.seed}
+          min={1}
+          max={99}
+          step={1}
+          onChange={(v) => updateProp("seed", v)}
         />
         <ControlSwitch
           label="Sway"
