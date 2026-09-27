@@ -194,30 +194,6 @@ type ShaderSkyProps = {
 
 `skyFallback(colors, dark)` builds the CSS fallback. Custom `colors` do not swap.
 
-## tangle-footer
-
-```ts
-type TangleFooterProps = {
-  lines?: string[] // DEFAULT_LINES, five phrases
-  ribbon?: string
-  textColor?: string
-  background?: string // or "transparent"
-  height?: number // omit → half of measured width
-  seed?: number // 23
-  label?: string // "Site footer"
-  className?: string
-}
-```
-
-When `ribbon` / `textColor` are omitted the footer sets:
-
-- `--tangle-ribbon`: `#141414` / dark `#E8E4DC`
-- `--tangle-text`: `#F4F0E8` / dark `#161616`
-
-Stroke and fill read those variables. Field classes: `bg-[#EFEAE2] dark:bg-[#121210]` unless `background` is set.
-
-`RING_COUNT` is 5. Not a prop.
-
 ## stretchy-footer
 
 ```ts

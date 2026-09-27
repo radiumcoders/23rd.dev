@@ -195,34 +195,13 @@ export function Sky() {
 
 Pitfalls: `interactive` defaults false (unlike gradient and fire). Custom `colors` stay put. Light `#2478C8 #8ECBF2 #F7FBFF #C5D8EC`. Dark `#9AA3AD #C8CED4 #5C6570 #3F4750`.
 
-## tangle-footer
-
-Footer. Five nested semicircle ribbons of repeated text. GPU rotation, pauses off-screen.
-
-Best fit: a site footer that is the visual, with a few phrases.
-
-Not this: rubber-band overscroll (`stretchy-footer`), a hero background.
-
-Deps: React needs `motion`. Svelte has none. Key props: `lines`, `ribbon`, `textColor`, `background`, `height`, `seed` (23), `label` (`"Site footer"`).
-
-```tsx
-"use client"
-import { TangleFooter } from "@/components/ui/tangle-footer"
-
-export function Footer() {
-  return <TangleFooter lines={["Open the docs.", "Install what you need."]} />
-}
-```
-
-Pitfalls: default height is half the measured width (upper semicircle, aspect `2 / 1`). A shorter `height` scales the nest down. `background="transparent"` when the parent already paints the stage. Theme colors when props are omitted: ribbon `#141414` / `#E8E4DC`, text `#F4F0E8` / `#161616`, field `#EFEAE2` / `#121210`, via `--tangle-ribbon` and `--tangle-text`. Reduced motion skips the spin. Default lines are the five sentences in `DEFAULT_LINES`.
-
 ## stretchy-footer
 
 Footer behavior. Overscroll past the bottom stretches an aurora and lifts the page, then snaps back.
 
 Best fit: a Dia-like end of a long page. The component can be the scroller, or an overlay on window / element scroll.
 
-Not this: tilting the page (`folio`), spinning type (`tangle-footer`).
+Not this: tilting the page (`folio`).
 
 Deps: React needs `motion`. Svelte uses `stretchy-footer-spring-vanilla.ts` and declares no npm deps. Key props: `children`, `scrollRef` / Svelte `scrollEl`, `windowScroll` (false), `contentSelector` (`[data-stretchy-page]`), `maxStretch` (280), `colors`, `stiffness` (380), `damping` (32), `columns` (48), `blur` (14), `glow` (0.22), `label`, `demoId`.
 

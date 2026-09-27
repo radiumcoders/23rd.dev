@@ -99,31 +99,6 @@ export function NotFound() {
 
 `dither={false}` keeps the 404 glyph and switches to soft fire. It does not turn the page into `shader-fire`.
 
-## Ribbon footer
-
-`tangle-footer` after the page, not inside the hero.
-
-```tsx
-"use client"
-
-import { TangleFooter } from "@/components/ui/tangle-footer"
-
-export function Footer() {
-  return (
-    <TangleFooter
-      seed={23}
-      lines={[
-        "Ship something opinionated.",
-        "Less boilerplate, clearer decisions.",
-        "Install what you need and move.",
-      ]}
-    />
-  )
-}
-```
-
-On a colored parent, set `background="transparent"` so the cream/near-black field does not paint a second plate.
-
 ## Rubber overscroll
 
 Nested scroller (docs and previews):
@@ -248,7 +223,6 @@ export function Brand() {
 ## Anti-patterns
 
 - `ShaderGradient` as a color control, or `GooeyColorPicker` as a page background.
-- `TangleFooter` inside a hero to “add motion.” It is a footer with a fixed semicircle height.
 - `StretchyFooter` and `Folio` both wrapping the same scroll. Pick one owner of the scroll.
 - Two of `ShaderGradient`, `ShaderFire`, `ShaderSky`, `AsciiFluid` in the same viewport.
 - Content as a sibling with no `z-10`, so the canvas eats clicks. Set `pointer-events-none` on the canvas wrapper when the field is decorative (`LogoBurst` click-to-replay is the exception).
