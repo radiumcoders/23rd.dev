@@ -5,7 +5,7 @@ description: Dia-style rubber overscroll — pull past the bottom and a rainbow 
 
 import { StretchyFooterDemo } from "@/registry/stretchy-footer/stretchy-footer-demo"
 
-Not a scroll-progress footer reveal — an **overflow rubber-band**. In the preview, scroll past the end (or hit Show effect): the page lifts on a spring and an aurora of blurred columns stretches up to fill the gap. Every column has its own spring, so the top edge ripples as it snaps back. Swap palettes, blur, glow, and snap below.
+Not a scroll-progress footer reveal — an **overflow rubber-band**. In the preview, scroll past the end (or hit Show effect): the page lifts on a spring and a stepped pyramid of blurred gradient columns (magenta through sunlight to deep navy) stretches up to fill the gap. Every column has its own spring, so the top edge ripples as it snaps back. Swap palettes, blur, glow, and snap below.
 
 ## Preview
 
@@ -95,21 +95,21 @@ export function DocsChrome() {
 
 ## Props
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `children` | `ReactNode` / snippet | — |
-| `scrollRef` | `RefObject<HTMLElement \| null>` | React — self as scroller |
-| `scrollEl` | `HTMLElement` | Svelte — self as scroller |
-| `windowScroll` | `boolean` | `false` |
-| `contentSelector` | `string` | `[data-stretchy-page]` |
-| `maxStretch` | `number` | `280` |
-| `colors` | `string[]` | spectrum red → pink |
-| `stiffness` | `number` | `380` |
-| `damping` | `number` | `32` |
-| `columns` | `number` | `48` |
-| `blur` | `number` | `14` — px |
-| `glow` | `number` | `0.22` — floor bloom, 0–1 |
-| `label` | `string` | `Stretchy overflow` — scroll region label |
-| `demoId` | `string` | — pairs with `playStretchyFooterDemo({ target })` |
-| `className` | `string` | React only |
-| `class` | `string` | Svelte only |
+| Prop              | Type                             | Default                                           |
+| ----------------- | -------------------------------- | ------------------------------------------------- |
+| `children`        | `ReactNode` / snippet            | —                                                 |
+| `scrollRef`       | `RefObject<HTMLElement \| null>` | React — self as scroller                          |
+| `scrollEl`        | `HTMLElement`                    | Svelte — self as scroller                         |
+| `windowScroll`    | `boolean`                        | `false`                                           |
+| `contentSelector` | `string`                         | `[data-stretchy-page]`                            |
+| `maxStretch`      | `number`                         | `280`                                             |
+| `colors`          | `string[]`                       | magenta → navy — gradient stops, top to floor     |
+| `stiffness`       | `number`                         | `380`                                             |
+| `damping`         | `number`                         | `32`                                              |
+| `columns`         | `number`                         | `9` — steps down from the middle                  |
+| `blur`            | `number`                         | `16` — px                                         |
+| `glow`            | `number`                         | `0` — white floor bloom, 0–1                      |
+| `label`           | `string`                         | `Stretchy overflow` — scroll region label         |
+| `demoId`          | `string`                         | — pairs with `playStretchyFooterDemo({ target })` |
+| `className`       | `string`                         | React only                                        |
+| `class`           | `string`                         | Svelte only                                       |

@@ -24,10 +24,40 @@ import {
 
 const PREVIEW_DEMO_ID = "stretchy-footer-preview"
 
-const SPECTRUM = ["#FF3B30", "#FFCC00", "#34C759", "#007AFF", "#AF52DE"]
-const SUNSET = ["#FF4D00", "#FF8A5B", "#FFC857", "#E63946", "#9B2226"]
-const OCEAN = ["#012A4A", "#01497C", "#2A9D8F", "#48CAE4", "#90E0EF"]
-const NEON = ["#F72585", "#B5179E", "#7209B7", "#4361EE", "#4CC9F0"]
+// Gradient stops, top of each column to the floor — nine, like the default.
+const SUNSET = [
+  "#FFE8A3",
+  "#FFD166",
+  "#FFA94D",
+  "#FF7B3D",
+  "#FF3D6E",
+  "#D6246E",
+  "#B5179E",
+  "#3A0CA3",
+  "#10002B",
+]
+const OCEAN = [
+  "#F1FCFD",
+  "#CAF0F8",
+  "#90E0EF",
+  "#48CAE4",
+  "#00B4D8",
+  "#0096C7",
+  "#0077B6",
+  "#023E8A",
+  "#03045E",
+]
+const NEON = [
+  "#B8F2FF",
+  "#4CC9F0",
+  "#4895EF",
+  "#4361EE",
+  "#7209B7",
+  "#B5179E",
+  "#F72585",
+  "#FF9E00",
+  "#1A0B2E",
+]
 
 function norm(hex: string) {
   return hex.trim().toUpperCase()
@@ -46,7 +76,7 @@ export function StretchyFooterDemo() {
 
   const defaults = useMemo(
     () => ({
-      colors: SPECTRUM,
+      colors: DEFAULT_COLORS,
       maxStretch: 220,
       columns: DEFAULT_COLUMNS,
       stiffness: DEFAULT_STIFFNESS,
@@ -146,7 +176,7 @@ export function StretchyFooterDemo() {
         <ControlColors
           label="Palette"
           colors={props.colors}
-          palettes={[SPECTRUM, SUNSET, OCEAN, NEON]}
+          palettes={[DEFAULT_COLORS, SUNSET, OCEAN, NEON]}
           onChange={(colors) => updateProp("colors", colors)}
         />
         <ControlSlider
@@ -160,9 +190,9 @@ export function StretchyFooterDemo() {
         <ControlSlider
           label="Columns"
           value={props.columns}
-          min={12}
-          max={80}
-          step={4}
+          min={3}
+          max={25}
+          step={2}
           onChange={(v) => updateProp("columns", v)}
         />
         <ControlSlider
