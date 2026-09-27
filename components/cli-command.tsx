@@ -169,21 +169,19 @@ export function CliCommand({
     <figure
       data-slot="cli-command"
       className={cn(
-        "not-prose my-6 w-full overflow-hidden rounded-2xl bg-muted/50",
+        "not-prose my-6 w-full overflow-hidden rounded-xl border bg-card",
         className
       )}
     >
-      <div className="flex h-9 items-center justify-between gap-3 px-3.5">
-        <div
-          className="flex size-6 items-center justify-center"
-          aria-hidden
-          title={active.label}
-        >
-          <ActiveIcon className={cn("size-4", active.colorClass)} />
-        </div>
-
-        <div className="flex items-center gap-3">
-          {item ? <FrameworkSelect /> : null}
+      <div className="flex h-10 items-center justify-between gap-3 border-b px-3.5">
+        <div className="flex items-center gap-2">
+          <span
+            className="flex size-5 items-center justify-center"
+            aria-hidden
+            title={active.label}
+          >
+            <ActiveIcon className={cn("size-4", active.colorClass)} />
+          </span>
           <Select
             value={manager}
             onValueChange={onManagerChange}
@@ -196,7 +194,7 @@ export function CliCommand({
             >
               <SelectValue className="flex-none" />
             </SelectTrigger>
-            <SelectContent align="end" alignItemWithTrigger={false}>
+            <SelectContent align="start" alignItemWithTrigger={false}>
               <SelectGroup>
                 {PACKAGE_MANAGERS.map(({ value, label }) => (
                   <SelectItem key={value} value={value}>
@@ -207,27 +205,27 @@ export function CliCommand({
             </SelectContent>
           </Select>
         </div>
+
+        {item ? <FrameworkSelect /> : null}
       </div>
 
-      <div className="p-1 pt-0">
-        <div className="flex items-center gap-2 rounded-[calc(var(--radius-2xl)-2px)] bg-background py-1.5 pr-1.5 pl-3.5 ring-1 ring-border/80">
-          <pre className="min-w-0 flex-1 overflow-x-auto font-mono text-[13px] leading-6 text-foreground/90">
-            <code>{activeCommand}</code>
-          </pre>
-          <CopyButton
-            text={activeCommand}
-            label="Copy command"
-            errorMessage="Couldn’t copy command"
-            onCopied={() =>
-              trackEvent("cli_command_copied", {
-                package_manager: manager,
-                framework,
-                source: github ? "github" : "registry",
-                ...(item ? { item } : {}),
-              })
-            }
-          />
-        </div>
+      <div className="flex items-center gap-2 py-1.5 pr-1.5 pl-3.5">
+        <pre className="min-w-0 flex-1 overflow-x-auto py-1 font-mono text-[13px] leading-6 text-foreground">
+          <code>{activeCommand}</code>
+        </pre>
+        <CopyButton
+          text={activeCommand}
+          label="Copy command"
+          errorMessage="Couldn’t copy command"
+          onCopied={() =>
+            trackEvent("cli_command_copied", {
+              package_manager: manager,
+              framework,
+              source: github ? "github" : "registry",
+              ...(item ? { item } : {}),
+            })
+          }
+        />
       </div>
     </figure>
   )
