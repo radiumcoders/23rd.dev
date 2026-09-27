@@ -76,6 +76,16 @@ export async function listDocsOgPages(root = process.cwd()) {
     })
   }
 
+  // The root card is the site-wide default OG image, with or without a docs index page.
+  if (!pages.some((page) => page.slug.length === 0)) {
+    pages.unshift({
+      file: null,
+      slug: [],
+      title: INDEX_TITLE,
+      description: INDEX_TAGLINE,
+    })
+  }
+
   return pages
 }
 
