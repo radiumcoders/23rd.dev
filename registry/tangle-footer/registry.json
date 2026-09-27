@@ -5,7 +5,7 @@
       "name": "tangle-footer",
       "type": "registry:ui",
       "title": "Tangle Footer",
-      "description": "A footer of tangled vines — ribbons curl into loops and weave over and under each other, with your copy running along them.",
+      "description": "A footer of tangled vines — clean pen lines that curl into loops and cross over and under each other.",
       "files": [
         {
           "path": "tangle-footer.tsx",
@@ -18,7 +18,7 @@
       "name": "tangle-footer-svelte",
       "type": "registry:ui",
       "title": "Tangle Footer",
-      "description": "A footer of tangled vines — ribbons curl into loops and weave over and under each other, with your copy running along them.",
+      "description": "A footer of tangled vines — clean pen lines that curl into loops and cross over and under each other.",
       "files": [
         {
           "path": "tangle-footer.svelte",
