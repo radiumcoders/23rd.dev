@@ -87,7 +87,7 @@ export function ShaderGradientDemo() {
             <>
               <div
                 aria-hidden
-                className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--background)_0%,transparent_58%)] opacity-40 dark:opacity-65"
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--background)_0%,transparent_58%)] opacity-30 dark:opacity-40"
               />
               <div className="relative z-10 flex size-full flex-col items-center justify-center px-8 text-center">
                 <p className="text-xs font-medium tracking-[0.2em] text-foreground/55 uppercase">
