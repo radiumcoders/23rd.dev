@@ -33,7 +33,7 @@ Swap the component, keep the shell:
 | Brief | Component | Extra props |
 | --- | --- | --- |
 | Fire along the floor | `ShaderFire` | `height={0.45}` |
-| Pixel fire | `ShaderFire` | `dither pixelSize={1}` |
+| Pixel fire | `ShaderFire` | `dither pixelSize={3}` |
 | Blue sky | `ShaderSky` | leave `colors` unset |
 | Rain / dusk sky | `ShaderSky` | `theme="dark"` or `html.dark` |
 | Window glass | `ShaderSky` | `glass glassSize={7}` |

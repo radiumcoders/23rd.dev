@@ -151,10 +151,11 @@ type ShaderGradientProps = {
 
 ```ts
 type ShaderFireProps = {
-  colors?: string[] // ember, flame, highlight
-  speed?: number // 0.55
-  intensity?: number // 0.55
+  colors?: string[] // ember, flame, core
+  speed?: number // 1
+  intensity?: number // 1
   height?: number // 0.45
+  embers?: number // 0.6
   interactive?: boolean // true
   dither?: boolean // false
   pixelSize?: number // 1

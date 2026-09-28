@@ -14,6 +14,10 @@ import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
   DARK_COLORS,
+  DEFAULT_EMBERS,
+  DEFAULT_HEIGHT,
+  DEFAULT_INTENSITY,
+  DEFAULT_SPEED,
   LIGHT_COLORS,
   ShaderFire,
 } from "@/registry/shader-fire/shader-fire"
@@ -38,9 +42,10 @@ export function ShaderFireDemo() {
 
   const defaults = useMemo(
     () => ({
-      speed: 0.55,
-      intensity: 0.55,
-      height: 0.45,
+      speed: DEFAULT_SPEED,
+      intensity: DEFAULT_INTENSITY,
+      height: DEFAULT_HEIGHT,
+      embers: DEFAULT_EMBERS,
       interactive: true,
       overlay: true,
       dither: false,
@@ -75,6 +80,7 @@ export function ShaderFireDemo() {
             speed={props.speed}
             intensity={props.intensity}
             height={props.height}
+            embers={props.embers}
             interactive={props.interactive}
             dither={props.dither}
             pixelSize={props.pixelSize}
@@ -84,18 +90,18 @@ export function ShaderFireDemo() {
             <>
               <div
                 aria-hidden
-                className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--background)_0%,transparent_58%)] opacity-40 dark:opacity-65"
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--background)_0%,transparent_58%)] opacity-30 dark:opacity-40"
               />
               <div className="relative z-10 flex size-full flex-col items-center justify-center px-8 text-center">
                 <p className="text-xs font-medium tracking-[0.2em] text-foreground/55 uppercase">
-                  Atmosphere
+                  Now burning
                 </p>
                 <h3 className="mt-3 max-w-lg text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
-                  Heat under the headline
+                  Ship something that catches
                 </h3>
                 <p className="mt-3 max-w-sm text-sm leading-relaxed text-foreground/70">
-                  Sparse tongues rise from the bottom. Copy stays in the quiet
-                  middle; the fire stays a wash.
+                  Flames lick up from the floor and sparks drift past the copy.
+                  Move the pointer and the fire reaches for it.
                 </p>
                 <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
                   <Button type="button">Install</Button>
@@ -118,12 +124,14 @@ export function ShaderFireDemo() {
         onReset={resetProps}
         component="ShaderFire"
         snippetProps={{
-          speed: props.speed,
-          intensity: props.intensity,
-          height: props.height,
-          interactive: props.interactive,
-          dither: props.dither,
-          pixelSize: props.pixelSize,
+          speed: props.speed === DEFAULT_SPEED ? undefined : props.speed,
+          intensity:
+            props.intensity === DEFAULT_INTENSITY ? undefined : props.intensity,
+          height: props.height === DEFAULT_HEIGHT ? undefined : props.height,
+          embers: props.embers === DEFAULT_EMBERS ? undefined : props.embers,
+          interactive: props.interactive ? undefined : false,
+          dither: props.dither || undefined,
+          pixelSize: props.pixelSize === 1 ? undefined : props.pixelSize,
           colors: useAutoTheme ? undefined : props.colors,
         }}
       >
@@ -132,24 +140,25 @@ export function ShaderFireDemo() {
           colors={props.colors}
           palettes={[
             palette,
-            ["#1E3A5F", "#4A90A4", "#C5E4E7"],
-            ["#5B1E6E", "#C44569", "#FFA07A"],
-            ["#1A1A1A", "#6B4F3A", "#E8E4DC"],
+            // Coolest to hottest: ember, flame, core.
+            ["#1D3FD1", "#2F8CFF", "#8EE3FF"],
+            ["#0F7A3A", "#3DDC5A", "#D4FF6B"],
+            ["#6A1BB0", "#D63FD2", "#FF9DE2"],
           ]}
           onChange={(colors) => updateProp("colors", colors)}
         />
         <ControlSlider
           label="Speed"
           value={props.speed}
-          min={0.1}
-          max={1.4}
+          min={0.2}
+          max={2}
           step={0.05}
           onChange={(v) => updateProp("speed", v)}
         />
         <ControlSlider
           label="Intensity"
           value={props.intensity}
-          min={0.2}
+          min={0.3}
           max={1}
           step={0.05}
           onChange={(v) => updateProp("intensity", v)}
@@ -162,6 +171,14 @@ export function ShaderFireDemo() {
           step={0.05}
           onChange={(v) => updateProp("height", v)}
         />
+        <ControlSlider
+          label="Embers"
+          value={props.embers}
+          min={0}
+          max={1}
+          step={0.05}
+          onChange={(v) => updateProp("embers", v)}
+        />
         <ControlSwitch
           label="Copy"
           description="Headline over the fire"
@@ -170,7 +187,7 @@ export function ShaderFireDemo() {
         />
         <ControlSwitch
           label="Interactive"
-          description="Heat follows the pointer"
+          description="Flames reach for the pointer"
           checked={props.interactive}
           onChange={(v) => updateProp("interactive", v)}
         />

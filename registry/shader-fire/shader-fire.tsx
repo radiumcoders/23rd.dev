@@ -7,6 +7,10 @@ import { cn } from "@/lib/utils"
 import {
   createShaderFire,
   DARK_FALLBACK,
+  DEFAULT_EMBERS,
+  DEFAULT_HEIGHT,
+  DEFAULT_INTENSITY,
+  DEFAULT_SPEED,
   LIGHT_FALLBACK,
   resolveDark,
   type ShaderFireInstance,
@@ -16,6 +20,10 @@ import {
 export {
   DARK_COLORS,
   DARK_FALLBACK,
+  DEFAULT_EMBERS,
+  DEFAULT_HEIGHT,
+  DEFAULT_INTENSITY,
+  DEFAULT_SPEED,
   LIGHT_COLORS,
   LIGHT_FALLBACK,
 } from "./shader-fire-vanilla"
@@ -30,15 +38,16 @@ export type ShaderFireProps = Omit<ShaderFireOptions, "onThemeChange"> & {
 }
 
 /**
- * Sparse 2D fire wash — tongues rise from the bottom behind UI.
- * Theme-aware light / dusk.
+ * Cel-shaded flames licking up from the bottom edge, with sparks drifting
+ * above them. Heat reaches for the pointer. Theme-aware.
  */
 export function ShaderFire({
   className,
   colors,
-  speed = 0.55,
-  intensity = 0.55,
-  height = 0.45,
+  speed = DEFAULT_SPEED,
+  intensity = DEFAULT_INTENSITY,
+  height = DEFAULT_HEIGHT,
+  embers = DEFAULT_EMBERS,
   interactive = true,
   dither = false,
   pixelSize = 1,
@@ -72,6 +81,7 @@ export function ShaderFire({
       speed,
       intensity,
       height,
+      embers,
       interactive,
       dither,
       pixelSize,
@@ -92,13 +102,24 @@ export function ShaderFire({
       speed,
       intensity,
       height,
+      embers,
       interactive,
       dither,
       pixelSize,
       theme,
       onThemeChange: setIsDark,
     })
-  }, [colors, speed, intensity, height, interactive, dither, pixelSize, theme])
+  }, [
+    colors,
+    speed,
+    intensity,
+    height,
+    embers,
+    interactive,
+    dither,
+    pixelSize,
+    theme,
+  ])
 
   const fallback = isDark ? DARK_FALLBACK : LIGHT_FALLBACK
 
@@ -107,7 +128,7 @@ export function ShaderFire({
       data-slot="shader-fire"
       aria-hidden
       className={cn(
-        "pointer-events-none absolute inset-0 overflow-hidden",
+        "pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]",
         className
       )}
       style={{
@@ -115,7 +136,12 @@ export function ShaderFire({
         backgroundImage: fallback.backgroundImage,
       }}
     >
-      <canvas ref={canvasRef} className="absolute inset-0 size-full" />
+      {/* The canvas carries the radius itself: a WebGL layer can slip past a
+          parent's rounded clip on some GPUs. */}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 size-full rounded-[inherit]"
+      />
     </div>
   )
 }

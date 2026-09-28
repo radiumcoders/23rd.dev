@@ -245,7 +245,7 @@
     {
       "name": "shader-fire",
       "title": "Shader Fire",
-      "description": "Sparse 2D WebGL fire wash for landing heroes — tongues rise from the bottom, theme-aware, optional pointer heat.",
+      "description": "Cel-shaded WebGL flames for landing heroes — tongues lick up from the bottom, sparks drift above, and the fire reaches for the pointer.",
       "files": [
         {
           "path": "registry/shader-fire/shader-fire.tsx",
@@ -258,7 +258,7 @@
     {
       "name": "shader-fire-svelte",
       "title": "Shader Fire",
-      "description": "Sparse 2D WebGL fire wash for landing heroes — tongues rise from the bottom, theme-aware, optional pointer heat.",
+      "description": "Cel-shaded WebGL flames for landing heroes — tongues lick up from the bottom, sparks drift above, and the fire reaches for the pointer.",
       "dependencies": [],
       "files": [
         {

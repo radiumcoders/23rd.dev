@@ -171,7 +171,7 @@ Categories match `content/docs/components/meta.json`.
 | `radiant-lines` | Background | Hyperspace streaks; warp follows scroll | React + Svelte |
 | `ascii-fluid` | Background | Pointer trails quantized to an ASCII brightness ramp | React + Svelte |
 | `shader-gradient` | Shaders | Quiet WebGL wash behind heroes and empty states | React + Svelte |
-| `shader-fire` | Shaders | Sparse fire tongues rising from the bottom | React + Svelte |
+| `shader-fire` | Shaders | Cel-shaded flames and sparks rising from the bottom | React + Svelte |
 | `shader-sky` | Shaders | Clear sky or rain; optional dotted window glass | React + Svelte |
 | `stretchy-footer` | Footers | Dia-style rubber overscroll with an aurora floor | React + Svelte |
 | `live-orb` | Characters | Lit sphere; eyes follow the pointer | React + Svelte |
