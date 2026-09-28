@@ -11,12 +11,6 @@ const config = {
   },
   async redirects() {
     return [
-      // Temporary until the landing page lands at `/`.
-      {
-        source: "/",
-        destination: "/docs/getting-started",
-        permanent: false,
-      },
       {
         source: "/docs",
         destination: "/docs/getting-started",

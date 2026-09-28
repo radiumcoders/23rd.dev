@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entries.push({ url, changeFrequency, priority })
   }
 
+  add("/", 1)
   add("/sponsors", 0.6, "monthly")
   add("/terms", 0.2, "yearly")
   add("/privacy", 0.2, "yearly")
