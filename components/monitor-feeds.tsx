@@ -43,7 +43,9 @@ const RadiantLines = feed(() =>
   import("@/registry/radiant-lines/radiant-lines").then((m) => m.RadiantLines)
 )
 const ShaderAnimeFire = feed(() =>
-  import("@/registry/shader-anime-fire/shader-anime-fire").then((m) => m.ShaderAnimeFire)
+  import("@/registry/shader-anime-fire/shader-anime-fire").then(
+    (m) => m.ShaderAnimeFire
+  )
 )
 const ShaderFire = feed(() =>
   import("@/registry/shader-fire/shader-fire").then((m) => m.ShaderFire)
