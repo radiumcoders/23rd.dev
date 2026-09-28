@@ -94,6 +94,7 @@ npx skills add radiumcoders/23rd.dev --skill 23rd -g
 | [Phosphor Score](https://23rd.dev/docs/components/phosphor-score)         | `@23rd/phosphor-score`     | Vertical CRT sheet music — notes fall, bloom at the playhead, then exit in a flare |
 | [Radiant Lines](https://23rd.dev/docs/components/radiant-lines)           | `@23rd/radiant-lines`      | Hyperspace starfield background; warp speed driven by scroll                       |
 | [Shader Anime Fire](https://23rd.dev/docs/components/shader-anime-fire)               | `@23rd/shader-anime-fire`        | Cel-shaded flames and sparks rising from the bottom of a landing hero             |
+| [Shader Fire](https://23rd.dev/docs/components/shader-fire)               | `@23rd/shader-fire`        | Sparse 2D fire wash — tongues rise from the bottom behind a landing hero           |
 | [Shader Gradient](https://23rd.dev/docs/components/shader-gradient)       | `@23rd/shader-gradient`    | Quiet WebGL wash behind landing heroes, empty states, and marketing sections       |
 | [Shader Sky](https://23rd.dev/docs/components/shader-sky)                 | `@23rd/shader-sky`         | Clear blue or rain behind a hero — drifting clouds, optional window-glass film     |
 | [Stretchy Footer](https://23rd.dev/docs/components/stretchy-footer)       | `@23rd/stretchy-footer`    | Dia-style rubber overscroll; aurora stretches past the bottom, then snaps back     |
