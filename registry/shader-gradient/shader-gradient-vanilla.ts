@@ -36,7 +36,7 @@ export const LIGHT_COLORS = ["#F7A48B", "#F9D78E", "#9FCBF0", "#BBA9EE"]
  * Blue, violet, magenta and coral over near-black ink — a narrow hue arc,
  * so every blend on the cycle stays rich instead of passing through grey.
  */
-export const DARK_COLORS = ["#2A3BD1", "#7A3FD6", "#C43A9A", "#F26D5B"]
+export const DARK_COLORS = ["#3D52F2", "#9150F2", "#E0479F", "#FF7B60"]
 const LIGHT_BASE = "#FBF8F4"
 const DARK_BASE = "#07080B"
 
@@ -185,8 +185,12 @@ void main() {
   vec3 lab = palette(v);
 
   // Some of the paper / ink breathes through, so it isn't wall-to-wall color.
+  // Ink dulls far faster than paper does, so on a dark base only a little
+  // shows, and the color gets a chroma lift to glow against it.
   float air = smoothstep(0.28, 0.72, fbm(p * 0.6 - q + 13.0 + 0.03 * t));
-  lab = mix(u_base, lab, u_intensity * mix(0.45, 1.0, air));
+  float floorMix = mix(0.82, 0.45, u_base.x);
+  lab.yz *= mix(1.15, 1.0, u_base.x);
+  lab = mix(u_base, lab, u_intensity * mix(floorMix, 1.0, air));
 
   vec3 col = linearToSrgb(oklabToLinear(lab));
 
