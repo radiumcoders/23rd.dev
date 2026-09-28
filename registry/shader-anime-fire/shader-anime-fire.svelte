@@ -4,7 +4,7 @@
 <script lang="ts">
   import { onMount } from "svelte"
   import {
-    createShaderFire,
+    createShaderAnimeFire,
     DARK_FALLBACK,
     DEFAULT_EMBERS,
     DEFAULT_HEIGHT,
@@ -12,15 +12,15 @@
     DEFAULT_SPEED,
     LIGHT_FALLBACK,
     resolveDark,
-    type ShaderFireInstance,
-    type ShaderFireOptions,
-  } from "./shader-fire-vanilla"
+    type ShaderAnimeFireInstance,
+    type ShaderAnimeFireOptions,
+  } from "./shader-anime-fire-vanilla"
 
   function cn(...parts: Array<string | false | null | undefined>) {
     return parts.filter(Boolean).join(" ")
   }
 
-  interface Props extends Omit<ShaderFireOptions, "onThemeChange"> {
+  interface Props extends Omit<ShaderAnimeFireOptions, "onThemeChange"> {
     class?: string
   }
 
@@ -39,7 +39,7 @@
 
   let canvas: HTMLCanvasElement | undefined = $state()
   let isDark = $state(false)
-  let instance: ShaderFireInstance | null = null
+  let instance: ShaderAnimeFireInstance | null = null
 
   onMount(() => {
     const sync = () => {
@@ -60,7 +60,7 @@
         mq.removeEventListener("change", sync)
       }
     }
-    instance = createShaderFire(canvas, {
+    instance = createShaderAnimeFire(canvas, {
       colors,
       speed,
       intensity,
@@ -104,7 +104,7 @@
 </script>
 
 <div
-  data-slot="shader-fire"
+  data-slot="shader-anime-fire"
   aria-hidden="true"
   class={cn("pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]", className)}
   style="background-color: {fallback.backgroundColor}; background-image: {fallback.backgroundImage};"
