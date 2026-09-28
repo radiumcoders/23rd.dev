@@ -14,7 +14,6 @@ import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
   DARK_COLORS,
-  DEFAULT_EMBERS,
   DEFAULT_HEIGHT,
   DEFAULT_INTENSITY,
   DEFAULT_SPEED,
@@ -45,7 +44,6 @@ export function ShaderAnimeFireDemo() {
       speed: DEFAULT_SPEED,
       intensity: DEFAULT_INTENSITY,
       height: DEFAULT_HEIGHT,
-      embers: DEFAULT_EMBERS,
       interactive: true,
       overlay: true,
       dither: false,
@@ -80,7 +78,6 @@ export function ShaderAnimeFireDemo() {
             speed={props.speed}
             intensity={props.intensity}
             height={props.height}
-            embers={props.embers}
             interactive={props.interactive}
             dither={props.dither}
             pixelSize={props.pixelSize}
@@ -100,8 +97,8 @@ export function ShaderAnimeFireDemo() {
                   Ship something that catches
                 </h3>
                 <p className="mt-3 max-w-sm text-sm leading-relaxed text-foreground/70">
-                  Flames lick up from the floor and sparks drift past the copy.
-                  Move the pointer and the fire reaches for it.
+                  Flames lick up from the floor and leave the copy clear. Move
+                  the pointer and the fire reaches for it.
                 </p>
                 <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
                   <Button type="button">Install</Button>
@@ -128,7 +125,6 @@ export function ShaderAnimeFireDemo() {
           intensity:
             props.intensity === DEFAULT_INTENSITY ? undefined : props.intensity,
           height: props.height === DEFAULT_HEIGHT ? undefined : props.height,
-          embers: props.embers === DEFAULT_EMBERS ? undefined : props.embers,
           interactive: props.interactive ? undefined : false,
           dither: props.dither || undefined,
           pixelSize: props.pixelSize === 1 ? undefined : props.pixelSize,
@@ -170,14 +166,6 @@ export function ShaderAnimeFireDemo() {
           max={0.85}
           step={0.05}
           onChange={(v) => updateProp("height", v)}
-        />
-        <ControlSlider
-          label="Embers"
-          value={props.embers}
-          min={0}
-          max={1}
-          step={0.05}
-          onChange={(v) => updateProp("embers", v)}
         />
         <ControlSwitch
           label="Copy"

@@ -155,7 +155,6 @@ type ShaderAnimeFireProps = {
   speed?: number // 0.6
   intensity?: number // 1
   height?: number // 0.45
-  embers?: number // 0.6
   interactive?: boolean // true
   dither?: boolean // false
   pixelSize?: number // 1

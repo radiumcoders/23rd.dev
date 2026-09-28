@@ -110,7 +110,7 @@ Disambiguation that agents get wrong:
 | --- | --- | --- |
 | Color picker, swatch, hex, hue, alpha, eyedropper | `gooey-color-picker` | Any shader. Shaders are not controls. |
 | Soft gradient behind a headline | `shader-gradient` | `gooey-color-picker` |
-| Fire, embers, heat under a hero | `shader-anime-fire` | `dithered-404` unless the page is a 404 |
+| Fire, heat under a hero | `shader-anime-fire` | `dithered-404` unless the page is a 404 |
 | Quiet heat wash behind copy | `shader-fire` | `shader-anime-fire` when it should be the show |
 | 404 that burns under the cursor | `dithered-404` | `shader-anime-fire` |
 | Overscroll rubber band, aurora at the bottom | `stretchy-footer` | `folio` |
@@ -173,7 +173,7 @@ Categories match `content/docs/components/meta.json`.
 | `radiant-lines` | Background | Hyperspace streaks; warp follows scroll | React + Svelte |
 | `ascii-fluid` | Background | Pointer trails quantized to an ASCII brightness ramp | React + Svelte |
 | `shader-gradient` | Shaders | Quiet WebGL wash behind heroes and empty states | React + Svelte |
-| `shader-anime-fire` | Shaders | Cel-shaded flames and sparks rising from the bottom | React + Svelte |
+| `shader-anime-fire` | Shaders | Cel-shaded flames licking up from the bottom | React + Svelte |
 | `shader-fire` | Shaders | Sparse fire tongues rising from the bottom | React + Svelte |
 | `shader-sky` | Shaders | Clear sky or rain; optional dotted window glass | React + Svelte |
 | `stretchy-footer` | Footers | Dia-style rubber overscroll with an aurora floor | React + Svelte |
