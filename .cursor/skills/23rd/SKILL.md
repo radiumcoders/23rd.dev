@@ -156,7 +156,7 @@ Exceptions:
 - Passing `colors` to `ShaderGradient`, `ShaderFire`, or `ShaderSky` replaces the stock palette and does not swap with dark mode. Omit `colors` to get the light/dark pair.
 - Passing `color` (and `backgroundColor` where it exists) overrides ink. Omit it to follow the theme.
 - `PhosphorScore` canvas is transparent in both themes; the parent paints the background.
-- `Folio` tilt peaks at an internal 16°. It is not a prop. On a Mac trackpad the lean is easy to miss ([#29](https://github.com/radiumcoders/23rd.dev/issues/29)). Do not add a tilt prop that does not exist. `playFolioDemo` only previews the lean; it is not the interaction.
+- `Folio` tilt peaks at an internal 16°. It is not a prop. The lean follows wheel speed, so trackpads and mice lean alike. Do not add a tilt prop that does not exist. `playFolioDemo` only previews the lean; it is not the interaction.
 
 `prefers-reduced-motion: reduce` is honored by the canvas and motion components (still frame, no tilt, no stretch). Do not add a `reducedMotion` prop.
 

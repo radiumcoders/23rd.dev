@@ -158,7 +158,7 @@ export function Essay() {
 }
 ```
 
-If the effect is too subtle, say so. Do not invent a `tilt` prop. Issue #29 tracks the Mac trackpad case. `playFolioDemo({ target, holdMs })` only runs the preview on a matching `demoId`.
+If the effect is too subtle, say so. Do not invent a `tilt` prop. `playFolioDemo({ target, holdMs })` only runs the preview on a matching `demoId`.
 
 Window mode:
 

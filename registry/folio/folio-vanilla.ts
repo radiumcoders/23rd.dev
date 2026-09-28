@@ -34,6 +34,14 @@ const MIN_PERSPECTIVE = 1000
 const DEFAULT_RETURN_MS = 520
 const VEL_REF = 2.4
 const WHEEL_REF = 110
+/**
+ * Wheel speed, in px/ms, that leans all the way. Trackpads send a stream
+ * of small deltas, so a lean read per event barely moved; speed reads a
+ * fast swipe and a fast mouse flick the same.
+ */
+const WHEEL_VEL_REF = 1.1
+/** A wheel gap longer than this starts a fresh gesture. */
+const WHEEL_GESTURE_GAP_MS = 150
 const WHEEL_SCROLL_LOCK_MS = 64
 const END_SLACK_PX = 8
 const SPRING_IN = { stiffness: 72, damping: 22 }
@@ -274,9 +282,7 @@ function animateScroll(
 /** Lean the page while scrolling down, then spring flat. */
 export async function playFolioDemo(detail: FolioPlayDetail = {}) {
   if (typeof window === "undefined") return
-  window.dispatchEvent(
-    new CustomEvent<FolioPlayDetail>(FOLIO_PLAY, { detail })
-  )
+  window.dispatchEvent(new CustomEvent<FolioPlayDetail>(FOLIO_PLAY, { detail }))
   const hold = detail.holdMs ?? 720
   await new Promise<void>((r) => window.setTimeout(r, hold + 1800))
 }
@@ -318,6 +324,7 @@ export function createFolio(options: {
   let lastTop = readScrollTop(options.scroller)
   let lastTime = performance.now()
   let lastWheelAt = 0
+  let wheelVel = 0
   let impulse = 0
   let gate = 1
   let gateFrom = 1
@@ -453,9 +460,21 @@ export function createFolio(options: {
 
   const onWheel = (event: Event) => {
     if (playing) return
-    const dy = (event as WheelEvent).deltaY
+    const wheel = event as WheelEvent
+    // Lines (Firefox mouse wheels) and pages, in px.
+    const dy =
+      wheel.deltaMode === 1
+        ? wheel.deltaY * 16
+        : wheel.deltaMode === 2
+          ? wheel.deltaY * viewHeightOf(options.scroller)
+          : wheel.deltaY
     if (!dy) return
-    lastWheelAt = performance.now()
+    const now = performance.now()
+    const gap = now - lastWheelAt
+    // A lone mouse notch counts as one frame's worth of travel.
+    const speed = dy / Math.min(50, Math.max(8, gap))
+    wheelVel = gap > WHEEL_GESTURE_GAP_MS ? speed : wheelVel * 0.6 + speed * 0.4
+    lastWheelAt = now
     const atEnd = endFade(options.scroller) <= 0.02
     const atStart = startFade(options.scroller) <= 0.02
     const leavingEnd = atEnd && dy < 0
@@ -466,7 +485,7 @@ export function createFolio(options: {
       spring.set(0)
       return
     }
-    lean(leanFromDelta(dy), leavingEnd || leavingStart)
+    lean(clampSigned(wheelVel / WHEEL_VEL_REF), leavingEnd || leavingStart)
   }
 
   const onScroll = () => {
