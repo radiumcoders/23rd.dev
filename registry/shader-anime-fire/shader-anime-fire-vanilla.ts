@@ -1,12 +1,12 @@
-export type ShaderFireTheme = "light" | "dark" | "auto"
+export type ShaderAnimeFireTheme = "light" | "dark" | "auto"
 
-export type ShaderFireOptions = {
+export type ShaderAnimeFireOptions = {
   /**
    * Three colors, coolest to hottest: ember, flame, core. In dark mode the
    * densest heat still burns past the core toward white.
    */
   colors?: string[]
-  /** How fast the flames rise. Default `1`. */
+  /** How fast the flames rise. Default `0.6`. */
   speed?: number
   /** Opacity of the fire and its glow, 0–1. Default `1`. */
   intensity?: number
@@ -24,13 +24,13 @@ export type ShaderFireOptions = {
    * Palette mode. Default `auto` follows shadcn / next-themes
    * (`html.dark` class) so light and dark swap with the site theme.
    */
-  theme?: ShaderFireTheme
+  theme?: ShaderAnimeFireTheme
   /** Fires whenever resolved dark mode changes (CSS fallback). */
   onThemeChange?: (dark: boolean) => void
 }
 
-export type ShaderFireInstance = {
-  setOptions: (options: Partial<ShaderFireOptions>) => void
+export type ShaderAnimeFireInstance = {
+  setOptions: (options: Partial<ShaderAnimeFireOptions>) => void
   destroy: () => void
 }
 
@@ -41,7 +41,7 @@ export const DARK_COLORS = ["#B4200A", "#FF6512", "#FFC04A"]
 const LIGHT_BASE = "#FCFBF9"
 const DARK_BASE = "#08090C"
 
-export const DEFAULT_SPEED = 1
+export const DEFAULT_SPEED = 0.6
 export const DEFAULT_INTENSITY = 1
 export const DEFAULT_HEIGHT = 0.45
 export const DEFAULT_EMBERS = 0.6
@@ -315,7 +315,7 @@ export function isDarkTheme(): boolean {
   return window.matchMedia("(prefers-color-scheme: dark)").matches
 }
 
-export function resolveDark(theme: ShaderFireTheme): boolean {
+export function resolveDark(theme: ShaderAnimeFireTheme): boolean {
   if (theme === "dark") return true
   if (theme === "light") return false
   return isDarkTheme()
@@ -329,7 +329,7 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     if (isDev()) {
       console.warn(
-        "ShaderFire: shader failed to compile\n",
+        "ShaderAnimeFire: shader failed to compile\n",
         gl.getShaderInfoLog(shader)
       )
     }
@@ -345,11 +345,11 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
  * pauses off-screen and in hidden tabs; holds a still frame under
  * `prefers-reduced-motion`.
  */
-export function createShaderFire(
+export function createShaderAnimeFire(
   canvas: HTMLCanvasElement,
-  initial: ShaderFireOptions = {}
-): ShaderFireInstance | null {
-  let options: ShaderFireOptions = {
+  initial: ShaderAnimeFireOptions = {}
+): ShaderAnimeFireInstance | null {
+  let options: ShaderAnimeFireOptions = {
     interactive: true,
     theme: "auto",
     ...initial,
@@ -392,7 +392,7 @@ export function createShaderFire(
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
     if (isDev()) {
       console.warn(
-        "ShaderFire: program failed to link\n",
+        "ShaderAnimeFire: program failed to link\n",
         gl.getProgramInfoLog(program)
       )
     }

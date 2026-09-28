@@ -1,23 +1,23 @@
 ---
-title: Shader Fire
+title: Shader Anime Fire
 description: Cel-shaded WebGL flames for landing heroes — tongues lick up from the bottom, sparks drift above them, and the fire reaches for the pointer.
 ---
 
-import { ShaderFireDemo } from "@/registry/shader-fire/shader-fire-demo"
+import { ShaderAnimeFireDemo } from "@/registry/shader-anime-fire/shader-anime-fire-demo"
 
 Flat, graphic fire rather than a photo of one. Four crisp bands (ember, flame, core, and a hot center) curl up from the bottom edge, sparks drift up past the copy, and a warm glow flickers under it all. Move the pointer over it and a plume of flame reaches up toward it. Toggle **Dither** to print the same bands as ordered Bayer pixels. Press `d` to switch theme.
 
 ## Preview
 
-<ShaderFireDemo />
+<ShaderAnimeFireDemo />
 
 ## Installation
 
-<CliCommand item="shader-fire" />
+<CliCommand item="shader-anime-fire" />
 
 Or install straight from the public GitHub source registry:
 
-<CliCommand item="shader-fire" github />
+<CliCommand item="shader-anime-fire" github />
 
 ## Usage
 
@@ -28,12 +28,12 @@ Pin it behind a relatively positioned section. Keep content in a later stacking 
 ```tsx
 "use client"
 
-import { ShaderFire } from "@/components/ui/shader-fire"
+import { ShaderAnimeFire } from "@/components/ui/shader-anime-fire"
 
 export function Hero() {
   return (
     <section className="relative isolate min-h-svh overflow-hidden bg-background">
-      <ShaderFire />
+      <ShaderAnimeFire />
       <div className="relative z-10 mx-auto flex min-h-svh max-w-xl flex-col items-center justify-center px-6 text-center">
         <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
           New
@@ -53,11 +53,11 @@ export function Hero() {
   <FrameworkSvelte>
 ```svelte
 <script>
-  import ShaderFire from "$lib/components/ui/shader-fire.svelte"
+  import ShaderAnimeFire from "$lib/components/ui/shader-anime-fire.svelte"
 </script>
 
 <section class="relative isolate min-h-svh overflow-hidden bg-background">
-  <ShaderFire />
+  <ShaderAnimeFire />
   <div class="relative z-10 mx-auto flex min-h-svh max-w-xl flex-col items-center justify-center px-6 text-center">
     <p class="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
       New
@@ -79,14 +79,14 @@ Force a palette if the parent theme should not drive it:
 <FrameworkCode>
   <FrameworkReact>
 ```tsx
-<ShaderFire theme="light" />
-<ShaderFire theme="dark" />
+<ShaderAnimeFire theme="light" />
+<ShaderAnimeFire theme="dark" />
 ```
   </FrameworkReact>
   <FrameworkSvelte>
 ```svelte
-<ShaderFire theme="light" />
-<ShaderFire theme="dark" />
+<ShaderAnimeFire theme="light" />
+<ShaderAnimeFire theme="dark" />
 ```
   </FrameworkSvelte>
 </FrameworkCode>
@@ -96,12 +96,12 @@ Print the same bands as ordered Bayer pixels:
 <FrameworkCode>
   <FrameworkReact>
 ```tsx
-<ShaderFire dither pixelSize={3} />
+<ShaderAnimeFire dither pixelSize={3} />
 ```
   </FrameworkReact>
   <FrameworkSvelte>
 ```svelte
-<ShaderFire dither pixelSize={3} />
+<ShaderAnimeFire dither pixelSize={3} />
 ```
   </FrameworkSvelte>
 </FrameworkCode>
@@ -111,7 +111,7 @@ Print the same bands as ordered Bayer pixels:
 | Prop | Type | Default |
 | --- | --- | --- |
 | `colors` | `string[]` | ember / flame / core |
-| `speed` | `number` | `1` |
+| `speed` | `number` | `0.6` |
 | `intensity` | `number` | `1` |
 | `height` | `number` | `0.45` |
 | `embers` | `number` | `0.6` |

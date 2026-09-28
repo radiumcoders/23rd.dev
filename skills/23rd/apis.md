@@ -147,12 +147,12 @@ type ShaderGradientProps = {
 
 `LIGHT_FALLBACK` and `DARK_FALLBACK` are CSS background stacks used when WebGL is unavailable. Palette line in the engine: `options.colors ?? (dark ? DARK_COLORS : LIGHT_COLORS)`.
 
-## shader-fire
+## shader-anime-fire
 
 ```ts
-type ShaderFireProps = {
+type ShaderAnimeFireProps = {
   colors?: string[] // ember, flame, core
-  speed?: number // 1
+  speed?: number // 0.6
   intensity?: number // 1
   height?: number // 0.45
   embers?: number // 0.6

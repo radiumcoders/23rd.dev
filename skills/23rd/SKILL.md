@@ -92,7 +92,7 @@ flowchart TD
   pick -->|Scroll makes the page lean| folio[folio]
   pick -->|Character or wordmark| mark{Which}
   atmo -->|Quiet wash| sg[shader-gradient]
-  atmo -->|Fire from the bottom| sf[shader-fire]
+  atmo -->|Fire from the bottom| sf[shader-anime-fire]
   atmo -->|Sky or rain, optional glass| ss[shader-sky]
   atmo -->|ASCII mouse trails| af[ascii-fluid]
   atmo -->|Hyperspace streaks, scroll warp| rl[radiant-lines]
@@ -109,8 +109,8 @@ Disambiguation that agents get wrong:
 | --- | --- | --- |
 | Color picker, swatch, hex, hue, alpha, eyedropper | `gooey-color-picker` | Any shader. Shaders are not controls. |
 | Soft gradient behind a headline | `shader-gradient` | `gooey-color-picker` |
-| Fire, embers, heat under a hero | `shader-fire` | `dithered-404` unless the page is a 404 |
-| 404 that burns under the cursor | `dithered-404` | `shader-fire` |
+| Fire, embers, heat under a hero | `shader-anime-fire` | `dithered-404` unless the page is a 404 |
+| 404 that burns under the cursor | `dithered-404` | `shader-anime-fire` |
 | Overscroll rubber band, aurora at the bottom | `stretchy-footer` | `folio` |
 | Page leans while scrolling | `folio` | `stretchy-footer` (that one stretches, it does not tilt) |
 | Stars that speed up when you scroll | `radiant-lines` | `logo-burst` |
@@ -132,7 +132,7 @@ Backgrounds and shaders fill the parent. They do not create a page.
 </section>
 ```
 
-Same shell for `ShaderFire`, `ShaderSky`, `AsciiFluid`, `LogoBurst`, `PhosphorScore`, and `Dithered404`. Give the parent a height. Put UI in a later stacking context (`relative z-10`).
+Same shell for `ShaderAnimeFire`, `ShaderSky`, `AsciiFluid`, `LogoBurst`, `PhosphorScore`, and `Dithered404`. Give the parent a height. Put UI in a later stacking context (`relative z-10`).
 
 `RadiantLines` is transparent and warps with scroll. Inside an overflow div, pass the scroller (`containerRef` in React, `container` in Svelte) and make the canvas `sticky top-0 h-svh`. Omit the scroller to use the window.
 
@@ -153,7 +153,7 @@ That matches shadcn / `next-themes` with `attribute="class"`. There is no shared
 
 Exceptions:
 
-- Passing `colors` to `ShaderGradient`, `ShaderFire`, or `ShaderSky` replaces the stock palette and does not swap with dark mode. Omit `colors` to get the light/dark pair.
+- Passing `colors` to `ShaderGradient`, `ShaderAnimeFire`, or `ShaderSky` replaces the stock palette and does not swap with dark mode. Omit `colors` to get the light/dark pair.
 - Passing `color` (and `backgroundColor` where it exists) overrides ink. Omit it to follow the theme.
 - `PhosphorScore` canvas is transparent in both themes; the parent paints the background.
 - `Folio` tilt peaks at an internal 16°. It is not a prop. The lean follows wheel speed, so trackpads and mice lean alike. Do not add a tilt prop that does not exist. `playFolioDemo` only previews the lean; it is not the interaction.
@@ -171,7 +171,7 @@ Categories match `content/docs/components/meta.json`.
 | `radiant-lines` | Background | Hyperspace streaks; warp follows scroll | React + Svelte |
 | `ascii-fluid` | Background | Pointer trails quantized to an ASCII brightness ramp | React + Svelte |
 | `shader-gradient` | Shaders | Quiet WebGL wash behind heroes and empty states | React + Svelte |
-| `shader-fire` | Shaders | Cel-shaded flames and sparks rising from the bottom | React + Svelte |
+| `shader-anime-fire` | Shaders | Cel-shaded flames and sparks rising from the bottom | React + Svelte |
 | `shader-sky` | Shaders | Clear sky or rain; optional dotted window glass | React + Svelte |
 | `stretchy-footer` | Footers | Dia-style rubber overscroll with an aurora floor | React + Svelte |
 | `live-orb` | Characters | Lit sphere; eyes follow the pointer | React + Svelte |

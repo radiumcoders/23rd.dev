@@ -44,7 +44,7 @@ Background. Two vertical staves. Notes fall, bloom at the playhead, then flare. 
 
 Best fit: a music, broadcast, or terminal hero that should feel like a CRT score.
 
-Not this: fire (`shader-fire`), sky (`shader-sky`), a footer.
+Not this: fire (`shader-anime-fire`), sky (`shader-sky`), a footer.
 
 Deps: none. Key props: `color`, `glow` (50, range 0–100), `speed` (1.35 beats/s), `density` (1), `sway` (true), `seed` (23), `theme`.
 
@@ -143,7 +143,7 @@ export function Hero() {
 
 Pitfalls: custom `colors` stick; they do not cross-fade into the dark palette. Stock light `#7CB4E0 #B4D8C4 #EFE4BC #D2D7EC`. Stock dark `#3A6FA0 #2F6B52 #8A6B32 #4A4D7A`. If WebGL fails, a CSS `LIGHT_FALLBACK` / `DARK_FALLBACK` radial stack is used. `interactive` eases the wash toward the pointer.
 
-## shader-fire
+## shader-anime-fire
 
 Shader. Cel-shaded flames lick up from the bottom edge, sparks drift above. Ember / flame / core.
 
@@ -151,16 +151,16 @@ Best fit: fire along the floor of a hero. `dither` prints the bands as Bayer pix
 
 Not this: a 404 (`dithered-404` owns the burning glyph and the fireball cursor).
 
-Deps: none. Key props: `colors`, `speed` (1), `intensity` (1), `height` (0.45), `embers` (0.6), `interactive` (true), `dither` (false), `pixelSize` (1), `theme`.
+Deps: none. Key props: `colors`, `speed` (0.6), `intensity` (1), `height` (0.45), `embers` (0.6), `interactive` (true), `dither` (false), `pixelSize` (1), `theme`.
 
 ```tsx
 "use client"
-import { ShaderFire } from "@/components/ui/shader-fire"
+import { ShaderAnimeFire } from "@/components/ui/shader-anime-fire"
 
 export function Hero() {
   return (
     <section className="relative isolate min-h-svh overflow-hidden bg-background">
-      <ShaderFire />
+      <ShaderAnimeFire />
       <div className="relative z-10 p-10">Your content</div>
     </section>
   )
@@ -281,7 +281,7 @@ Page. A Bayer-dithered “404” burned by a fireball cursor into embers and smo
 
 Best fit: the not-found route, full viewport.
 
-Not this: decorative fire behind a normal hero (`shader-fire`). Set `dither={false}` only when you want the soft fire on the same 404 glyph.
+Not this: decorative fire behind a normal hero (`shader-anime-fire`). Set `dither={false}` only when you want the soft fire on the same 404 glyph.
 
 Deps: none. Key props: `color`, `pixelSize` (4), `brush` (28), `interactive` (true), `dither` (true), `theme`.
 

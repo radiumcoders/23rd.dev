@@ -32,8 +32,8 @@ Swap the component, keep the shell:
 
 | Brief | Component | Extra props |
 | --- | --- | --- |
-| Fire along the floor | `ShaderFire` | `height={0.45}` |
-| Pixel fire | `ShaderFire` | `dither pixelSize={3}` |
+| Fire along the floor | `ShaderAnimeFire` | `height={0.45}` |
+| Pixel fire | `ShaderAnimeFire` | `dither pixelSize={3}` |
 | Blue sky | `ShaderSky` | leave `colors` unset |
 | Rain / dusk sky | `ShaderSky` | `theme="dark"` or `html.dark` |
 | Window glass | `ShaderSky` | `glass glassSize={7}` |
@@ -76,7 +76,7 @@ Svelte: `bind:this={scroller}` and `container={scroller}`.
 
 ## 404
 
-Use `dithered-404` on the not-found route. Do not also mount `shader-fire`.
+Use `dithered-404` on the not-found route. Do not also mount `shader-anime-fire`.
 
 ```tsx
 "use client"
@@ -97,7 +97,7 @@ export function NotFound() {
 }
 ```
 
-`dither={false}` keeps the 404 glyph and switches to soft fire. It does not turn the page into `shader-fire`.
+`dither={false}` keeps the 404 glyph and switches to soft fire. It does not turn the page into `shader-anime-fire`.
 
 ## Rubber overscroll
 
@@ -224,7 +224,7 @@ export function Brand() {
 
 - `ShaderGradient` as a color control, or `GooeyColorPicker` as a page background.
 - `StretchyFooter` and `Folio` both wrapping the same scroll. Pick one owner of the scroll.
-- Two of `ShaderGradient`, `ShaderFire`, `ShaderSky`, `AsciiFluid` in the same viewport.
+- Two of `ShaderGradient`, `ShaderAnimeFire`, `ShaderSky`, `AsciiFluid` in the same viewport.
 - Content as a sibling with no `z-10`, so the canvas eats clicks. Set `pointer-events-none` on the canvas wrapper when the field is decorative (`LogoBurst` click-to-replay is the exception).
 - Assuming `theme="auto"` recolors a shader after you passed `colors`. It will not.
 - Adding `variant` to anything but `LiveOrb`.
