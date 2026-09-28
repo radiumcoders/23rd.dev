@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils"
 import {
   createShaderAnimeFire,
   DARK_FALLBACK,
-  DEFAULT_EMBERS,
   DEFAULT_HEIGHT,
   DEFAULT_INTENSITY,
   DEFAULT_SPEED,
@@ -20,7 +19,6 @@ import {
 export {
   DARK_COLORS,
   DARK_FALLBACK,
-  DEFAULT_EMBERS,
   DEFAULT_HEIGHT,
   DEFAULT_INTENSITY,
   DEFAULT_SPEED,
@@ -41,8 +39,8 @@ export type ShaderAnimeFireProps = Omit<
 }
 
 /**
- * Cel-shaded flames licking up from the bottom edge, with sparks drifting
- * above them. Heat reaches for the pointer. Theme-aware.
+ * Cel-shaded flames licking up from the bottom edge, over a warm flickering
+ * glow. Heat reaches for the pointer. Theme-aware.
  */
 export function ShaderAnimeFire({
   className,
@@ -50,7 +48,6 @@ export function ShaderAnimeFire({
   speed = DEFAULT_SPEED,
   intensity = DEFAULT_INTENSITY,
   height = DEFAULT_HEIGHT,
-  embers = DEFAULT_EMBERS,
   interactive = true,
   dither = false,
   pixelSize = 1,
@@ -84,7 +81,6 @@ export function ShaderAnimeFire({
       speed,
       intensity,
       height,
-      embers,
       interactive,
       dither,
       pixelSize,
@@ -105,24 +101,13 @@ export function ShaderAnimeFire({
       speed,
       intensity,
       height,
-      embers,
       interactive,
       dither,
       pixelSize,
       theme,
       onThemeChange: setIsDark,
     })
-  }, [
-    colors,
-    speed,
-    intensity,
-    height,
-    embers,
-    interactive,
-    dither,
-    pixelSize,
-    theme,
-  ])
+  }, [colors, speed, intensity, height, interactive, dither, pixelSize, theme])
 
   const fallback = isDark ? DARK_FALLBACK : LIGHT_FALLBACK
 

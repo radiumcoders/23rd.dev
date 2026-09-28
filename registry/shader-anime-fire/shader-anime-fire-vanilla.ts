@@ -12,8 +12,6 @@ export type ShaderAnimeFireOptions = {
   intensity?: number
   /** How far the flames climb, 0–1. Default `0.45`. */
   height?: number
-  /** How many sparks drift up, 0–1. `0` turns them off. Default `0.6`. */
-  embers?: number
   /** A plume of heat reaches up toward the pointer. Default `true`. */
   interactive?: boolean
   /** Ordered Bayer pixels instead of smooth flames. Default `false`. */
@@ -44,7 +42,6 @@ const DARK_BASE = "#08090C"
 export const DEFAULT_SPEED = 0.6
 export const DEFAULT_INTENSITY = 1
 export const DEFAULT_HEIGHT = 0.45
-export const DEFAULT_EMBERS = 0.6
 
 function fallback(colors: string[], base: string) {
   const [ember, flame, core] = colors
@@ -77,7 +74,6 @@ uniform vec2 u_resolution;
 uniform float u_time;
 uniform float u_intensity;
 uniform float u_height;
-uniform float u_embers;
 uniform float u_ignite;
 uniform float u_dark;
 uniform float u_dither;
@@ -90,17 +86,11 @@ uniform vec3 u_c1;
 uniform vec3 u_c2;
 uniform vec3 u_base;
 
-// Dave Hoskins' hashes — no sin(), so they stay stable on mobile GPUs.
+// Dave Hoskins' hash — no sin(), so it stays stable on mobile GPUs.
 float hash(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
   p3 += dot(p3, p3.yzx + 33.33);
   return fract((p3.x + p3.y) * p3.z);
-}
-
-vec2 hash2(vec2 p) {
-  vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
-  p3 += dot(p3, p3.yzx + 33.33);
-  return fract((p3.xx + p3.yz) * p3.zy);
 }
 
 float noise(vec2 p) {
@@ -177,41 +167,6 @@ float temperature(vec2 uv, float aspect, float t, float plume) {
   return T - smoothstep(1.0, 1.7, y);
 }
 
-// Sparks: three parallax layers of cells scrolling up, one spark in a few.
-float embers(vec2 uv, float aspect, float t, float plume) {
-  if (u_embers <= 0.0) return 0.0;
-  float climb = max(climbOf(), 0.05);
-  float sum = 0.0;
-  for (int i = 0; i < 3; i++) {
-    float fi = float(i);
-    float scale = 8.0 + fi * 7.0;
-    vec2 p = vec2(uv.x * aspect, uv.y) * scale;
-    float column = floor(p.x);
-    float lane = hash(vec2(column, fi * 7.1));
-    p.y -= t * (0.34 - fi * 0.06) * scale * (0.7 + 0.6 * lane);
-
-    vec2 id = floor(p);
-    vec2 h = hash2(id + fi * 17.3);
-    float rate = u_embers * (0.16 + fi * 0.07) * (1.0 + plume * 2.5);
-    if (h.x > rate) continue;
-
-    vec2 c = 0.5 + (h - 0.5) * 0.45;
-    c.x += sin(t * (1.4 + h.y * 2.2) + h.x * 40.0) * 0.16;
-    vec2 d = fract(p) - c;
-    d.y *= 0.5;
-    float r = mix(0.07, 0.13, h.y) * (1.0 - fi * 0.22);
-    float spark = 1.0 - smoothstep(0.0, r, length(d));
-    spark *= spark;
-
-    float twinkle = 0.55 + 0.45 * sin(t * (5.0 + h.y * 9.0) + h.x * 90.0);
-    // Born in the flames, burnt out a little above them.
-    float life = 1.0 - smoothstep(climb * 0.5, climb * 2.6, uv.y);
-    life *= smoothstep(0.0, climb * 0.35, uv.y);
-    sum += spark * twinkle * life * (1.0 - fi * 0.25);
-  }
-  return min(sum, 1.0);
-}
-
 // Flat cel bands, hottest innermost. 'hot' is the core pushed toward white.
 vec3 bands(float T, vec3 hot) {
   float w = 0.012;
@@ -246,9 +201,6 @@ void main() {
   float edge = u_dither > 0.5 ? 0.001 : 0.012;
   float cover = smoothstep(0.0, edge, T) * mix(0.35, 1.0, u_intensity);
 
-  float spark = embers(uv, aspect, t, plume);
-  spark = smoothstep(0.1 + q * 0.15, 0.3 + q * 0.15, spark);
-
   // The whole fire breathes a little, like a real one lighting a room.
   float flicker = 0.86 + 0.14 * noise(vec2(t * 2.3, 4.7));
   float glow = exp(-uv.y / max(climbOf() * 1.7, 0.02) * 3.4) * flicker;
@@ -261,7 +213,6 @@ void main() {
   vec3 hot = mix(u_c2, vec3(1.0), u_dark > 0.5 ? 0.75 : 0.4);
   vec3 col = mix(u_base, mix(u_c0, u_c1, 0.4), glow * (u_dark > 0.5 ? 0.08 : 0.12));
   col = mix(col, bands(T, hot), cover);
-  col = mix(col, u_dark > 0.5 ? mix(u_c1, u_c2, 0.6) : u_c0, spark);
 
   vec3 srgb = linearToSrgb(col);
   if (u_dither < 0.5) srgb += (hash(gl_FragCoord.xy + fract(t)) - 0.5) * 0.006;
@@ -340,9 +291,9 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
 }
 
 /**
- * A wall of fire along the bottom edge: turbulent tongues colored by heat,
- * sparks drifting up, and a warm glow that flickers with them. Theme-aware;
- * pauses off-screen and in hidden tabs; holds a still frame under
+ * A wall of cel-shaded fire along the bottom edge: turbulent tongues in
+ * flat bands of heat over a warm, flickering glow. Theme-aware; pauses
+ * off-screen and in hidden tabs; holds a still frame under
  * `prefers-reduced-motion`.
  */
 export function createShaderAnimeFire(
@@ -419,7 +370,6 @@ export function createShaderAnimeFire(
   const uTime = u("u_time")
   const uIntensity = u("u_intensity")
   const uHeight = u("u_height")
-  const uEmbers = u("u_embers")
   const uIgnite = u("u_ignite")
   const uDark = u("u_dark")
   const uDither = u("u_dither")
@@ -508,7 +458,6 @@ export function createShaderAnimeFire(
       numberOr(options.intensity, DEFAULT_INTENSITY, 0, 1)
     )
     gl.uniform1f(uHeight, numberOr(options.height, DEFAULT_HEIGHT, 0, 1))
-    gl.uniform1f(uEmbers, numberOr(options.embers, DEFAULT_EMBERS, 0, 1))
     gl.uniform1f(uIgnite, Math.max(ignite, 0.001))
     gl.uniform1f(uDark, dark ? 1 : 0)
     gl.uniform1f(uDither, options.dither ? 1 : 0)

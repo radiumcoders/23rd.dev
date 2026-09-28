@@ -5,7 +5,7 @@
       "name": "shader-anime-fire",
       "type": "registry:ui",
       "title": "Shader Anime Fire",
-      "description": "Cel-shaded WebGL flames for landing heroes — tongues lick up from the bottom, sparks drift above, and the fire reaches for the pointer.",
+      "description": "Cel-shaded WebGL flames for landing heroes — tongues lick up from the bottom in flat bands of heat, and the fire reaches for the pointer.",
       "files": [
         {
           "path": "shader-anime-fire.tsx",
@@ -18,7 +18,7 @@
       "name": "shader-anime-fire-svelte",
       "type": "registry:ui",
       "title": "Shader Anime Fire",
-      "description": "Cel-shaded WebGL flames for landing heroes — tongues lick up from the bottom, sparks drift above, and the fire reaches for the pointer.",
+      "description": "Cel-shaded WebGL flames for landing heroes — tongues lick up from the bottom in flat bands of heat, and the fire reaches for the pointer.",
       "files": [
         {
           "path": "shader-anime-fire.svelte",

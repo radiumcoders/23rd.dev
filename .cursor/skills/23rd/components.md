@@ -145,13 +145,13 @@ Pitfalls: custom `colors` stick; they do not cross-fade into the dark palette. S
 
 ## shader-anime-fire
 
-Shader. Cel-shaded flames lick up from the bottom edge, sparks drift above. Ember / flame / core.
+Shader. Cel-shaded flames lick up from the bottom edge in flat bands. Ember / flame / core.
 
 Best fit: fire along the floor of a hero. `dither` prints the bands as Bayer pixels.
 
 Not this: a 404 (`dithered-404` owns the burning glyph and the fireball cursor). A quiet wash (`shader-fire`).
 
-Deps: none. Key props: `colors`, `speed` (0.6), `intensity` (1), `height` (0.45), `embers` (0.6), `interactive` (true), `dither` (false), `pixelSize` (1), `theme`.
+Deps: none. Key props: `colors`, `speed` (0.6), `intensity` (1), `height` (0.45), `interactive` (true), `dither` (false), `pixelSize` (1), `theme`.
 
 ```tsx
 "use client"
@@ -167,7 +167,7 @@ export function Hero() {
 }
 ```
 
-Pitfalls: `interactive` makes a plume of flame reach up toward the pointer. `dither` defaults off. `embers={0}` turns sparks off. Custom `colors` do not follow theme. Light `#D8341A #F9731E #FFBA3A`. Dark `#B4200A #FF6512 #FFC04A`.
+Pitfalls: `interactive` makes a plume of flame reach up toward the pointer. `dither` defaults off. Custom `colors` do not follow theme. Light `#D8341A #F9731E #FFBA3A`. Dark `#B4200A #FF6512 #FFC04A`.
 
 ## shader-fire
 
