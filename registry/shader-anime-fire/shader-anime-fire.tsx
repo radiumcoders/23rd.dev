@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 
 import {
-  createShaderFire,
+  createShaderAnimeFire,
   DARK_FALLBACK,
   DEFAULT_EMBERS,
   DEFAULT_HEIGHT,
@@ -13,9 +13,9 @@ import {
   DEFAULT_SPEED,
   LIGHT_FALLBACK,
   resolveDark,
-  type ShaderFireInstance,
-  type ShaderFireOptions,
-} from "./shader-fire-vanilla"
+  type ShaderAnimeFireInstance,
+  type ShaderAnimeFireOptions,
+} from "./shader-anime-fire-vanilla"
 
 export {
   DARK_COLORS,
@@ -26,14 +26,14 @@ export {
   DEFAULT_SPEED,
   LIGHT_COLORS,
   LIGHT_FALLBACK,
-} from "./shader-fire-vanilla"
+} from "./shader-anime-fire-vanilla"
 export type {
-  ShaderFireInstance,
-  ShaderFireOptions,
-  ShaderFireTheme,
-} from "./shader-fire-vanilla"
+  ShaderAnimeFireInstance,
+  ShaderAnimeFireOptions,
+  ShaderAnimeFireTheme,
+} from "./shader-anime-fire-vanilla"
 
-export type ShaderFireProps = Omit<ShaderFireOptions, "onThemeChange"> & {
+export type ShaderAnimeFireProps = Omit<ShaderAnimeFireOptions, "onThemeChange"> & {
   className?: string
 }
 
@@ -41,7 +41,7 @@ export type ShaderFireProps = Omit<ShaderFireOptions, "onThemeChange"> & {
  * Cel-shaded flames licking up from the bottom edge, with sparks drifting
  * above them. Heat reaches for the pointer. Theme-aware.
  */
-export function ShaderFire({
+export function ShaderAnimeFire({
   className,
   colors,
   speed = DEFAULT_SPEED,
@@ -52,9 +52,9 @@ export function ShaderFire({
   dither = false,
   pixelSize = 1,
   theme = "auto",
-}: ShaderFireProps) {
+}: ShaderAnimeFireProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const instanceRef = useRef<ShaderFireInstance | null>(null)
+  const instanceRef = useRef<ShaderAnimeFireInstance | null>(null)
   const [isDark, setIsDark] = useState(false)
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export function ShaderFire({
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    instanceRef.current = createShaderFire(canvas, {
+    instanceRef.current = createShaderAnimeFire(canvas, {
       colors,
       speed,
       intensity,
@@ -125,7 +125,7 @@ export function ShaderFire({
 
   return (
     <div
-      data-slot="shader-fire"
+      data-slot="shader-anime-fire"
       aria-hidden
       className={cn(
         "pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]",

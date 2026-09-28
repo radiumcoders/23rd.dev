@@ -42,8 +42,8 @@ const PhosphorScore = feed(() =>
 const RadiantLines = feed(() =>
   import("@/registry/radiant-lines/radiant-lines").then((m) => m.RadiantLines)
 )
-const ShaderFire = feed(() =>
-  import("@/registry/shader-fire/shader-fire").then((m) => m.ShaderFire)
+const ShaderAnimeFire = feed(() =>
+  import("@/registry/shader-anime-fire/shader-anime-fire").then((m) => m.ShaderAnimeFire)
 )
 const ShaderGradient = feed(() =>
   import("@/registry/shader-gradient/shader-gradient").then(
@@ -71,7 +71,7 @@ const FEEDS: Record<string, () => ReactNode> = {
   "logo-burst": () => <LogoBurst />,
   "phosphor-score": () => <PhosphorScore />,
   "radiant-lines": () => <RadiantLines />,
-  "shader-fire": () => <ShaderFire className="absolute inset-0" />,
+  "shader-anime-fire": () => <ShaderAnimeFire className="absolute inset-0" />,
   "shader-gradient": () => <ShaderGradient className="absolute inset-0" />,
   "shader-sky": () => <ShaderSky className="absolute inset-0" />,
 }

@@ -17,6 +17,11 @@ const config = {
         permanent: false,
       },
       {
+        source: "/docs/components/shader-fire",
+        destination: "/docs/components/shader-anime-fire",
+        permanent: true,
+      },
+      {
         source: "/pricing",
         destination: "/sponsors",
         permanent: true,

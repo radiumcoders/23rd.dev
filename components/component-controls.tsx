@@ -98,7 +98,7 @@ export type ComponentControlsProps = {
   hasChanges?: boolean
   onReset?: () => void
   className?: string
-  /** Component tag for the copy snippet, e.g. `"ShaderFire"` */
+  /** Component tag for the copy snippet, e.g. `"ShaderAnimeFire"` */
   component?: string
   /** Props included in the copied JSX. `undefined` values are omitted. */
   snippetProps?: Record<string, unknown>

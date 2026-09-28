@@ -2,28 +2,28 @@
   "$schema": "https://ui.shadcn.com/schema/registry.json",
   "items": [
     {
-      "name": "shader-fire",
+      "name": "shader-anime-fire",
       "type": "registry:ui",
-      "title": "Shader Fire",
+      "title": "Shader Anime Fire",
       "description": "Cel-shaded WebGL flames for landing heroes — tongues lick up from the bottom, sparks drift above, and the fire reaches for the pointer.",
       "files": [
         {
-          "path": "shader-fire.tsx",
+          "path": "shader-anime-fire.tsx",
           "type": "registry:ui",
-          "target": "components/ui/shader-fire.tsx"
+          "target": "components/ui/shader-anime-fire.tsx"
         }
       ]
     },
     {
-      "name": "shader-fire-svelte",
+      "name": "shader-anime-fire-svelte",
       "type": "registry:ui",
-      "title": "Shader Fire",
+      "title": "Shader Anime Fire",
       "description": "Cel-shaded WebGL flames for landing heroes — tongues lick up from the bottom, sparks drift above, and the fire reaches for the pointer.",
       "files": [
         {
-          "path": "shader-fire.svelte",
+          "path": "shader-anime-fire.svelte",
           "type": "registry:file",
-          "target": "src/lib/components/ui/shader-fire.svelte"
+          "target": "src/lib/components/ui/shader-anime-fire.svelte"
         }
       ],
       "dependencies": []

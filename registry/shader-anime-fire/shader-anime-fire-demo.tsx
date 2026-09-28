@@ -19,8 +19,8 @@ import {
   DEFAULT_INTENSITY,
   DEFAULT_SPEED,
   LIGHT_COLORS,
-  ShaderFire,
-} from "@/registry/shader-fire/shader-fire"
+  ShaderAnimeFire,
+} from "@/registry/shader-anime-fire/shader-anime-fire"
 
 function norm(hex: string) {
   return hex.trim().toUpperCase()
@@ -36,7 +36,7 @@ function isStockPalette(colors: string[]) {
   return colorsEqual(colors, LIGHT_COLORS) || colorsEqual(colors, DARK_COLORS)
 }
 
-export function ShaderFireDemo() {
+export function ShaderAnimeFireDemo() {
   const theme = useHydratedTheme()
   const palette = theme === "dark" ? DARK_COLORS : LIGHT_COLORS
 
@@ -75,7 +75,7 @@ export function ShaderFireDemo() {
         stageClassName="min-h-0 overflow-hidden p-0"
       >
         <div className="relative h-[56svh] w-full overflow-hidden rounded-[inherit] bg-background">
-          <ShaderFire
+          <ShaderAnimeFire
             className="absolute inset-0"
             speed={props.speed}
             intensity={props.intensity}
@@ -122,7 +122,7 @@ export function ShaderFireDemo() {
       <ComponentControls
         hasChanges={hasChanges}
         onReset={resetProps}
-        component="ShaderFire"
+        component="ShaderAnimeFire"
         snippetProps={{
           speed: props.speed === DEFAULT_SPEED ? undefined : props.speed,
           intensity:
