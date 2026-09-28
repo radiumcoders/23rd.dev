@@ -6,6 +6,10 @@
   import {
     createShaderFire,
     DARK_FALLBACK,
+    DEFAULT_EMBERS,
+    DEFAULT_HEIGHT,
+    DEFAULT_INTENSITY,
+    DEFAULT_SPEED,
     LIGHT_FALLBACK,
     resolveDark,
     type ShaderFireInstance,
@@ -23,9 +27,10 @@
   let {
     class: className = "",
     colors,
-    speed = 0.55,
-    intensity = 0.55,
-    height = 0.45,
+    speed = DEFAULT_SPEED,
+    intensity = DEFAULT_INTENSITY,
+    height = DEFAULT_HEIGHT,
+    embers = DEFAULT_EMBERS,
     interactive = true,
     dither = false,
     pixelSize = 1,
@@ -60,6 +65,7 @@
       speed,
       intensity,
       height,
+      embers,
       interactive,
       dither,
       pixelSize,
@@ -86,6 +92,7 @@
       speed,
       intensity,
       height,
+      embers,
       interactive,
       dither,
       pixelSize,
@@ -99,8 +106,8 @@
 <div
   data-slot="shader-fire"
   aria-hidden="true"
-  class={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}
+  class={cn("pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]", className)}
   style="background-color: {fallback.backgroundColor}; background-image: {fallback.backgroundImage};"
 >
-  <canvas bind:this={canvas} class="absolute inset-0 size-full"></canvas>
+  <canvas bind:this={canvas} class="absolute inset-0 size-full rounded-[inherit]"></canvas>
 </div>

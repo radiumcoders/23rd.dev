@@ -1,11 +1,11 @@
 ---
 title: Shader Fire
-description: A sparse 2D WebGL fire wash for landing heroes — tongues rise from the bottom, sit behind UI, follow the theme, optional pointer heat.
+description: Cel-shaded WebGL flames for landing heroes — tongues lick up from the bottom, sparks drift above them, and the fire reaches for the pointer.
 ---
 
 import { ShaderFireDemo } from "@/registry/shader-fire/shader-fire-demo"
 
-Not a wall of flame. Use it as heat under a hero or wait screen so the page feels finished without covering the copy. Sienna / amber / dusty peach on paper in light mode; visible coals on slate in dark. Toggle **Dither** for an ordered Bayer print of the same field. Press `d` to switch theme.
+Flat, graphic fire rather than a photo of one. Four crisp bands (ember, flame, core, and a hot center) curl up from the bottom edge, sparks drift up past the copy, and a warm glow flickers under it all. Move the pointer over it and a plume of flame reaches up toward it. Toggle **Dither** to print the same bands as ordered Bayer pixels. Press `d` to switch theme.
 
 ## Preview
 
@@ -39,10 +39,10 @@ export function Hero() {
           New
         </p>
         <h1 className="mt-3 text-4xl font-medium tracking-tight">
-          Heat under the headline
+          Ship something that catches
         </h1>
         <p className="mt-3 text-muted-foreground">
-          The fire stays a wash. The page stays readable.
+          Flames along the floor. The copy stays clear.
         </p>
       </div>
     </section>
@@ -63,10 +63,10 @@ export function Hero() {
       New
     </p>
     <h1 class="mt-3 text-4xl font-medium tracking-tight">
-      Heat under the headline
+      Ship something that catches
     </h1>
     <p class="mt-3 text-muted-foreground">
-      The fire stays a wash. The page stays readable.
+      Flames along the floor. The copy stays clear.
     </p>
   </div>
 </section>
@@ -91,17 +91,17 @@ Force a palette if the parent theme should not drive it:
   </FrameworkSvelte>
 </FrameworkCode>
 
-Print the same field as ordered Bayer pixels:
+Print the same bands as ordered Bayer pixels:
 
 <FrameworkCode>
   <FrameworkReact>
 ```tsx
-<ShaderFire dither pixelSize={1} />
+<ShaderFire dither pixelSize={3} />
 ```
   </FrameworkReact>
   <FrameworkSvelte>
 ```svelte
-<ShaderFire dither pixelSize={1} />
+<ShaderFire dither pixelSize={3} />
 ```
   </FrameworkSvelte>
 </FrameworkCode>
@@ -110,10 +110,11 @@ Print the same field as ordered Bayer pixels:
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `colors` | `string[]` | ember / flame / highlight |
-| `speed` | `number` | `0.55` |
-| `intensity` | `number` | `0.55` |
+| `colors` | `string[]` | ember / flame / core |
+| `speed` | `number` | `1` |
+| `intensity` | `number` | `1` |
 | `height` | `number` | `0.45` |
+| `embers` | `number` | `0.6` |
 | `interactive` | `boolean` | `true` |
 | `dither` | `boolean` | `false` |
 | `pixelSize` | `number` | `1` |
