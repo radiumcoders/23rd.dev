@@ -83,7 +83,7 @@ type PhosphorScoreProps = {
 }
 ```
 
-`DARK_COLOR` `#4DFF6A`, `LIGHT_COLOR` `#147A3A`, `DARK_BG` `#050505`, `LIGHT_BG` `"transparent"`. A set `color` replaces ink only. Background still follows dark vs light.
+`DARK_COLOR` `#4DFF6A`, `LIGHT_COLOR` `#147A3A`, `DARK_BG` and `LIGHT_BG` are both `"transparent"`. A set `color` replaces ink only.
 
 ## radiant-lines
 

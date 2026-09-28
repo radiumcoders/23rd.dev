@@ -61,7 +61,7 @@ export function Score() {
 }
 ```
 
-Pitfalls: omit `color` so theme can swap (dark `#4DFF6A` on `#050505`, light `#147A3A` on a transparent canvas). Dark mode paints a solid `#050505` rectangle — clip the parent. Issue [#28](https://github.com/radiumcoders/23rd.dev/issues/28) is that square edge. The docs sentence “Press d to toggle” is not implemented on the component or the demo. Do not add a `d` shortcut.
+Pitfalls: omit `color` so theme can swap (dark `#4DFF6A`, light `#147A3A`). The canvas is transparent in both themes; the parent paints the background. Issue [#28](https://github.com/radiumcoders/23rd.dev/issues/28) is that square edge. The docs sentence “Press d to toggle” is not implemented on the component or the demo. Do not add a `d` shortcut.
 
 ## radiant-lines
 

@@ -11,7 +11,6 @@
     DEFAULT_SPEED,
     type PhosphorScoreInstance,
     type PhosphorScoreOptions,
-    type PhosphorScoreTheme,
   } from "./phosphor-score-vanilla"
 
   interface Props extends Omit<PhosphorScoreOptions, "onThemeChange"> {
@@ -31,16 +30,6 @@
     rotateZ = 0,
     theme = "auto",
   }: Props = $props()
-
-  /**
-   * Background before the first frame, so dark mode never flashes light.
-   * `#050505` is `DARK_BG`; Tailwind needs the literal.
-   */
-  const SURFACE: Record<PhosphorScoreTheme, string> = {
-    auto: "bg-background dark:bg-[#050505]",
-    dark: "bg-[#050505]",
-    light: "bg-background",
-  }
 
   let canvas: HTMLCanvasElement | undefined = $state()
   let instance: PhosphorScoreInstance | null = null
@@ -87,7 +76,6 @@
   aria-label="Falling phosphor sheet music"
   class={[
     "absolute inset-0 overflow-hidden",
-    SURFACE[theme] ?? SURFACE.auto,
     className,
   ]
     .filter(Boolean)

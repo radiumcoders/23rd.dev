@@ -12,7 +12,6 @@ import {
   DEFAULT_SPEED,
   type PhosphorScoreInstance,
   type PhosphorScoreOptions,
-  type PhosphorScoreTheme,
 } from "./phosphor-score-vanilla"
 
 export {
@@ -36,16 +35,6 @@ export type {
 
 export type PhosphorScoreProps = Omit<PhosphorScoreOptions, "onThemeChange"> & {
   className?: string
-}
-
-/**
- * Background before the first frame, so dark mode never flashes light.
- * `#050505` is `DARK_BG`; Tailwind needs the literal.
- */
-const SURFACE: Record<PhosphorScoreTheme, string> = {
-  auto: "bg-background dark:bg-[#050505]",
-  dark: "bg-[#050505]",
-  light: "bg-background",
 }
 
 /**
@@ -123,11 +112,7 @@ export function PhosphorScore({
       data-slot="phosphor-score"
       role="img"
       aria-label="Falling phosphor sheet music"
-      className={cn(
-        "absolute inset-0 overflow-hidden",
-        SURFACE[theme] ?? SURFACE.auto,
-        className
-      )}
+      className={cn("absolute inset-0 overflow-hidden", className)}
     >
       <canvas ref={canvasRef} className="absolute inset-0 size-full" />
     </div>
