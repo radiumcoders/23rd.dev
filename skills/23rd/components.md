@@ -149,7 +149,7 @@ Shader. Cel-shaded flames lick up from the bottom edge, sparks drift above. Embe
 
 Best fit: fire along the floor of a hero. `dither` prints the bands as Bayer pixels.
 
-Not this: a 404 (`dithered-404` owns the burning glyph and the fireball cursor).
+Not this: a 404 (`dithered-404` owns the burning glyph and the fireball cursor). A quiet wash (`shader-fire`).
 
 Deps: none. Key props: `colors`, `speed` (0.6), `intensity` (1), `height` (0.45), `embers` (0.6), `interactive` (true), `dither` (false), `pixelSize` (1), `theme`.
 
@@ -168,6 +168,32 @@ export function Hero() {
 ```
 
 Pitfalls: `interactive` makes a plume of flame reach up toward the pointer. `dither` defaults off. `embers={0}` turns sparks off. Custom `colors` do not follow theme. Light `#D8341A #F9731E #FFBA3A`. Dark `#B4200A #FF6512 #FFC04A`.
+
+## shader-fire
+
+Shader. Sparse tongues from the bottom edge. Ember / flame / highlight.
+
+Best fit: heat behind a hero. `dither` turns the wash into Bayer pixels.
+
+Not this: a 404 (`dithered-404` owns the burning glyph and the fireball cursor). Bold graphic flames (`shader-anime-fire`).
+
+Deps: none. Key props: `colors`, `speed` (0.55), `intensity` (0.55), `height` (0.45), `interactive` (true), `dither` (false), `pixelSize` (1), `theme`.
+
+```tsx
+"use client"
+import { ShaderFire } from "@/components/ui/shader-fire"
+
+export function Hero() {
+  return (
+    <section className="relative isolate min-h-svh overflow-hidden bg-background">
+      <ShaderFire />
+      <div className="relative z-10 p-10">Your content</div>
+    </section>
+  )
+}
+```
+
+Pitfalls: `interactive` adds heat under the pointer. `dither` defaults off. Custom `colors` do not follow theme. Light `#9C3A24 #C96A32 #E6C4A0`. Dark `#A33A18 #D4682A #E8B45A`.
 
 ## shader-sky
 

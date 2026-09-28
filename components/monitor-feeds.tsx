@@ -45,6 +45,9 @@ const RadiantLines = feed(() =>
 const ShaderAnimeFire = feed(() =>
   import("@/registry/shader-anime-fire/shader-anime-fire").then((m) => m.ShaderAnimeFire)
 )
+const ShaderFire = feed(() =>
+  import("@/registry/shader-fire/shader-fire").then((m) => m.ShaderFire)
+)
 const ShaderGradient = feed(() =>
   import("@/registry/shader-gradient/shader-gradient").then(
     (m) => m.ShaderGradient
@@ -72,6 +75,7 @@ const FEEDS: Record<string, () => ReactNode> = {
   "phosphor-score": () => <PhosphorScore />,
   "radiant-lines": () => <RadiantLines />,
   "shader-anime-fire": () => <ShaderAnimeFire className="absolute inset-0" />,
+  "shader-fire": () => <ShaderFire className="absolute inset-0" />,
   "shader-gradient": () => <ShaderGradient className="absolute inset-0" />,
   "shader-sky": () => <ShaderSky className="absolute inset-0" />,
 }

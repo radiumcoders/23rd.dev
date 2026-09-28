@@ -170,6 +170,28 @@ type ShaderAnimeFireProps = {
 
 Same `colors ?? theme palette` rule. Fallbacks exported as `LIGHT_FALLBACK` / `DARK_FALLBACK`.
 
+## shader-fire
+
+```ts
+type ShaderFireProps = {
+  colors?: string[] // ember, flame, highlight
+  speed?: number // 0.55
+  intensity?: number // 0.55
+  height?: number // 0.45
+  interactive?: boolean // true
+  dither?: boolean // false
+  pixelSize?: number // 1
+  theme?: "light" | "dark" | "auto"
+  className?: string
+}
+```
+
+`LIGHT_COLORS`: `#9C3A24`, `#C96A32`, `#E6C4A0`.
+
+`DARK_COLORS`: `#A33A18`, `#D4682A`, `#E8B45A`.
+
+Same `colors ?? theme palette` rule. Fallbacks exported as `LIGHT_FALLBACK` / `DARK_FALLBACK`.
+
 ## shader-sky
 
 ```ts
