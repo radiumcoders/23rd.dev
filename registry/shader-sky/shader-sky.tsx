@@ -127,7 +127,7 @@ export function ShaderSky({
       data-slot="shader-sky"
       aria-hidden
       className={cn(
-        "pointer-events-none absolute inset-0 overflow-hidden",
+        "pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] [mask-image:linear-gradient(#000,#000)]",
         className
       )}
       style={{
@@ -135,7 +135,13 @@ export function ShaderSky({
         backgroundImage: fallback.backgroundImage,
       }}
     >
-      <canvas ref={canvasRef} className="absolute inset-0 size-full" />
+      {/* Firefox can hand an opaque WebGL canvas straight to the system
+          compositor, which ignores rounded clips. The mask on the root keeps
+          it in the page's own layer, so the parent's radius holds. */}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 size-full rounded-[inherit]"
+      />
     </div>
   )
 }

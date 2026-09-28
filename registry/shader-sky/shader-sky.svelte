@@ -107,8 +107,11 @@
 <div
   data-slot="shader-sky"
   aria-hidden="true"
-  class={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}
+  class={cn("pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] [mask-image:linear-gradient(#000,#000)]", className)}
   style="background-color: {fallback.backgroundColor}; background-image: {fallback.backgroundImage};"
 >
-  <canvas bind:this={canvas} class="absolute inset-0 size-full"></canvas>
+  <!-- Firefox can hand an opaque WebGL canvas straight to the system
+       compositor, which ignores rounded clips. The mask on the root keeps it
+       in the page's own layer, so the parent's radius holds. -->
+  <canvas bind:this={canvas} class="absolute inset-0 size-full rounded-[inherit]"></canvas>
 </div>

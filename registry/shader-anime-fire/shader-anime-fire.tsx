@@ -33,7 +33,10 @@ export type {
   ShaderAnimeFireTheme,
 } from "./shader-anime-fire-vanilla"
 
-export type ShaderAnimeFireProps = Omit<ShaderAnimeFireOptions, "onThemeChange"> & {
+export type ShaderAnimeFireProps = Omit<
+  ShaderAnimeFireOptions,
+  "onThemeChange"
+> & {
   className?: string
 }
 
@@ -128,7 +131,7 @@ export function ShaderAnimeFire({
       data-slot="shader-anime-fire"
       aria-hidden
       className={cn(
-        "pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]",
+        "pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] [mask-image:linear-gradient(#000,#000)]",
         className
       )}
       style={{
@@ -136,8 +139,9 @@ export function ShaderAnimeFire({
         backgroundImage: fallback.backgroundImage,
       }}
     >
-      {/* The canvas carries the radius itself: a WebGL layer can slip past a
-          parent's rounded clip on some GPUs. */}
+      {/* Firefox can hand an opaque WebGL canvas straight to the system
+          compositor, which ignores rounded clips. The mask on the root keeps
+          it in the page's own layer, so the parent's radius holds. */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 size-full rounded-[inherit]"
