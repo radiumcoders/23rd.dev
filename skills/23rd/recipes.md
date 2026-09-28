@@ -226,6 +226,5 @@ export function Brand() {
 - `StretchyFooter` and `Folio` both wrapping the same scroll. Pick one owner of the scroll.
 - Two of `ShaderGradient`, `ShaderFire`, `ShaderSky`, `AsciiFluid` in the same viewport.
 - Content as a sibling with no `z-10`, so the canvas eats clicks. Set `pointer-events-none` on the canvas wrapper when the field is decorative (`LogoBurst` click-to-replay is the exception).
-- `PhosphorScore` on a light card in dark mode without clipping. The canvas fills `#050505`.
 - Assuming `theme="auto"` recolors a shader after you passed `colors`. It will not.
 - Adding `variant` to anything but `LiveOrb`.

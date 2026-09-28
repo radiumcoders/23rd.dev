@@ -51,8 +51,9 @@ export const DARK_COLOR = "#4DFF6A"
 export const LIGHT_COLOR = "#147A3A"
 /** @deprecated Use `DARK_COLOR` or omit `color` and set `theme`. */
 export const DEFAULT_COLOR = DARK_COLOR
-export const DARK_BG = "#050505"
-/** Light mode is transparent — the parent `bg-background` shows through. */
+/** Transparent in both themes — the parent's background shows through. */
+export const DARK_BG = "transparent"
+/** Transparent in both themes — the parent's background shows through. */
 export const LIGHT_BG = "transparent"
 export const DEFAULT_GLOW = 50
 export const DEFAULT_SPEED = 1.35
@@ -687,12 +688,7 @@ export function createPhosphorScore(
     ctx!.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx!.globalCompositeOperation = "source-over"
     ctx!.globalAlpha = 1
-    if (dark) {
-      ctx!.fillStyle = DARK_BG
-      ctx!.fillRect(0, 0, w, h)
-    } else {
-      ctx!.clearRect(0, 0, w, h)
-    }
+    ctx!.clearRect(0, 0, w, h)
     if (w < 2 || h < 2) return
 
     view = makeView(
@@ -1143,9 +1139,11 @@ export function createPhosphorScore(
   /** Top and bottom fade into the background — in the canvas, so it costs nothing and blurs nothing. */
   function drawEdgeFade(w: number, h: number) {
     const f = h * EDGE_FADE
-    const solid = dark ? "rgba(5,5,5,1)" : "rgba(0,0,0,1)"
-    const clear = dark ? "rgba(5,5,5,0)" : "rgba(0,0,0,0)"
-    ctx!.globalCompositeOperation = dark ? "source-over" : "destination-out"
+    // Erase toward the edges rather than paint over them, so the fade
+    // lands on whatever background the parent has.
+    const solid = "rgba(0,0,0,1)"
+    const clear = "rgba(0,0,0,0)"
+    ctx!.globalCompositeOperation = "destination-out"
     const top = ctx!.createLinearGradient(0, 0, 0, f)
     top.addColorStop(0, solid)
     top.addColorStop(1, clear)

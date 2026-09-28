@@ -5,7 +5,7 @@ description: Vertical CRT sheet music — notes slide down a grand staff, bloom 
 
 import { PhosphorScoreDemo } from "@/registry/phosphor-score/phosphor-score-demo"
 
-A falling score, not a piano roll. A grand staff of beamed runs, chords, slurs and dynamics scrolls down to a playhead: each note brightens as it arrives, blooms and flares as it plays, then fades with a phosphor afterglow. Default `theme="auto"` follows the site — phosphor on black, forest ink on the page background. `glow` is 0–100 (default `50`) and stays a tight halo on the note. Change **Seed** to crossfade to a new score. Press `d` to toggle the theme.
+A falling score, not a piano roll. A grand staff of beamed runs, chords, slurs and dynamics scrolls down to a playhead: each note brightens as it arrives, blooms and flares as it plays, then fades with a phosphor afterglow. Default `theme="auto"` follows the site — phosphor green in dark, forest ink in light, both on the page background. `glow` is 0–100 (default `50`) and stays a tight halo on the note. Change **Seed** to crossfade to a new score. Press `d` to toggle the theme.
 
 ## Preview
 
@@ -105,4 +105,4 @@ Change the viewing angle. The plane turns about the playhead in perspective, lik
 | `className` | `string`                      | React only                                       |
 | `class`     | `string`                      | Svelte only                                      |
 
-Omit `color` and `theme="auto"` picks phosphor green on dark, forest ink on light. The canvas is transparent in light mode so the parent background shows through.
+Omit `color` and `theme="auto"` picks phosphor green on dark, forest ink on light. The canvas is transparent in both themes, so it sits on whatever background the parent paints.
