@@ -309,7 +309,7 @@ Section. The sheet tips one way on scroll down, the other on scroll up, blur on 
 
 Best fit: a long editorial page that should feel like one sheet.
 
-Not this: overscroll aurora (`stretchy-footer`). Do not use it when the user needs an obvious effect on a trackpad — issue [#29](https://github.com/radiumcoders/23rd.dev/issues/29) says the lean is barely visible on Mac. The docs “show effect” button calls `playFolioDemo`; that is a preview, not a stronger public tilt.
+Not this: overscroll aurora (`stretchy-footer`). The lean follows wheel speed, so a fast trackpad swipe leans about as far as a mouse flick; slow reading-speed scrolls stay subtle. The docs “show effect” button calls `playFolioDemo`; that is a preview, not a stronger public tilt.
 
 Deps: none. Key props: `children`, `blur` (4), `perspective` (1000, floor 1000), `returnMs` (520), `windowScroll` (false), `contentSelector` (`[data-folio-page]`), `label` (`"Tilting page"`), `demoId`.
 
