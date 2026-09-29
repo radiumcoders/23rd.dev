@@ -119,23 +119,20 @@
 }
 
 /*
- * Firefox repaints a blurred snapshot every ~100ms, which stalls anything
- * else moving during the transition (the sidebar marker skips its arc).
- * A plain fade keeps it at full frame rate.
+ * Firefox stops painting the rest of the page while a view transition runs,
+ * so the sidebar marker's whole flight happens unseen and it just jumps.
+ * There the transition ends at once and the new page fades in as a plain
+ * animation, which leaves everything else live.
  */
 @supports (-moz-appearance: none) {
-    ::view-transition-old(.page-blur) {
-        animation-name: page-fade-out;
-    }
-
+    ::view-transition-group(.page-blur),
+    ::view-transition-old(.page-blur),
     ::view-transition-new(.page-blur) {
-        animation-name: page-fade-in;
+        animation: none;
     }
-}
 
-@keyframes page-fade-out {
-    to {
-        opacity: 0;
+    .docs-page {
+        animation: 420ms cubic-bezier(0.16, 1, 0.3, 1) both page-fade-in;
     }
 }
 
