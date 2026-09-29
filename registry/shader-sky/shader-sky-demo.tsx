@@ -25,6 +25,7 @@ const DEFAULTS = {
   scale: 0.4,
   variation: 0.7,
   interactive: false,
+  lightning: false,
   glass: false,
   glassSize: 7,
   overlay: false,
@@ -50,6 +51,7 @@ export function ShaderSkyDemo() {
             scale={props.scale}
             variation={props.variation}
             interactive={props.interactive}
+            lightning={props.lightning}
             glass={props.glass}
             glassSize={props.glassSize}
             colors={props.colors}
@@ -99,6 +101,7 @@ export function ShaderSkyDemo() {
           scale: props.scale,
           variation: props.variation,
           interactive: props.interactive ? true : undefined,
+          lightning: props.lightning ? true : undefined,
           glass: props.glass ? true : undefined,
           glassSize: props.glass ? props.glassSize : undefined,
           colors: props.colors,
@@ -169,6 +172,12 @@ export function ShaderSkyDemo() {
           description="Clouds follow the pointer"
           checked={props.interactive}
           onChange={(v) => updateProp("interactive", v)}
+        />
+        <ControlSwitch
+          label="Lightning"
+          description="Storm flashes inside the clouds"
+          checked={props.lightning}
+          onChange={(v) => updateProp("lightning", v)}
         />
         <ControlSwitch
           label="Glass"
