@@ -18,6 +18,11 @@ export type ShaderSkyOptions = {
   /** Follow the pointer gently. Default false */
   interactive?: boolean
   /**
+   * Storm flashes that light the clouds from inside, every few seconds.
+   * Off under reduced motion. Default false
+   */
+  lightning?: boolean
+  /**
    * Window glass — a transparent dotted film over the sky.
    * Default false
    */
@@ -91,6 +96,14 @@ void main() {
 }
 `
 
+/**
+ * Volumetric cumulus: rays from the viewer march through a slab of cloud
+ * between BASE and TOP. Density is 3D noise shaped by a height profile and
+ * cut back to a slow 2D coverage map, so clouds billow with clear sky
+ * between them. Sunlight is attenuated
+ * toward the sun (Beer–Lambert) and scattered with a two-lobe phase, so
+ * edges near the sun glow and thick cores go gray underneath.
+ */
 const FRAG = `
 precision highp float;
 
@@ -109,85 +122,80 @@ uniform vec3 u_c2;
 uniform vec3 u_c3;
 uniform vec3 u_c4;
 uniform vec2 u_mouse;
+uniform float u_flash;
+uniform vec2 u_flashPos;
+uniform sampler2D u_noise;
+
+// Cloud slab, in world units above the viewer.
+const float BASE = 1.0;
+const float TOP = 1.9;
+// Past this distance the layer is haze, not clouds.
+const float FAR = 34.0;
+const int STEPS = 36;
+const int LIGHT_STEPS = 3;
+// Horizon just inside the bottom edge, like a photo taken from a hill.
+const float TILT = 0.46;
 
 float hash(vec2 p) {
-  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
 }
 
-float noise(vec2 p) {
+// Value noise from a 256² random texture: one lookup per sample.
+float noise2(vec2 p) {
   vec2 i = floor(p);
   vec2 f = fract(p);
-  float a = hash(i);
-  float b = hash(i + vec2(1.0, 0.0));
-  float c = hash(i + vec2(0.0, 1.0));
-  float d = hash(i + vec2(1.0, 1.0));
-  vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+  f = f * f * (3.0 - 2.0 * f);
+  return texture2D(u_noise, (i + f + 0.5) / 256.0).x;
 }
 
-float fbm(vec2 p) {
-  float v = 0.0;
-  float a = 0.5;
-  mat2 m = mat2(1.6, 1.2, -1.2, 1.6);
-  for (int i = 0; i < 4; i++) {
-    v += a * noise(p);
-    p = m * p;
-    a *= 0.5;
+// 3D value noise: the texture's green channel is red offset by (37, 239),
+// so one lookup returns two neighbouring z slices.
+float noise3(vec3 p) {
+  vec3 i = floor(p);
+  vec3 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  vec2 uv = i.xy + vec2(37.0, 239.0) * i.z + f.xy;
+  vec2 rg = texture2D(u_noise, (uv + 0.5) / 256.0).yx;
+  return mix(rg.x, rg.y, f.z);
+}
+
+float luma(vec3 c) {
+  return dot(c, vec3(0.2126, 0.7152, 0.0722));
+}
+
+// Henyey–Greenstein, scaled so isotropic scattering is 1.
+float phaseHG(float mu, float g) {
+  float g2 = g * g;
+  return (1.0 - g2) / pow(1.0 + g2 - 2.0 * g * mu, 1.5);
+}
+
+// Local coverage: a slow 2D weather map splits the sky into distinct
+// clouds with clear gaps between them.
+float coverageAt(vec2 xz) {
+  float weather = noise2(xz * mix(0.14, 0.32, u_amount) + 13.7);
+  float cov = mix(0.22, 0.72, u_coverage);
+  return clamp(cov + (weather - 0.5) * mix(1.0, 0.55, u_amount), 0.0, 1.0);
+}
+
+// Cumulus density: 3D fbm shaped by a height profile (flat-ish base,
+// billowing top), then cut back to the local coverage.
+float density(vec3 q, float hf, float cov, float t, float fine) {
+  float shape = smoothstep(0.0, 0.14, hf) * (1.0 - smoothstep(0.35, 1.0, hf));
+  float n = noise3(q) * 0.52;
+  n += noise3(q * 2.03 + 3.1) * 0.27;
+  n += noise3(q * 4.07 + 7.7) * 0.14;
+  n += fine * noise3(q * 8.3 + 1.9) * 0.1;
+  n /= 0.93 + fine * 0.1;
+  float d = n * shape;
+  d = clamp((d - (1.0 - cov)) / max(cov, 0.05), 0.0, 1.0);
+  if (fine > 0.5 && d > 0.0) {
+    // Wispy erosion at the rims, rising slowly like convection.
+    float e = noise3(q * 6.1 + vec3(0.0, -t * 0.6, 0.0));
+    d = clamp(d - e * mix(0.08, 0.26, u_variation) * (1.0 - d), 0.0, 1.0);
   }
-  return v;
-}
-
-vec2 skyField(vec2 uv, float aspect, float t) {
-  vec2 st = vec2(uv.x * aspect, uv.y);
-  st -= (u_mouse - 0.5) * 0.04;
-
-  float amount = clamp(u_amount, 0.0, 1.0);
-  float scale = clamp(u_scale, 0.0, 1.0);
-  float variation = clamp(u_variation, 0.0, 1.0);
-  float cover = clamp(u_coverage, 0.0, 1.0);
-
-  float freq = mix(2.65, 1.05, scale);
-  vec2 wind = vec2(t * 0.18, t * 0.012);
-  vec2 p = vec2(st.x, st.y * 1.18) * freq + vec2(wind.x, 0.0);
-
-  vec2 q = vec2(
-    fbm(p + vec2(0.0, wind.y)),
-    fbm(p + vec2(5.2, 1.3) - wind.yx)
-  );
-  vec2 r = vec2(
-    fbm(p + q * 1.35 + vec2(1.7, 9.2) + wind * 0.4),
-    fbm(p + q * 1.35 + vec2(8.3, 2.8) - wind * 0.28)
-  );
-
-  vec2 base = p * 0.58 + r * 1.15 + wind * 0.2;
-  float big = fbm(base);
-  float small = fbm(p * mix(2.2, 1.35, scale) + q * 0.7 + vec2(t * 0.26, 0.1));
-  float n = mix(big, mix(big, small, 0.55), variation);
-  n = n * n * (3.0 - 2.0 * n);
-
-  float lo = mix(0.42, 0.24, amount) - (cover - 0.5) * 0.10;
-  float hi = lo + mix(0.20, 0.13, amount);
-  float density = smoothstep(lo, hi, n);
-
-  float far = fbm(st * freq * 0.38 + vec2(t * 0.09, 0.3) + 3.1);
-  far = far * far * (3.0 - 2.0 * far);
-  float farC = smoothstep(lo - 0.04, hi - 0.02, far) * mix(0.16, 0.42, amount);
-  density = clamp(density + farC * (1.0 - density * 0.4), 0.0, 1.0);
-  density *= mix(0.78, 1.14, cover);
-
-  // Sun from upper-right: denser along the light ray = self-shadow.
-  vec2 sun = vec2(0.22, 0.28);
-  float nLit = fbm(base + sun);
-  nLit = nLit * nLit * (3.0 - 2.0 * nLit);
-  float lift = clamp((n - nLit) * 2.6, -1.0, 1.0);
-
-  float mottling = fbm(p * 3.15 + q * 0.35 + vec2(2.4, -1.1));
-  float under = smoothstep(0.22, 0.86, n) * (1.0 - st.y * 0.48);
-  float shade = 0.40 + lift * 0.50 - under * 0.30;
-  shade = mix(shade, shade * mix(0.58, 1.32, mottling), 0.52);
-  shade = clamp(shade, 0.0, 1.0);
-
-  return vec2(clamp(density, 0.0, 1.0), shade);
+  return d;
 }
 
 void main() {
@@ -201,38 +209,104 @@ void main() {
     uv += glassLocal * 0.0032;
   }
 
-  vec2 field = skyField(uv, aspect, t);
-  float density = field.x;
-  float shade = field.y;
+  vec2 s = (uv - 0.5) * vec2(aspect, 1.0);
+  s += (u_mouse - 0.5) * vec2(0.06, 0.03);
+  vec3 dir = normalize(vec3(s.x, s.y + TILT, 1.0));
+  vec3 sunDir = normalize(vec3(0.85, 0.95, 1.0));
+  float mu = dot(dir, sunDir);
 
-  float h = pow(clamp(uv.y, 0.0, 1.0), 0.76);
-  vec3 sky = mix(u_c2, u_c1, h);
+  // Storm palettes (cloud darker than the horizon) mute the sun.
+  float storm = smoothstep(0.02, -0.12, luma(u_c3) - luma(u_c2));
+  float sunAmt = 1.0 - storm * 0.75;
+  vec3 sunTint = mix(vec3(1.0, 0.96, 0.88), u_c3, 0.3);
 
-  vec3 belly = mix(u_c4, u_c1, 0.32) * 0.76;
-  vec3 body = mix(u_c4, u_c3, 0.58);
-  vec3 top = mix(u_c3, vec3(1.0), 0.52);
-  vec3 lit = mix(belly, body, smoothstep(0.12, 0.58, shade));
-  lit = mix(lit, top, smoothstep(0.55, 0.98, shade) * 0.72);
-  lit = mix(lit, belly, (1.0 - shade) * 0.22 * density);
+  // --- Sky ---------------------------------------------------------------
+  // Below the horizon there is only haze.
+  float up = clamp(dir.y, 0.0, 1.0);
+  vec3 sky = mix(u_c2, u_c1, pow(smoothstep(0.0, 0.85, up), 0.6));
+  vec3 haze = mix(u_c2, vec3(1.0), 0.3 * luma(u_c2));
+  sky = mix(sky, haze, exp(-up * 9.0) * 0.6);
+  float glow = pow(max(mu, 0.0), 8.0) * 0.14 + pow(max(mu, 0.0), 120.0) * 0.3;
+  sky += sunTint * glow * sunAmt;
 
-  float alpha = density * mix(0.55, 1.12, clamp(u_intensity, 0.0, 1.0));
-  alpha = clamp(alpha, 0.0, 1.0);
-  vec3 col = mix(sky, lit, alpha);
+  // --- Clouds ------------------------------------------------------------
+  float freq = mix(2.2, 0.9, u_scale);
+  // Wind carries the field sideways and toward the viewer.
+  vec3 drift = vec3(t * 0.5, 0.0, t * 0.2);
+  float sigma = mix(10.0, 26.0, u_intensity);
+  vec3 sunLight = u_c3 * mix(1.12, 1.0, storm) * mix(vec3(1.0), sunTint, sunAmt * 0.5);
+  float phase = mix(phaseHG(mu, -0.2), phaseHG(mu, 0.7), 0.12);
+
+  vec3 L = vec3(0.0);
+  float T = 1.0;
+  float hitAt = 0.0;
+  if (dir.y > 0.02) {
+    float t0 = BASE / dir.y;
+    if (t0 < FAR) {
+      float t1 = min(TOP / dir.y, t0 + 5.0);
+      float dt = (t1 - t0) / float(STEPS);
+      // Jitter the start per pixel so the steps don't band.
+      float tt = t0 + dt * hash(gl_FragCoord.xy);
+      for (int i = 0; i < STEPS; i++) {
+        vec3 p = dir * tt;
+        vec3 q = p * freq + drift;
+        float hf = (p.y - BASE) / (TOP - BASE);
+        float cov = coverageAt(q.xz);
+        float d = cov > 0.02 ? density(q, hf, cov, t, 1.0) : 0.0;
+        if (d > 0.003) {
+          if (hitAt == 0.0) hitAt = tt;
+          // March toward the sun for self-shadowing.
+          float od = 0.0;
+          for (int j = 0; j < LIGHT_STEPS; j++) {
+            vec3 lp = p + sunDir * (0.05 + float(j) * 0.12);
+            float lh = (lp.y - BASE) / (TOP - BASE);
+            od += density(lp * freq + drift, lh, cov, t, 0.0);
+          }
+          od *= 0.12 * sigma * 0.5;
+          // Beer–Lambert with a softer tail standing in for multiple scattering.
+          float beer = max(exp(-od), exp(-od * 0.25) * 0.6);
+          float powder = 1.0 - exp(-d * 5.0);
+          vec3 ambient = mix(u_c4 * mix(0.82, 0.62, storm), mix(u_c1, u_c3, 0.6), hf);
+          vec3 lum = sunLight * beer * phase * mix(1.0, powder, 0.35) + ambient * 0.72;
+          float dT = exp(-d * sigma * dt);
+          L += T * (1.0 - dT) * lum;
+          T *= dT;
+          if (T < 0.02) break;
+        }
+        tt += dt;
+      }
+      // Aerial perspective: distant clouds melt into the horizon haze.
+      float fog = 1.0 - exp(-max(hitAt, t0) * 0.05);
+      L = mix(L, haze * (1.0 - T), fog * 0.85);
+    }
+  }
+
+  vec3 col = sky * T + L;
+
+  // Lightning, lit from inside the clouds it hits.
+  if (u_flash > 0.0) {
+    vec2 fp = vec2(u_flashPos.x * aspect, u_flashPos.y - 0.5);
+    float bloom = exp(-dot(s - fp, s - fp) * 3.2);
+    vec3 bolt = vec3(0.86, 0.9, 1.0);
+    col += bolt * u_flash * (bloom * (1.0 - T) * 0.95 + 0.05);
+  }
 
   if (u_glass > 0.5) {
     float pane = smoothstep(0.50, 0.22, length(glassLocal));
     col *= mix(0.93, 1.0, pane);
     vec2 hl = glassLocal - vec2(-0.16, 0.18);
     col += exp(-dot(hl, hl) * 55.0) * 0.035;
-    col = mix(col, vec3(dot(col, vec3(0.299, 0.587, 0.114))), 0.04);
-    col += (hash(gl_FragCoord.xy) - 0.5) * 0.008;
-  } else {
-    col += (hash(gl_FragCoord.xy + fract(u_time)) - 0.5) * 0.008;
+    col = mix(col, vec3(luma(col)), 0.04);
   }
+  col += (hash(gl_FragCoord.xy + fract(u_time) * 91.0) - 0.5) * 0.008;
 
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
 `
+
+/** Soft clouds hide resolution, so cap the canvas to keep the march cheap. */
+const MAX_PIXELS = 720_000
+const NOISE_SIZE = 256
 
 function isDev() {
   return (
@@ -252,6 +326,36 @@ function hexToRgb(hex: string): [number, number, number] {
   const n = Number.parseInt(full, 16)
   if (Number.isNaN(n)) return [0.14, 0.47, 0.78]
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]
+}
+
+/**
+ * Seeded random texture for the shader's value noise. Green repeats red
+ * offset by (37, 239), which lets one lookup serve two 3D noise slices.
+ * Seeded so every visit gets the same sky.
+ */
+function noiseTexels() {
+  const size = NOISE_SIZE
+  const data = new Uint8Array(size * size * 4)
+  let seed = 0x23d
+  const rand = () => {
+    seed = (seed + 0x6d2b79f5) | 0
+    let r = Math.imul(seed ^ (seed >>> 15), 1 | seed)
+    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296
+  }
+  for (let i = 0; i < size * size; i++) {
+    data[i * 4] = Math.floor(rand() * 256)
+  }
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const from = ((y - 239) & (size - 1)) * size + ((x - 37) & (size - 1))
+      const i = (y * size + x) * 4
+      data[i + 1] = data[from * 4]!
+      data[i + 2] = 0
+      data[i + 3] = 255
+    }
+  }
+  return data
 }
 
 /** Resolves shadcn / next-themes dark mode (`attribute="class"` → `html.dark`). */
@@ -291,8 +395,9 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
 }
 
 /**
- * WebGL sky for heroes — clear blue with drifting clouds in light,
- * storm gray in dark. Optional window-glass film.
+ * WebGL sky for heroes — volumetric clouds drifting across clear blue in
+ * light, storm gray in dark, with optional lightning. Optional
+ * window-glass film.
  */
 export function createShaderSky(
   canvas: HTMLCanvasElement,
@@ -308,6 +413,7 @@ export function createShaderSky(
       | "scale"
       | "variation"
       | "interactive"
+      | "lightning"
       | "glass"
       | "glassSize"
       | "theme"
@@ -321,6 +427,7 @@ export function createShaderSky(
     scale: 0.4,
     variation: 0.7,
     interactive: false,
+    lightning: false,
     glass: false,
     glassSize: 7,
     theme: "auto",
@@ -384,6 +491,26 @@ export function createShaderSky(
   gl.enableVertexAttribArray(loc)
   gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
 
+  const noiseTex = gl.createTexture()
+  gl.activeTexture(gl.TEXTURE0)
+  gl.bindTexture(gl.TEXTURE_2D, noiseTex)
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    NOISE_SIZE,
+    NOISE_SIZE,
+    0,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    noiseTexels()
+  )
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+  gl.uniform1i(gl.getUniformLocation(program, "u_noise"), 0)
+
   const uResolution = gl.getUniformLocation(program, "u_resolution")
   const uTime = gl.getUniformLocation(program, "u_time")
   const uSpeed = gl.getUniformLocation(program, "u_speed")
@@ -399,21 +526,46 @@ export function createShaderSky(
   const uC3 = gl.getUniformLocation(program, "u_c3")
   const uC4 = gl.getUniformLocation(program, "u_c4")
   const uMouse = gl.getUniformLocation(program, "u_mouse")
+  const uFlash = gl.getUniformLocation(program, "u_flash")
+  const uFlashPos = gl.getUniformLocation(program, "u_flashPos")
 
   let raf = 0
   let running = true
   const start = performance.now()
   let frozenTime = 0
 
+  // One strike = a bright flicker and a softer echo, then 4–10s of quiet.
+  const strike = { at: 0, next: 0, x: 0, y: 0 }
+  const pulse = (s: number) => (s < 0 ? 0 : Math.exp(-s * 14))
+  const flashAt = (now: number) => {
+    if (!options.lightning || reduce) {
+      strike.next = 0
+      return 0
+    }
+    if (strike.next === 0) strike.next = now + 1500 + Math.random() * 2500
+    if (now >= strike.next) {
+      strike.at = now
+      strike.next = now + 4000 + Math.random() * 6000
+      strike.x = (Math.random() - 0.5) * 0.9
+      strike.y = 0.55 + Math.random() * 0.35
+    }
+    if (strike.at === 0) return 0
+    const s = (now - strike.at) / 1000
+    return Math.min(1, pulse(s) + 0.65 * pulse(s - 0.16))
+  }
+
+  // Device pixels per CSS pixel actually rendered (after the pixel cap).
+  let pixelScale = 1
   const resize = () => {
     const parent = canvas.parentElement
     if (!parent) return
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
     const w = parent.clientWidth
     const h = parent.clientHeight
     if (w <= 0 || h <= 0) return
-    canvas.width = Math.max(1, Math.floor(w * dpr))
-    canvas.height = Math.max(1, Math.floor(h * dpr))
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    pixelScale = Math.min(dpr, Math.sqrt(MAX_PIXELS / (w * h)))
+    canvas.width = Math.max(1, Math.floor(w * pixelScale))
+    canvas.height = Math.max(1, Math.floor(h * pixelScale))
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
     gl.viewport(0, 0, canvas.width, canvas.height)
@@ -473,8 +625,7 @@ export function createShaderSky(
     mouse.x += (targetMouse.x - mouse.x) * 0.03
     mouse.y += (targetMouse.y - mouse.y) * 0.03
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
-    const glassPx = Math.max(2, options.glassSize ?? 7) * dpr
+    const glassPx = Math.max(2, options.glassSize ?? 7) * pixelScale
 
     gl.uniform2f(uResolution, canvas.width, canvas.height)
     gl.uniform1f(uTime, time)
@@ -495,6 +646,9 @@ export function createShaderSky(
       options.interactive ? mouse.x : 0.5,
       options.interactive ? mouse.y : 0.5
     )
+
+    gl.uniform1f(uFlash, flashAt(now))
+    gl.uniform2f(uFlashPos, strike.x, strike.y)
 
     gl.drawArrays(gl.TRIANGLES, 0, 6)
     raf = requestAnimationFrame(tick)
@@ -519,6 +673,7 @@ export function createShaderSky(
       gl.deleteShader(vs)
       gl.deleteShader(fs)
       gl.deleteBuffer(buf)
+      gl.deleteTexture(noiseTex)
     },
   }
 }

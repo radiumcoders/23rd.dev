@@ -30,7 +30,7 @@ export type ShaderSkyProps = Omit<ShaderSkyOptions, "onThemeChange"> & {
 
 /**
  * WebGL sky for heroes — clear blue with drifting clouds in light,
- * storm gray in dark. Optional window-glass film.
+ * storm gray in dark, with optional lightning. Optional window-glass film.
  */
 export function ShaderSky({
   className,
@@ -42,6 +42,7 @@ export function ShaderSky({
   scale = 0.4,
   variation = 0.7,
   interactive = false,
+  lightning = false,
   glass = false,
   glassSize = 7,
   theme = "auto",
@@ -78,6 +79,7 @@ export function ShaderSky({
       scale,
       variation,
       interactive,
+      lightning,
       glass,
       glassSize,
       theme,
@@ -101,6 +103,7 @@ export function ShaderSky({
       scale,
       variation,
       interactive,
+      lightning,
       glass,
       glassSize,
       theme,
@@ -115,6 +118,7 @@ export function ShaderSky({
     scale,
     variation,
     interactive,
+    lightning,
     glass,
     glassSize,
     theme,

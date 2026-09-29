@@ -5,7 +5,7 @@ description: A WebGL sky for landing heroes — clear blue with drifting clouds 
 
 import { ShaderSkyDemo } from "@/registry/shader-sky/shader-sky-demo"
 
-Not a stock photo. Use it as weather behind a hero so light and dark already feel like a forecast. Open blue in light; a gray storm ceiling in dark. Clouds drift continuously, forming and dissolving like weather. Toggle **Glass** for a transparent window film. Press `d` to switch theme. Turn on **Copy** to drop a headline over the sky.
+Not a stock photo. Use it as weather behind a hero so light and dark already feel like a forecast. Open blue in light; a gray storm ceiling in dark. Clouds sit on a deck that recedes to the horizon — big and sunlit overhead, small and hazy far off — and drift toward you, catching light on the sun side with sky-blue shade on the other. Toggle **Lightning** for storm flashes inside the clouds, or **Glass** for a transparent window film. Press `d` to switch theme. Turn on **Copy** to drop a headline over the sky.
 
 ## Preview
 
@@ -106,6 +106,21 @@ See the same sky through window glass — a transparent dotted film, sky still m
   </FrameworkSvelte>
 </FrameworkCode>
 
+Let the storm flash. Strikes light the clouds from inside every few seconds and stop under reduced motion:
+
+<FrameworkCode>
+  <FrameworkReact>
+    ```tsx
+    <ShaderSky theme="dark" lightning />
+    ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+    ```svelte
+    <ShaderSky theme="dark" lightning />
+    ```
+  </FrameworkSvelte>
+</FrameworkCode>
+
 Fewer, smaller clouds with a mix of sizes:
 
 <FrameworkCode>
@@ -133,6 +148,7 @@ Fewer, smaller clouds with a mix of sizes:
 | `scale`       | `number`                      | `0.4`                            |
 | `variation`   | `number`                      | `0.7`                            |
 | `interactive` | `boolean`                     | `false`                          |
+| `lightning`   | `boolean`                     | `false`                          |
 | `glass`       | `boolean`                     | `false`                          |
 | `glassSize`   | `number`                      | `7`                              |
 | `theme`       | `"light" \| "dark" \| "auto"` | `auto`                           |
