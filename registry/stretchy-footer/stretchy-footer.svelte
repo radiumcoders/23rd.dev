@@ -60,6 +60,8 @@
     columns = DEFAULT_COLUMNS,
     blur = DEFAULT_BLUR,
     glow = DEFAULT_GLOW,
+    flip = false,
+    rotate = 0,
     label = "Stretchy overflow",
     demoId,
   }: Props = $props()
@@ -89,6 +91,8 @@
         columns,
         blur,
         glow,
+        flip,
+        rotate,
         demoId,
       }))
     )
@@ -108,6 +112,8 @@
       columns,
       blur,
       glow,
+      flip,
+      rotate,
       demoId,
     })
   })

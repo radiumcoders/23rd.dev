@@ -88,6 +88,8 @@ export function StretchyFooter({
   columns = DEFAULT_COLUMNS,
   blur = DEFAULT_BLUR,
   glow = DEFAULT_GLOW,
+  flip = false,
+  rotate = 0,
   label = "Stretchy overflow",
   demoId,
 }: StretchyFooterProps) {
@@ -113,7 +115,18 @@ export function StretchyFooter({
       windowScroll || scrollRef ? contentSelector : contentRef.current
     instanceRef.current = createStretchyFooter(
       { canvas, scroller, content },
-      { maxStretch, colors, stiffness, damping, columns, blur, glow, demoId }
+      {
+        maxStretch,
+        colors,
+        stiffness,
+        damping,
+        columns,
+        blur,
+        glow,
+        flip,
+        rotate,
+        demoId,
+      }
     )
     return () => {
       instanceRef.current?.destroy()
@@ -132,9 +145,22 @@ export function StretchyFooter({
       columns,
       blur,
       glow,
+      flip,
+      rotate,
       demoId,
     })
-  }, [maxStretch, colors, stiffness, damping, columns, blur, glow, demoId])
+  }, [
+    maxStretch,
+    colors,
+    stiffness,
+    damping,
+    columns,
+    blur,
+    glow,
+    flip,
+    rotate,
+    demoId,
+  ])
 
   const aurora = (
     <div
