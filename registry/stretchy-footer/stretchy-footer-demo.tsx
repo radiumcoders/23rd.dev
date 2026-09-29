@@ -7,6 +7,7 @@ import {
   ComponentControls,
   ControlColors,
   ControlSlider,
+  ControlSwitch,
 } from "@/components/component-controls"
 import { ComponentPreview } from "@/components/component-preview"
 import { Button } from "@/components/ui/button"
@@ -82,6 +83,8 @@ export function StretchyFooterDemo() {
       stiffness: DEFAULT_STIFFNESS,
       blur: DEFAULT_BLUR,
       glow: DEFAULT_GLOW,
+      flip: false,
+      rotated: false,
     }),
     []
   )
@@ -121,6 +124,8 @@ export function StretchyFooterDemo() {
             stiffness={props.stiffness}
             blur={props.blur}
             glow={props.glow}
+            flip={props.flip}
+            rotate={props.rotated ? 180 : 0}
             className="z-20"
           />
 
@@ -171,6 +176,8 @@ export function StretchyFooterDemo() {
             props.stiffness === DEFAULT_STIFFNESS ? undefined : props.stiffness,
           blur: props.blur === DEFAULT_BLUR ? undefined : props.blur,
           glow: props.glow === DEFAULT_GLOW ? undefined : props.glow,
+          flip: props.flip ? true : undefined,
+          rotate: props.rotated ? 180 : undefined,
         }}
       >
         <ControlColors
@@ -218,6 +225,18 @@ export function StretchyFooterDemo() {
           max={620}
           step={20}
           onChange={(v) => updateProp("stiffness", v)}
+        />
+        <ControlSwitch
+          label="Flip"
+          description="Tall edges, dipped middle"
+          checked={props.flip}
+          onChange={(v) => updateProp("flip", v)}
+        />
+        <ControlSwitch
+          label="Rotate 180°"
+          description="Aurora hangs from the page"
+          checked={props.rotated}
+          onChange={(v) => updateProp("rotated", v)}
         />
       </ComponentControls>
     </>

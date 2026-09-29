@@ -61,6 +61,16 @@ export type StretchyFooterOptions = {
   /** White floor bloom opacity (0–1). Default `0`. */
   glow?: number
   /**
+   * Invert the pyramid: the edge columns stand tallest and the middle
+   * dips, so the wobble ripples in from the sides. Default `false`.
+   */
+  flip?: boolean
+  /**
+   * `180` turns the aurora upside down in place: the columns hang from the
+   * lifted page's edge and the gradient runs floor to top. Default `0`.
+   */
+  rotate?: 0 | 180
+  /**
    * Optional id for docs demos. `playStretchyFooterDemo({ target })` only
    * plays footers whose `demoId` matches.
    */
@@ -123,11 +133,18 @@ export async function playStretchyFooterDemo(
   )
 }
 
-/** Stepped pyramid: the middle column is tallest, each step out is shorter. */
-export function columnScale(index: number, count: number): number {
+/**
+ * Stepped pyramid: the middle column is tallest, each step out is shorter.
+ * Flipped, the edges are tallest and each step in is shorter.
+ */
+export function columnScale(
+  index: number,
+  count: number,
+  flip = false
+): number {
   if (count <= 1) return 1
-  const t = (index / (count - 1)) * 2 - 1
-  return 1 - (1 - EDGE_COLUMN) * Math.abs(t)
+  const t = Math.abs((index / (count - 1)) * 2 - 1)
+  return 1 - (1 - EDGE_COLUMN) * (flip ? 1 - t : t)
 }
 
 /** Overscroll distance → stretch. Linear at first, never past `max`. */
@@ -235,8 +252,10 @@ const atRest = (s: Spring) =>
 /**
  * Dia-style rubber overscroll. Pull past the bottom of `scroller` and the
  * content lifts on a spring while a stepped pyramid of blurred gradient
- * columns stretches up from the floor; each column has its own spring, so the edge wobbles as it
- * snaps back. Idle unless stretched.
+ * columns stretches up from the floor (a valley with `flip`, hanging from
+ * the page with `rotate: 180`); each column
+ * has its own spring, so the edge wobbles as it snaps back. Idle unless
+ * stretched.
  */
 export function createStretchyFooter(
   mount: StretchyFooterMount,
@@ -255,7 +274,6 @@ export function createStretchyFooter(
   const dampingOf = () => numberOr(options.damping, DEFAULT_DAMPING, 0, 400)
   const countOf = () =>
     Math.round(numberOr(options.columns, DEFAULT_COLUMNS, 3, 96))
-
   /** Overscroll the user has put in, in px. The stretch is its rubber band. */
   let distance = 0
   /** `play()` holds the stretch here, overriding the gesture. */
@@ -269,7 +287,7 @@ export function createStretchyFooter(
     const count = countOf()
     const target = lift.target
     columns = Array.from({ length: count }, (_, i) => {
-      const share = columnScale(i, count)
+      const share = columnScale(i, count, options.flip)
       return { x: lift.x * share, v: 0, target: target * share, share }
     })
   }
@@ -348,6 +366,12 @@ export function createStretchyFooter(
     ctx!.setTransform(1, 0, 0, 1, 0, 0)
     ctx!.clearRect(0, 0, canvas.width, canvas.height)
     ctx!.globalAlpha = clamp(stretch / Math.max(1, max * FADE_IN), 0, 1)
+    // Rotated, spin the drawing 180° about the gap between the lifted page
+    // and the floor, so the columns hang from the page's edge.
+    const rotated = options.rotate === 180
+    if (rotated) {
+      ctx!.setTransform(-1, 0, 0, -1, canvas.width, 2 * floor - stretch * scale)
+    }
 
     // Columns span the visible width; the outer two run on into the pad.
     const count = columns.length
@@ -364,6 +388,8 @@ export function createStretchyFooter(
       const x0 = edge(i)
       const x1 = edge(i + 1)
       ctx!.drawImage(strip, x0, floor - h, x1 - x0, h)
+      // The run-off under the floor would land on the page once rotated.
+      if (rotated) continue
       ctx!.drawImage(
         strip,
         0,
@@ -385,6 +411,7 @@ export function createStretchyFooter(
       ctx!.drawImage(bloom, w * scale * 0.5 - rx, floor - ry, rx * 2, ry)
     }
     ctx!.globalAlpha = 1
+    ctx!.setTransform(1, 0, 0, 1, 0, 0)
   }
 
   let raf = 0
@@ -563,9 +590,12 @@ export function createStretchyFooter(
       const prevColors = options.colors
       const prevMax = maxOf()
       const prevBlur = blurOf()
+      const prevFlip = Boolean(options.flip)
       options = { ...options, ...next }
       if (options.colors !== prevColors) rebuildStrip()
-      if (countOf() !== columns.length) rebuildColumns()
+      if (countOf() !== columns.length || Boolean(options.flip) !== prevFlip) {
+        rebuildColumns()
+      }
       if (maxOf() !== prevMax || blurOf() !== prevBlur) layout()
       if (forced !== null) forced = Math.min(forced, maxOf())
       retarget()
