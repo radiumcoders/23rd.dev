@@ -118,6 +118,33 @@
     animation: 420ms cubic-bezier(0.16, 1, 0.3, 1) 40ms both page-blur-in;
 }
 
+/*
+ * Firefox repaints a blurred snapshot every ~100ms, which stalls anything
+ * else moving during the transition (the sidebar marker skips its arc).
+ * A plain fade keeps it at full frame rate.
+ */
+@supports (-moz-appearance: none) {
+    ::view-transition-old(.page-blur) {
+        animation-name: page-fade-out;
+    }
+
+    ::view-transition-new(.page-blur) {
+        animation-name: page-fade-in;
+    }
+}
+
+@keyframes page-fade-out {
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes page-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
 @keyframes page-blur-out {
     to {
         filter: blur(2.5px);

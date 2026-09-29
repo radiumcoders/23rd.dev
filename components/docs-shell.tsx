@@ -3,6 +3,7 @@
 import type { CSSProperties, ReactNode } from "react"
 import Link from "next/link"
 import { RiHeartFill } from "@remixicon/react"
+import { motion } from "motion/react"
 
 import { DocsSidebar } from "@/components/docs-sidebar"
 import { DocsSidebarTrigger } from "@/components/docs-sidebar-trigger"
@@ -148,11 +149,20 @@ export function DocsShell({
       >
         <MobileSidebar tree={tree} githubStars={githubStars} />
         <div className="mx-auto flex w-full max-w-[90rem] items-start">
+          {/*
+           * Motion measures shared layouts in page coordinates, and Next
+           * scrolls to the top between its before/after measurements, so
+           * a sticky sidebar's marker would fly in from off-screen. A
+           * `layoutScroll` fixed box is a scroll root it measures in the
+           * viewport instead; `contain: layout` pins that box to the aside.
+           */}
           <aside
             aria-label="Documentation"
-            className="sticky top-0 hidden h-svh w-60 shrink-0 flex-col md:flex"
+            className="sticky top-0 hidden h-svh w-60 shrink-0 [contain:layout] md:block"
           >
-            <SidebarBody tree={tree} githubStars={githubStars} />
+            <motion.div layoutScroll className="fixed inset-0 flex flex-col">
+              <SidebarBody tree={tree} githubStars={githubStars} />
+            </motion.div>
           </aside>
           <main className="flex min-w-0 flex-1 flex-col">
             <header className="flex h-14 items-center gap-2 px-3 md:hidden">

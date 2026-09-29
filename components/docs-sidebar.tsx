@@ -3,7 +3,13 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { animate, useReducedMotion } from "motion/react"
+import {
+  arc,
+  LayoutGroup,
+  motion,
+  useReducedMotion,
+  type MotionPath,
+} from "motion/react"
 
 import { DocsSidebarTrigger } from "@/components/docs-sidebar-trigger"
 import { Logo } from "@/components/logo"
@@ -60,27 +66,64 @@ const markSpring = {
   mass: 0.7,
 }
 
+/**
+ * The marker bows left, toward the sidebar's edge. Only ~24px sit between
+ * it and the scroll area's clip, so the bow is capped in pixels instead of
+ * growing with the trip like a plain `arc()` would.
+ */
+const MARK_BOW = 18
+const MARK_STRENGTH = 0.3
+
+const markPath: MotionPath = {
+  interpolateProjection(delta) {
+    // `translate` is where the marker starts relative to its new row:
+    // negative means the old row sat above, so it is travelling down.
+    const distance = Math.hypot(delta.x.translate, delta.y.translate)
+    // A quadratic arc peaks at half its control-point offset.
+    const strength = Math.min(MARK_STRENGTH, (2 * MARK_BOW) / distance)
+    // `arc()` bends relative to travel, so pick the side per trip.
+    const direction = delta.y.translate < 0 ? "ccw" : "cw"
+    return arc({ strength, direction }).interpolateProjection(delta)
+  },
+  animateVisualElement: (...args) =>
+    arc({ strength: MARK_STRENGTH }).animateVisualElement(...args),
+}
+
 /** Room the marker takes before the open page's name. */
 const MARK_GUTTER = "translate-x-[21px]"
 
+/**
+ * The open page's marker. Every page shares one `layoutId`, so when the
+ * open page changes Motion flies the marker along an arc to the new row.
+ * It hangs off the `<li>`, not the button, whose `overflow-hidden` would
+ * clip it mid-flight.
+ */
+function ActiveMark() {
+  const reduce = useReducedMotion() ?? false
 
-function PageItem({
-  node,
-  pathname,
-}: {
-  node: PageNode
-  pathname: string
-}) {
+  return (
+    <motion.span
+      layoutId="docs-sidebar-mark"
+      aria-hidden
+      className="pointer-events-none absolute inset-y-0 left-2 z-10 flex items-center"
+      transition={reduce ? { duration: 0 } : { ...markSpring, path: markPath }}
+    >
+      <Triad />
+    </motion.span>
+  )
+}
+
+function PageItem({ node, pathname }: { node: PageNode; pathname: string }) {
   const active = isCurrent(pathname, node.url)
 
   return (
     <SidebarMenuItem>
+      {active ? <ActiveMark /> : null}
       <SidebarMenuButton
         render={
           <Link href={node.url} aria-label={String(node.name ?? "Page")} />
         }
         isActive={active}
-        data-docs-active={active || undefined}
         className="h-8 gap-0 rounded-lg bg-transparent px-2 font-normal text-foreground/70 transition-colors duration-150 hover:bg-transparent hover:text-foreground active:bg-transparent data-active:bg-transparent data-active:font-medium data-active:text-foreground data-active:hover:bg-transparent"
       >
         {/* The name steps aside for the marker instead of jumping. */}
@@ -103,7 +146,9 @@ function SeparatorItem({ node }: { node: SeparatorNode }) {
   }
 
   return (
-    <SidebarGroupLabel className={headingClassName}>{node.name}</SidebarGroupLabel>
+    <SidebarGroupLabel className={headingClassName}>
+      {node.name}
+    </SidebarGroupLabel>
   )
 }
 
@@ -153,59 +198,16 @@ function NavItems({
   })
 }
 
-/**
- * One marker for the whole list that springs to the open page. It stays
- * mounted across navigations — a shared-layout swap would need both the
- * old and new marker at once, which the page's view transition doesn't
- * reliably allow.
- */
-function NavList({
-  nodes,
-  pathname,
-}: {
-  nodes: TreeNode[]
-  pathname: string
-}) {
-  const listRef = React.useRef<HTMLDivElement>(null)
-  const markRef = React.useRef<HTMLSpanElement>(null)
-  const placed = React.useRef(false)
-  const reduce = useReducedMotion() ?? false
-
-  React.useLayoutEffect(() => {
-    const list = listRef.current
-    const mark = markRef.current
-    if (!list || !mark) return
-    const active = list.querySelector<HTMLElement>("[data-docs-active]")
-    if (!active) {
-      mark.style.opacity = "0"
-      placed.current = false
-      return
-    }
-    const box = list.getBoundingClientRect()
-    const row = active.getBoundingClientRect()
-    const y = row.top - box.top + (row.height - mark.offsetHeight) / 2
-    mark.style.opacity = "1"
-    // Land in place on first paint; spring there on every page after.
-    const jump = !placed.current || reduce
-    placed.current = true
-    // Motion places it either way, so it always knows where the marker is.
-    const flight = animate(mark, { y }, jump ? { duration: 0 } : markSpring)
-    return () => flight.stop()
-  }, [pathname, reduce])
+/** Scopes the marker's `layoutId` so the desktop and mobile lists don't share one. */
+function NavList({ nodes, pathname }: { nodes: TreeNode[]; pathname: string }) {
+  const id = React.useId()
 
   return (
-    <div ref={listRef} className="relative">
-      <span
-        ref={markRef}
-        aria-hidden
-        className="pointer-events-none absolute top-0 left-2 flex opacity-0"
-      >
-        <Triad />
-      </span>
+    <LayoutGroup id={id}>
       <SidebarMenu>
         <NavItems nodes={nodes} pathname={pathname} />
       </SidebarMenu>
-    </div>
+    </LayoutGroup>
   )
 }
 
