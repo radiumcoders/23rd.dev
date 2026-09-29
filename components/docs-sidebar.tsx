@@ -5,10 +5,15 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   arc,
+  cancelFrame,
+  frame,
+  frameData,
   LayoutGroup,
   motion,
+  time,
   useReducedMotion,
   type MotionPath,
+  type ValueTransition,
 } from "motion/react"
 
 import { DocsSidebarTrigger } from "@/components/docs-sidebar-trigger"
@@ -89,6 +94,36 @@ const markPath: MotionPath = {
     arc({ strength: MARK_STRENGTH }).animateVisualElement(...args),
 }
 
+/** The longest step, in ms, the marker's clock takes in one frame. */
+const MARK_MAX_STEP = 1000 / 60
+
+/**
+ * Motion's frame loop, on a clock that never jumps more than
+ * `MARK_MAX_STEP` per frame. Firefox stalls ~100ms swapping the page right
+ * after the marker takes off, and on the real clock the spring spends that
+ * stall mid-flight, so its first frame lands well down the arc. Here a
+ * stalled frame just pauses the flight.
+ */
+const markDriver: NonNullable<ValueTransition["driver"]> = (update) => {
+  let last: number | undefined
+  let clock: number | undefined
+  const step = ({ timestamp }: { timestamp: number }) => {
+    clock =
+      last === undefined || clock === undefined
+        ? timestamp
+        : clock + Math.min(timestamp - last, MARK_MAX_STEP)
+    last = timestamp
+    update(clock)
+  }
+
+  return {
+    start: (keepAlive = true) => frame.update(step, keepAlive),
+    stop: () => cancelFrame(step),
+    now: () =>
+      clock ?? (frameData.isProcessing ? frameData.timestamp : time.now()),
+  }
+}
+
 /** Room the marker takes before the open page's name. */
 const MARK_GUTTER = "translate-x-[21px]"
 
@@ -106,7 +141,11 @@ function ActiveMark() {
       layoutId="docs-sidebar-mark"
       aria-hidden
       className="pointer-events-none absolute inset-y-0 left-2 z-10 flex items-center"
-      transition={reduce ? { duration: 0 } : { ...markSpring, path: markPath }}
+      transition={
+        reduce
+          ? { duration: 0 }
+          : { ...markSpring, path: markPath, driver: markDriver }
+      }
     >
       <Triad />
     </motion.span>
