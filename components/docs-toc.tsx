@@ -10,7 +10,7 @@ import { DocsTocOutline } from "@/components/docs-toc-outline"
  */
 export function DocsToc({ items }: { items: TOCItemType[] }) {
   return (
-    <aside className="sticky top-0 hidden w-56 shrink-0 flex-col gap-6 pt-14 xl:flex">
+    <aside className="sticky top-3 hidden w-56 shrink-0 flex-col gap-6 pt-14 xl:flex">
       {items.length > 0 ? <DocsTocOutline items={items} /> : null}
 
       <Link
