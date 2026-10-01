@@ -344,14 +344,13 @@
   }
 }
 
-/* Dot-matrix display face. Only for component names and the wordmark —
-   never for running text or labels. */
+/* Display face for component names — never for running text or labels.
+   Bricolage at its largest optical size, set tight. */
 @utility font-display {
-  font-family: var(--font-display), ui-monospace, monospace;
-  font-weight: 900;
-  font-variation-settings: "ROND" 100;
-  letter-spacing: -0.02em;
-  font-kerning: none;
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-weight: 700;
+  font-variation-settings: "opsz" 96;
+  letter-spacing: -0.035em;
 }
 
 /* Reading column. Fumadocs' typography plugin uses :where(), so these win. */

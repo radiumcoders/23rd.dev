@@ -50,7 +50,7 @@ export default async function Page(props: {
                 className={cn(
                   "min-w-0",
                   component
-                    ? "font-display text-[clamp(2.5rem,6.5cqw,3.75rem)] leading-[0.92]"
+                    ? "font-display text-[clamp(2.5rem,6.5cqw,3.6rem)] leading-[0.95]"
                     : "text-4xl font-semibold tracking-tight"
                 )}
               >

@@ -1,4 +1,8 @@
-import { Doto, Hanken_Grotesk, Martian_Mono } from "next/font/google"
+import {
+  Bricolage_Grotesque,
+  Hanken_Grotesk,
+  Martian_Mono,
+} from "next/font/google"
 import { RootProvider } from "fumadocs-ui/provider/next"
 import type { Metadata, Viewport } from "next"
 import type { ReactNode } from "react"
@@ -108,11 +112,11 @@ const fontMono = Martian_Mono({
   axes: ["wdth"],
 })
 
-/** Dot-matrix face for component names — rendered, like the components. */
-const fontDisplay = Doto({
+/** Display face for component names. */
+const fontDisplay = Bricolage_Grotesque({
   subsets: ["latin"],
   variable: "--font-display",
-  axes: ["ROND"],
+  axes: ["opsz"],
 })
 
 export default function RootLayout({
