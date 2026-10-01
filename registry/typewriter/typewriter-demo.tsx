@@ -11,7 +11,9 @@ import {
 } from "@/components/component-controls"
 import { ComponentPreview } from "@/components/component-preview"
 import { usePreviewProps } from "@/hooks/use-preview-props"
+import { cn } from "@/lib/utils"
 import {
+  DEFAULT_COLOR,
   DEFAULT_COLUMNS,
   DEFAULT_JITTER,
   DEFAULT_SPEED,
@@ -19,7 +21,16 @@ import {
   Typewriter,
 } from "@/registry/typewriter/typewriter"
 
+const ENAMELS = [
+  { name: "Mint", color: DEFAULT_COLOR },
+  { name: "Cherry", color: "#D2463A" },
+  { name: "Butter", color: "#E6D6A2" },
+  { name: "Sky", color: "#86AED8" },
+  { name: "Graphite", color: "#2E3135" },
+]
+
 const DEFAULTS = {
+  color: DEFAULT_COLOR,
   text: DEFAULT_TEXT,
   speed: DEFAULT_SPEED,
   jitter: DEFAULT_JITTER,
@@ -31,6 +42,7 @@ const DEFAULTS = {
 
 export function TypewriterDemo() {
   const textId = useId()
+  const colorId = useId()
   const [take, setTake] = useState(0)
   const { props, updateProp, resetProps, hasChanges } =
     usePreviewProps(DEFAULTS)
@@ -41,6 +53,7 @@ export function TypewriterDemo() {
         <div className="aspect-[16/9] max-h-[70svh] w-full px-4 pt-2 pb-4">
           <Typewriter
             key={take}
+            color={props.color}
             text={props.text}
             speed={props.speed}
             jitter={props.jitter}
@@ -57,6 +70,7 @@ export function TypewriterDemo() {
         onReset={resetProps}
         component="Typewriter"
         snippetProps={{
+          color: props.color === DEFAULTS.color ? undefined : props.color,
           text: props.text === DEFAULTS.text ? undefined : props.text,
           speed: props.speed,
           jitter: props.jitter,
@@ -91,6 +105,51 @@ export function TypewriterDemo() {
             onChange={(event) => updateProp("text", event.target.value)}
             className="field-sizing-content min-h-16 w-full resize-none bg-transparent font-mono text-[12.5px] leading-relaxed text-foreground outline-none"
           />
+        </div>
+        <div className="flex min-h-6 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <span className="text-sm text-foreground/85">Enamel</span>
+          <div className="flex items-center gap-1.5">
+            {ENAMELS.map((enamel) => {
+              const selected =
+                enamel.color.toLowerCase() === props.color.toLowerCase()
+              return (
+                <button
+                  key={enamel.name}
+                  type="button"
+                  aria-label={enamel.name}
+                  aria-pressed={selected}
+                  title={enamel.name}
+                  onClick={() => updateProp("color", enamel.color)}
+                  className={cn(
+                    "size-6 rounded-full ring-1 transition-[box-shadow] outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    selected
+                      ? "ring-2 ring-foreground ring-offset-2 ring-offset-background"
+                      : "ring-border hover:ring-foreground/30"
+                  )}
+                  style={{ backgroundColor: enamel.color }}
+                />
+              )
+            })}
+            <label
+              htmlFor={colorId}
+              className="relative ms-1 size-6 cursor-pointer overflow-hidden rounded-full ring-1 ring-border focus-within:ring-2 focus-within:ring-ring hover:ring-foreground/30"
+              style={{
+                background:
+                  "conic-gradient(#e44 0deg, #ec4 72deg, #4c8 144deg, #48e 216deg, #a4e 288deg, #e44 360deg)",
+              }}
+            >
+              <span className="sr-only">Custom enamel</span>
+              <input
+                id={colorId}
+                type="color"
+                value={props.color}
+                onChange={(event) =>
+                  updateProp("color", event.target.value.toUpperCase())
+                }
+                className="absolute inset-0 size-full cursor-pointer opacity-0"
+              />
+            </label>
+          </div>
         </div>
         <ControlSlider
           label="Speed"

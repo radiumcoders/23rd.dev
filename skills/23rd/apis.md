@@ -366,6 +366,7 @@ React exports `playFolioDemo`, `FOLIO_PLAY` (`"folio:play"`), `applyFolioFrame`.
 
 ```ts
 type TypewriterProps = {
+  color?: string // "#8EC3B5" body enamel; shades are mixed from it
   text?: string // DEFAULT_TEXT; "\n" breaks a line
   speed?: number // 12 characters per second, clamped 1–60
   humanize?: boolean // true
@@ -380,9 +381,9 @@ type TypewriterProps = {
 }
 ```
 
-Also exported: `DEFAULT_TEXT`, `DEFAULT_SPEED`, `DEFAULT_COLUMNS`, `DEFAULT_HOLD`, `DEFAULT_START_DELAY`, `DEFAULT_JITTER`, `layoutTypewriter(text, columns)`, types `TypewriterStroke`, `TypewriterOptions`, `TypewriterInstance`.
+Also exported: `DEFAULT_COLOR`, `DEFAULT_TEXT`, `DEFAULT_SPEED`, `DEFAULT_COLUMNS`, `DEFAULT_HOLD`, `DEFAULT_START_DELAY`, `DEFAULT_JITTER`, `layoutTypewriter(text, columns)`, types `TypewriterStroke`, `TypewriterOptions`, `TypewriterInstance`.
 
-Vanilla `TypewriterInstance`: `{ setOptions, restart, destroy }`. Not returned to app code by the React component; remount with a `key` to type again. No `ticks`, `theme`, or color props: ink is `currentColor` and the sheet is the page background.
+Vanilla `TypewriterInstance`: `{ setOptions, restart, destroy }`. Not returned to app code by the React component; remount with a `key` to type again. No `ticks` or `theme` props; `color` is the only color prop and it paints the enamel.
 
 ## Events that are not props
 

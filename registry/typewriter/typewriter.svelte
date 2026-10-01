@@ -5,6 +5,7 @@
   import { onMount } from "svelte"
   import {
     createTypewriter,
+    DEFAULT_COLOR,
     DEFAULT_COLUMNS,
     DEFAULT_HOLD,
     DEFAULT_JITTER,
@@ -31,6 +32,7 @@
     loop = true,
     hold = DEFAULT_HOLD,
     startDelay = DEFAULT_START_DELAY,
+    color = DEFAULT_COLOR,
     columns = DEFAULT_COLUMNS,
     jitter = DEFAULT_JITTER,
     sound = false,
@@ -49,6 +51,7 @@
       loop,
       hold,
       startDelay,
+      color,
       columns,
       jitter,
       sound,
@@ -68,6 +71,7 @@
       loop,
       hold,
       startDelay,
+      color,
       columns,
       jitter,
       sound,

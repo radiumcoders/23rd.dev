@@ -1,6 +1,8 @@
 export const DEFAULT_TEXT =
   "Dear reader,\nevery key is wired to a typebar. Press one and its bar swings up out of the basket, strikes the ribbon, and the carriage steps left for the next letter.\n\nYours, 23rd"
 
+/** Enamel of the body and paper rest — a vintage mint. */
+export const DEFAULT_COLOR = "#8EC3B5"
 /** Characters per second. */
 export const DEFAULT_SPEED = 12
 /** Line length on the sheet, in characters. */
@@ -28,6 +30,8 @@ export type TypewriterOptions = {
   hold?: number
   /** Wait before the first keystroke, in ms. Default `600`. */
   startDelay?: number
+  /** Body enamel, any CSS color. Default `#8EC3B5`. */
+  color?: string
   /** Line length on the sheet, in characters (16–60). Default `32`. */
   columns?: number
   /** Per-letter baseline, tilt, and ink wobble, 0–1. Default `0.3`. */
@@ -272,9 +276,10 @@ function createSound(): Sound | null {
 
 const TAU = Math.PI * 2
 
-// The machine is drawn in one SVG coordinate space. The print point sits at
-// the origin: the line being typed has its baseline on y = 0, and the
-// carriage slides so the next column always lands at x = 0.
+// The machine is drawn in one SVG coordinate space, seen from the front and
+// a little above. The print point sits at the origin: the line being typed
+// has its baseline on y = 0, and the carriage slides so the next column
+// always lands at x = 0. Light comes from the upper left.
 
 /** Character pitch on the sheet. */
 const CW = 10
@@ -286,24 +291,28 @@ const PAD = 30
 /** Sheet above the first baseline once it's fed in. */
 const TOP_MARGIN = 38
 const VIEW_TOP = -178
-const VIEW_BOTTOM = 302
+const VIEW_BOTTOM = 314
 /** Where a typebar's slug lands: the middle of the glyph on the print line. */
 const STRIKE_Y = -5
 /** Centre of the typebar basket, under the print point. */
-const BASKET_Y = 50
-const PIVOT_R = 58
-const REST_R = 30
+const BASKET_Y = 42
+const PIVOT_R = 56
+const REST_R = 27
 /** Half the basket's fan, in radians from straight down. */
 const SPREAD = (74 * Math.PI) / 180
 /** Platen knob radius, for how far it turns per line. */
 const KNOB_R = 21
-const RIDGES = 9
+const RIDGES = 11
+const SPOOL_Y = 80
+const SPOOL_X = 150
 const KEY_ROWS = ["1234567890", "qwertyuiop", "asdfghjkl;", "zxcvbnm,./"]
-const KEY_Y = [142, 172, 202, 232]
+const KEY_Y = [136, 166, 196, 226]
 const KEY_PITCH = 35
-const KEY_R = 12
+const KEY_R = 12.5
+/** Key tops are circles seen from above: this squashes them. */
+const KEY_TILT = 0.64
 /** How far a key travels when pressed. */
-const KEY_TRAVEL = 4.5
+const KEY_TRAVEL = 4
 /** Shifted characters, and the key that types them. */
 const SHIFTED: Record<string, string> = {
   "!": "1",
@@ -322,9 +331,15 @@ const SHIFTED: Record<string, string> = {
   ">": ".",
 }
 
-const PAPER = "var(--typewriter-paper)"
+const INK = "#24221F"
+const LEGEND = "#EFE7D1"
+const RIBBON_BLACK = "#16171A"
+const RIBBON_RED = "#C4342B"
+const CHROME = "#D3D8DC"
+const CHROME_EDGE = "#5E656C"
+const SHEET = "var(--typewriter-sheet, #FBF9F3)"
 
-/** An SVG element. `fill` / `stroke` of `"paper"` paint in the page color. */
+/** An SVG element. A `fill` of `"sheet"` paints in the paper tone. */
 function draw<K extends keyof SVGElementTagNameMap>(
   tag: K,
   attrs: Record<string, string | number>,
@@ -332,14 +347,34 @@ function draw<K extends keyof SVGElementTagNameMap>(
 ) {
   const node = document.createElementNS(SVG_NS, tag)
   for (const [key, value] of Object.entries(attrs)) {
-    if ((key === "fill" || key === "stroke") && value === "paper") {
-      node.style.setProperty(key, PAPER)
-    } else {
-      node.setAttribute(key, String(value))
-    }
+    if (key === "fill" && value === "sheet") node.style.fill = SHEET
+    else node.setAttribute(key, String(value))
   }
   parent?.append(node)
   return node
+}
+
+type Rgb = [number, number, number]
+
+let swatch: CanvasRenderingContext2D | null = null
+
+/** Any CSS color as RGB, via a one-pixel canvas. */
+function rgbOf(color: string, fallback: Rgb): Rgb {
+  swatch ??= document
+    .createElement("canvas")
+    .getContext("2d", { willReadFrequently: true })
+  if (!swatch) return fallback
+  swatch.clearRect(0, 0, 1, 1)
+  swatch.fillStyle = `rgb(${fallback.join(" ")})`
+  swatch.fillStyle = color
+  swatch.fillRect(0, 0, 1, 1)
+  const [r = 0, g = 0, b = 0] = swatch.getImageData(0, 0, 1, 1).data
+  return [r, g, b]
+}
+
+function mix(a: Rgb, b: Rgb, t: number) {
+  const c = a.map((v, i) => Math.round(v + (b[i]! - v) * t))
+  return `rgb(${c.join(" ")})`
 }
 
 const linear = (t: number) => t
@@ -361,10 +396,10 @@ function polar(r: number, angle: number): [number, number] {
 }
 
 type Bar = {
-  rest: SVGLineElement
+  rest: SVGGElement
   strike: SVGGElement
-  /** Page-colored outline under the bar, so it reads over the machine. */
-  arm: SVGLineElement
+  /** Dark edge under the bar, so it reads over the paper. */
+  edge: SVGLineElement
   core: SVGLineElement
   slug: SVGLineElement
   pivot: [number, number]
@@ -379,6 +414,7 @@ type Machine = {
   carriage: SVGGElement
   paper: SVGGElement
   sheet: SVGRectElement
+  shadow: SVGRectElement
   ink: SVGGElement
   lever: SVGGElement
   leverPivot: [number, number]
@@ -388,9 +424,985 @@ type Machine = {
   space: Key
   basket: SVGGElement
   bars: Bar[]
-  ribbon: SVGPathElement[]
+  ribbon: { path: SVGPathElement; dy: number }[]
   vibrator: SVGGElement
   spools: SVGGElement[]
+}
+
+/**
+ * Draw the whole typewriter into `svg`: the carriage (rail, paper rest,
+ * platen, knobs, return lever, sheet, scale) and the body (enamel shell,
+ * typebar basket, ribbon spools, ribbon, keyboard). `color` is the enamel;
+ * its lights and shadows are mixed from it.
+ */
+function drawMachine(
+  svg: SVGSVGElement,
+  id: string,
+  columns: number,
+  color: string
+): Machine {
+  const span = columns * CW
+  const platenL = -PAD - 22
+  const platenR = span + PAD + 22
+  const knobW = 15
+  const leverX = platenL - knobW - 4
+  // Room for the carriage at both ends of its travel, and the body.
+  const left = leverX - 56 - (span + CW / 2)
+  const right = platenR + knobW - CW / 2
+  const half = Math.ceil(Math.max(-left, right, 262) + 14)
+  svg.replaceChildren()
+  svg.setAttribute(
+    "viewBox",
+    `${-half} ${VIEW_TOP} ${half * 2} ${VIEW_BOTTOM - VIEW_TOP}`
+  )
+
+  const base = rgbOf(color, [142, 195, 181])
+  const white: Rgb = [255, 255, 255]
+  const black: Rgb = [0, 0, 0]
+  const enamel = {
+    shine: mix(base, white, 0.62),
+    hi: mix(base, white, 0.34),
+    light: mix(base, white, 0.14),
+    mid: mix(base, base, 0),
+    low: mix(base, black, 0.16),
+    deep: mix(base, black, 0.34),
+    edge: mix(base, black, 0.55),
+  }
+
+  /* Gradients. */
+  const defs = draw("defs", {}, svg)
+  const gradient = (
+    name: string,
+    kind: "linearGradient" | "radialGradient",
+    attrs: Record<string, string | number>,
+    stops: [number, string, number?][]
+  ) => {
+    const el = draw(kind, { id: `${id}-${name}`, ...attrs }, defs)
+    for (const [offset, stopColor, alpha = 1] of stops) {
+      draw(
+        "stop",
+        { offset, "stop-color": stopColor, "stop-opacity": alpha },
+        el
+      )
+    }
+    return `url(#${id}-${name})`
+  }
+  const down = { x1: 0, y1: 0, x2: 0, y2: 1 }
+  const across = { x1: 0, y1: 0, x2: 1, y2: 0 }
+  const fills = {
+    body: gradient("body", "linearGradient", down, [
+      [0, enamel.hi],
+      [0.18, enamel.light],
+      [0.62, enamel.mid],
+      [1, enamel.low],
+    ]),
+    sides: gradient("sides", "linearGradient", across, [
+      [0, "#000", 0.26],
+      [0.1, "#000", 0.04],
+      [0.5, "#fff", 0.05],
+      [0.9, "#000", 0.04],
+      [1, "#000", 0.3],
+    ]),
+    front: gradient("front", "linearGradient", down, [
+      [0, enamel.low],
+      [1, enamel.deep],
+    ]),
+    rest: gradient("rest", "linearGradient", down, [
+      [0, enamel.hi],
+      [0.5, enamel.light],
+      [1, enamel.low],
+    ]),
+    chrome: gradient("chrome", "linearGradient", down, [
+      [0, "#FDFEFE"],
+      [0.38, "#D2D7DB"],
+      [0.52, "#8B9298"],
+      [0.7, "#C3C8CC"],
+      [1, "#EEF0F2"],
+    ]),
+    chromeV: gradient("chrome-v", "linearGradient", across, [
+      [0, "#8B9298"],
+      [0.35, "#F4F6F7"],
+      [0.6, "#BFC4C9"],
+      [1, "#737A80"],
+    ]),
+    rubber: gradient("rubber", "linearGradient", down, [
+      [0, "#55595E"],
+      [0.16, "#2A2D31"],
+      [0.55, "#0D0E10"],
+      [0.85, "#050607"],
+      [1, "#1E2124"],
+    ]),
+    bakelite: gradient("bakelite", "linearGradient", down, [
+      [0, "#62666C"],
+      [0.2, "#2C2F33"],
+      [0.6, "#111214"],
+      [1, "#2A2D31"],
+    ]),
+    capTop: gradient(
+      "cap-top",
+      "radialGradient",
+      { cx: 0.38, cy: 0.3, r: 0.75 },
+      [
+        [0, "#575C63"],
+        [0.55, "#202326"],
+        [1, "#0C0D0F"],
+      ]
+    ),
+    capSide: gradient("cap-side", "linearGradient", down, [
+      [0, "#9AA1A7"],
+      [0.5, "#4B5157"],
+      [1, "#2A2E32"],
+    ]),
+    well: gradient("well", "linearGradient", down, [
+      [0, "#08090A"],
+      [0.18, "#151719"],
+      [1, "#24272A"],
+    ]),
+    recess: gradient("recess", "radialGradient", { cx: 0.5, cy: 0, r: 1 }, [
+      [0, "#030304"],
+      [0.7, "#141618"],
+      [1, "#24272A"],
+    ]),
+    spoolRibbon: gradient(
+      "spool-ribbon",
+      "radialGradient",
+      { cx: 0.42, cy: 0.38, r: 0.7 },
+      [
+        [0, "#3B3E43"],
+        [0.7, "#151618"],
+        [1, "#060607"],
+      ]
+    ),
+    flange: gradient(
+      "flange",
+      "radialGradient",
+      { cx: 0.36, cy: 0.3, r: 0.85 },
+      [
+        [0, "#FFFFFF"],
+        [0.45, "#CDD2D6"],
+        [1, "#7D848A"],
+      ]
+    ),
+    ground: gradient("ground", "radialGradient", { cx: 0.5, cy: 0.5, r: 0.5 }, [
+      [0, "#000", 0.34],
+      [0.6, "#000", 0.12],
+      [1, "#000", 0],
+    ]),
+    keyShadow: gradient(
+      "key-shadow",
+      "radialGradient",
+      { cx: 0.5, cy: 0.5, r: 0.5 },
+      [
+        [0, "#000", 0.7],
+        [1, "#000", 0],
+      ]
+    ),
+    curl: gradient(
+      "curl",
+      "linearGradient",
+      { gradientUnits: "userSpaceOnUse", x1: 0, y1: 12, x2: 0, y2: 41 },
+      [
+        [0, "#3A2E1C", 0],
+        [0.55, "#3A2E1C", 0.1],
+        [1, "#3A2E1C", 0.34],
+      ]
+    ),
+  }
+
+  // The sheet fades out at the top of the frame and tucks behind the
+  // platen at the bottom.
+  const fade = gradient(
+    "fade-g",
+    "linearGradient",
+    {
+      gradientUnits: "userSpaceOnUse",
+      x1: 0,
+      x2: 0,
+      y1: VIEW_TOP,
+      y2: 41,
+    },
+    [
+      [0, "#fff", 0],
+      [84 / (41 - VIEW_TOP), "#fff", 1],
+      [0.998, "#fff", 1],
+      [1, "#fff", 0],
+    ]
+  )
+  const box = { x: -4000, y: VIEW_TOP - 4, width: 8000, height: 50 - VIEW_TOP }
+  const mask = draw(
+    "mask",
+    { id: `${id}-fade`, maskUnits: "userSpaceOnUse", ...box },
+    defs
+  )
+  draw("rect", { ...box, fill: fade }, mask)
+
+  // Ground shadow.
+  draw("ellipse", { cx: 0, cy: 302, rx: 300, ry: 15, fill: fills.ground }, svg)
+
+  /* ---------------- Carriage ---------------- */
+
+  const carriage = draw("g", {}, svg)
+  // Rail it rides on.
+  draw(
+    "rect",
+    {
+      x: platenL - knobW - 8,
+      y: 40,
+      width: platenR - platenL + knobW * 2 + 16,
+      height: 6,
+      rx: 3,
+      fill: fills.chrome,
+    },
+    carriage
+  )
+  // Paper rest behind the sheet.
+  const tL = -PAD - 16
+  const tR = span + PAD + 16
+  draw(
+    "path",
+    {
+      d: `M${tL} 10V-80Q${tL} -98 ${tL + 18} -98H${tR - 18}Q${tR} -98 ${tR} -80V10Z`,
+      fill: fills.rest,
+    },
+    carriage
+  )
+  draw(
+    "path",
+    {
+      d: `M${tL + 1} -80Q${tL + 1} -97 ${tL + 18} -97H${tR - 18}Q${tR - 1} -97 ${tR - 1} -80`,
+      fill: "none",
+      stroke: enamel.shine,
+      "stroke-width": 1.4,
+      "stroke-opacity": 0.85,
+    },
+    carriage
+  )
+  // Platen, with chrome collars at its ends.
+  draw(
+    "rect",
+    {
+      x: platenL,
+      y: 6,
+      width: platenR - platenL,
+      height: 34,
+      rx: 4,
+      fill: fills.rubber,
+    },
+    carriage
+  )
+  draw(
+    "rect",
+    {
+      x: platenL + 4,
+      y: 10.5,
+      width: platenR - platenL - 8,
+      height: 1.6,
+      rx: 0.8,
+      fill: "#fff",
+      "fill-opacity": 0.22,
+    },
+    carriage
+  )
+  for (const x of [platenL - 4, platenR]) {
+    draw(
+      "rect",
+      { x, y: 9, width: 4, height: 28, rx: 1, fill: fills.chrome },
+      carriage
+    )
+  }
+  // Knobs: bakelite with knurling that turns with the platen.
+  const knobs = [platenL - 4 - knobW, platenR + 4].map((x) => {
+    draw(
+      "rect",
+      { x, y: 1, width: knobW, height: 44, rx: 6, fill: fills.bakelite },
+      carriage
+    )
+    const lines = Array.from({ length: RIDGES }, () =>
+      draw(
+        "line",
+        {
+          x1: x + 2.5,
+          x2: x + knobW - 2.5,
+          stroke: "#B8BEC4",
+          "stroke-width": 1,
+          "stroke-linecap": "round",
+        },
+        carriage
+      )
+    )
+    draw(
+      "rect",
+      {
+        x: x + 2,
+        y: 3,
+        width: knobW - 4,
+        height: 6,
+        rx: 3,
+        fill: "#fff",
+        "fill-opacity": 0.12,
+      },
+      carriage
+    )
+    return { x, lines }
+  })
+  // Carriage return lever: chrome arm, bakelite grip.
+  const lever = draw("g", {}, carriage)
+  const leverPivot: [number, number] = [leverX, 30]
+  draw(
+    "rect",
+    {
+      x: leverX - 5,
+      y: 20,
+      width: 10,
+      height: 22,
+      rx: 3,
+      fill: fills.chromeV,
+    },
+    lever
+  )
+  const arm = `M${leverX} 28L${leverX - 13} 4L${leverX - 36} -14`
+  for (const [stroke, width] of [
+    [CHROME_EDGE, 6.4],
+    [CHROME, 4],
+  ] as const) {
+    draw(
+      "path",
+      {
+        d: arm,
+        fill: "none",
+        stroke,
+        "stroke-width": width,
+        "stroke-linecap": "round",
+        "stroke-linejoin": "round",
+      },
+      lever
+    )
+  }
+  draw(
+    "path",
+    {
+      d: `M${leverX - 1} 26L${leverX - 13} 4.5L${leverX - 34} -12`,
+      fill: "none",
+      stroke: "#fff",
+      "stroke-width": 1.2,
+      "stroke-opacity": 0.8,
+      "stroke-linecap": "round",
+      "stroke-linejoin": "round",
+    },
+    lever
+  )
+  draw(
+    "rect",
+    {
+      x: leverX - 56,
+      y: -25,
+      width: 28,
+      height: 11,
+      rx: 5.5,
+      fill: fills.bakelite,
+      transform: `rotate(-24 ${leverX - 42} -19.5)`,
+    },
+    lever
+  )
+
+  // The sheet, masked so it fades at the top and wraps under the platen.
+  const wrap = draw("g", { mask: `url(#${id}-fade)` }, carriage)
+  const paper = draw("g", {}, wrap)
+  const shadow = draw(
+    "rect",
+    {
+      x: -PAD + 3,
+      y: -TOP_MARGIN + 3,
+      width: span + PAD * 2,
+      height: 600,
+      fill: "#000",
+      "fill-opacity": 0.12,
+    },
+    paper
+  )
+  const sheet = draw(
+    "rect",
+    {
+      x: -PAD,
+      y: -TOP_MARGIN,
+      width: span + PAD * 2,
+      height: 600,
+      fill: "sheet",
+      stroke: "#000",
+      "stroke-opacity": 0.07,
+      "stroke-width": 0.8,
+    },
+    paper
+  )
+  const ink = draw(
+    "g",
+    { "text-anchor": "middle", "font-size": FONT, fill: INK },
+    paper
+  )
+  // Where the sheet curls round the platen.
+  draw(
+    "rect",
+    {
+      x: -PAD,
+      y: 12,
+      width: span + PAD * 2,
+      height: 30,
+      fill: fills.curl,
+    },
+    wrap
+  )
+
+  // Paper scale under the print line.
+  draw(
+    "rect",
+    {
+      x: -PAD + 2,
+      y: 8.5,
+      width: span + PAD * 2 - 4,
+      height: 6,
+      rx: 3,
+      fill: fills.chrome,
+    },
+    carriage
+  )
+  let ticks = ""
+  for (let c = 0; c <= columns; c++) {
+    const x = c * CW
+    ticks += `M${x} 9.4V${c % 10 === 0 ? 13.6 : c % 5 === 0 ? 12.4 : 11.2}`
+  }
+  draw(
+    "path",
+    {
+      d: ticks,
+      stroke: "#3E444A",
+      "stroke-width": 0.7,
+      fill: "none",
+    },
+    carriage
+  )
+
+  /* ---------------- Body ---------------- */
+
+  const body = draw("g", {}, svg)
+  const shell =
+    "M-192 42Q-214 42 -219 62C-228 120 -240 190 -247 246Q-249 262 -232 264H232Q249 262 247 246C240 190 228 120 219 62Q214 42 192 42Z"
+  draw("path", { d: shell, fill: fills.body }, body)
+  draw("path", { d: shell, fill: fills.sides }, body)
+  // Front face, below the top surfaces, with a chrome trim.
+  draw(
+    "path",
+    {
+      d: "M-247 248Q-249 262 -232 264H232Q249 262 247 248L245 284Q243 296 227 296H-227Q-243 296 -245 284Z",
+      fill: fills.front,
+    },
+    body
+  )
+  draw(
+    "path",
+    {
+      d: "M-240 264.5H240",
+      stroke: enamel.shine,
+      "stroke-width": 1.2,
+      "stroke-opacity": 0.7,
+    },
+    body
+  )
+  draw(
+    "rect",
+    {
+      x: -236,
+      y: 274,
+      width: 472,
+      height: 3,
+      rx: 1.5,
+      fill: fills.chrome,
+    },
+    body
+  )
+  for (const x of [-228, 188]) {
+    draw(
+      "rect",
+      { x, y: 293, width: 40, height: 10, rx: 4, fill: "#151618" },
+      body
+    )
+  }
+  const sheen = gradient("sheen", "linearGradient", across, [
+    [0, "#fff", 0.34],
+    [0.55, "#fff", 0.1],
+    [1, "#fff", 0],
+  ])
+  draw(
+    "path",
+    { d: "M-210 48H-96L-150 110H-224Q-222 82 -210 48Z", fill: sheen },
+    body
+  )
+  // Glossy rim along the top of the shell.
+  draw(
+    "path",
+    {
+      d: "M-194 43.4H194",
+      stroke: enamel.shine,
+      "stroke-width": 1.6,
+      "stroke-linecap": "round",
+    },
+    body
+  )
+  draw(
+    "path",
+    {
+      d: "M-208 56Q-212 70 -216 96",
+      stroke: enamel.shine,
+      "stroke-width": 2.4,
+      "stroke-linecap": "round",
+      "stroke-opacity": 0.55,
+      fill: "none",
+    },
+    body
+  )
+
+  // Typebar basket, sunk in the deck.
+  draw(
+    "path",
+    {
+      d: `M-68 ${BASKET_Y}A68 68 0 0 0 68 ${BASKET_Y}Z`,
+      fill: fills.recess,
+    },
+    body
+  )
+  draw(
+    "path",
+    {
+      d: `M-68 ${BASKET_Y}A68 68 0 0 0 68 ${BASKET_Y}`,
+      fill: "none",
+      stroke: enamel.shine,
+      "stroke-width": 1.3,
+      "stroke-opacity": 0.75,
+    },
+    body
+  )
+  const basket = draw("g", {}, body)
+  const [ax, ay] = polar(62, -SPREAD - 0.12)
+  const [bx, by] = polar(62, SPREAD + 0.12)
+  const [cx, cy] = polar(53, SPREAD + 0.12)
+  const [dx, dy] = polar(53, -SPREAD - 0.12)
+  draw(
+    "path",
+    {
+      d: `M${ax} ${ay}A62 62 0 0 0 ${bx} ${by}L${cx} ${cy}A53 53 0 0 1 ${dx} ${dy}Z`,
+      fill: fills.chrome,
+    },
+    basket
+  )
+
+  // Ribbon spools: black ribbon wound under a turning chrome flange.
+  const spools = [-SPOOL_X, SPOOL_X].map((x) => {
+    draw(
+      "circle",
+      { cx: x, cy: SPOOL_Y + 2, r: 27, fill: "#000", "fill-opacity": 0.22 },
+      body
+    )
+    draw("circle", { cx: x, cy: SPOOL_Y, r: 26, fill: fills.flange }, body)
+    draw("circle", { cx: x, cy: SPOOL_Y, r: 22, fill: fills.spoolRibbon }, body)
+    const turn = draw("g", {}, body)
+    let windows = ""
+    for (let i = 0; i < 3; i++) {
+      const a0 = (i / 3) * TAU + 0.25
+      const a1 = a0 + 1.35
+      const p = (r: number, a: number) =>
+        `${(x + Math.cos(a) * r).toFixed(2)} ${(SPOOL_Y + Math.sin(a) * r).toFixed(2)}`
+      windows += `M${p(19, a0)}A19 19 0 0 1 ${p(19, a1)}L${p(8.5, a1)}A8.5 8.5 0 0 0 ${p(8.5, a0)}Z`
+    }
+    draw(
+      "path",
+      {
+        d: `M${x - 21} ${SPOOL_Y}a21 21 0 1 0 42 0a21 21 0 1 0 -42 0Z${windows}`,
+        fill: fills.flange,
+        "fill-rule": "evenodd",
+      },
+      turn
+    )
+    draw("circle", { cx: x, cy: SPOOL_Y, r: 5, fill: fills.chrome }, turn)
+    draw("circle", { cx: x, cy: SPOOL_Y, r: 1.6, fill: "#2A2D31" }, turn)
+    return turn
+  })
+
+  // The type guide either side of the print point.
+  for (const x of [-23, 17]) {
+    draw(
+      "rect",
+      {
+        x,
+        y: 0,
+        width: 6,
+        height: 16,
+        rx: 1.6,
+        fill: fills.chromeV,
+        stroke: CHROME_EDGE,
+        "stroke-width": 0.8,
+      },
+      body
+    )
+  }
+
+  // Two-tone ribbon, black over red, through the vibrator.
+  const ribbon = [
+    {
+      path: draw(
+        "path",
+        {
+          fill: "none",
+          stroke: RIBBON_BLACK,
+          "stroke-width": 5.8,
+          "stroke-linejoin": "round",
+        },
+        body
+      ),
+      dy: 0,
+    },
+    {
+      path: draw(
+        "path",
+        {
+          fill: "none",
+          stroke: RIBBON_RED,
+          "stroke-width": 2.6,
+          "stroke-linejoin": "round",
+        },
+        body
+      ),
+      dy: 1.5,
+    },
+  ]
+  const vibrator = draw("g", {}, body)
+  for (const [stroke, width] of [
+    [CHROME_EDGE, 3.8],
+    [CHROME, 2],
+  ] as const) {
+    draw(
+      "path",
+      {
+        d: "M-12 2.5V11.5H12V2.5",
+        fill: "none",
+        stroke,
+        "stroke-width": width,
+        "stroke-linejoin": "round",
+        "stroke-linecap": "round",
+      },
+      vibrator
+    )
+  }
+
+  // Keyboard well.
+  draw(
+    "path",
+    {
+      d: "M-204 112H204Q217 112 219 125L233 240Q235 254 220 254H-220Q-235 254 -233 240L-219 125Q-217 112 -204 112Z",
+      fill: fills.well,
+    },
+    body
+  )
+  draw(
+    "path",
+    {
+      d: "M-219.5 126Q-217.5 111 -204 111H204Q217.5 111 219.5 126",
+      fill: "none",
+      stroke: enamel.shine,
+      "stroke-width": 1.3,
+      "stroke-opacity": 0.8,
+    },
+    body
+  )
+  draw(
+    "path",
+    {
+      d: "M-226 254.6H226",
+      stroke: enamel.shine,
+      "stroke-width": 1.2,
+      "stroke-opacity": 0.6,
+    },
+    body
+  )
+
+  const ry = KEY_R * KEY_TILT
+  const height = 4.5
+  /** A round key on its stem, seen from above: rim, cap, legend, shadow. */
+  const keyAt = (x: number, y: number, label: string) => {
+    draw(
+      "ellipse",
+      {
+        cx: x + 2,
+        cy: y + 21,
+        rx: 11,
+        ry: 4,
+        fill: fills.keyShadow,
+      },
+      body
+    )
+    draw(
+      "rect",
+      {
+        x: x - 1.5,
+        y: y + 4,
+        width: 3,
+        height: 19,
+        rx: 1,
+        fill: fills.chromeV,
+      },
+      body
+    )
+    const cap = draw("g", {}, body)
+    draw(
+      "path",
+      {
+        d: `M${x - KEY_R} ${y}V${y + height}A${KEY_R} ${ry} 0 0 0 ${x + KEY_R} ${y + height}V${y}A${KEY_R} ${ry} 0 0 1 ${x - KEY_R} ${y}Z`,
+        fill: fills.capSide,
+      },
+      cap
+    )
+    draw("ellipse", { cx: x, cy: y, rx: KEY_R, ry, fill: fills.chrome }, cap)
+    draw(
+      "ellipse",
+      {
+        cx: x,
+        cy: y + 0.3,
+        rx: KEY_R - 2.3,
+        ry: ry - 1.6,
+        fill: fills.capTop,
+      },
+      cap
+    )
+    draw(
+      "ellipse",
+      {
+        cx: x - 3.4,
+        cy: y - 2.6,
+        rx: 4.4,
+        ry: 1.6,
+        fill: "#fff",
+        "fill-opacity": 0.2,
+      },
+      cap
+    )
+    const text = draw(
+      "text",
+      {
+        x,
+        y: y + 0.7,
+        "text-anchor": "middle",
+        "dominant-baseline": "central",
+        "font-size": 9.6,
+        "font-weight": 600,
+        fill: LEGEND,
+        transform: `matrix(1 0 0 0.74 0 ${(y * 0.26).toFixed(2)})`,
+      },
+      cap
+    )
+    text.textContent = label
+    return cap
+  }
+
+  const keys = new Map<string, Key>()
+  const placed: { x: number; key: Key }[] = []
+  KEY_ROWS.forEach((row, r) => {
+    Array.from(row).forEach((ch, i) => {
+      const x = -157.5 + (r - 1.5) * 9 + i * KEY_PITCH
+      const key: Key = {
+        cap: keyAt(x, KEY_Y[r]!, ch.toUpperCase()),
+        bar: null,
+        v: 0,
+      }
+      keys.set(ch, key)
+      placed.push({ x, key })
+    })
+  })
+
+  /** A pill key (shift, space): same rim and cap, stretched. */
+  const pill = (x: number, y: number, w: number, legend?: string) => {
+    for (const sx of [x - w * 0.3, x + w * 0.3]) {
+      draw(
+        "rect",
+        {
+          x: sx - 1.5,
+          y: y + 4,
+          width: 3,
+          height: 17,
+          rx: 1,
+          fill: fills.chromeV,
+        },
+        body
+      )
+    }
+    draw(
+      "ellipse",
+      {
+        cx: x + 2,
+        cy: y + 19,
+        rx: w / 2 + 2,
+        ry: 4,
+        fill: fills.keyShadow,
+      },
+      body
+    )
+    const cap = draw("g", {}, body)
+    const r = ry
+    draw(
+      "rect",
+      {
+        x: x - w / 2,
+        y: y - r + height,
+        width: w,
+        height: r * 2,
+        rx: r,
+        fill: fills.capSide,
+      },
+      cap
+    )
+    draw(
+      "rect",
+      {
+        x: x - w / 2,
+        y: y - r,
+        width: w,
+        height: r * 2,
+        rx: r,
+        fill: fills.chrome,
+      },
+      cap
+    )
+    draw(
+      "rect",
+      {
+        x: x - w / 2 + 2.3,
+        y: y - r + 1.6,
+        width: w - 4.6,
+        height: r * 2 - 3.2,
+        rx: r - 1.6,
+        fill: fills.capTop,
+      },
+      cap
+    )
+    if (legend) {
+      draw("path", { d: legend, fill: LEGEND }, cap)
+    }
+    return cap
+  }
+  const y3 = KEY_Y[3]!
+  const shifts = [-1, 1].map((side) => {
+    const x = side * 201
+    const arrow = `M${x} ${y3 - 3.6}L${x + 4} ${y3 + 0.6}H${x + 1.6}V${y3 + 3.4}H${x - 1.6}V${y3 + 0.6}H${x - 4}Z`
+    return { cap: pill(x, y3, 30, arrow), bar: null, v: 0 } satisfies Key
+  })
+
+  // Space bar: a chrome bar on two arms.
+  for (const sx of [-80, 80]) {
+    draw(
+      "rect",
+      {
+        x: sx - 1.5,
+        y: 247,
+        width: 3,
+        height: 7,
+        fill: fills.chromeV,
+      },
+      body
+    )
+  }
+  const spaceCap = draw("g", {}, body)
+  draw(
+    "rect",
+    {
+      x: -112,
+      y: 242,
+      width: 224,
+      height: 9,
+      rx: 4.5,
+      fill: "#4E555B",
+    },
+    spaceCap
+  )
+  draw(
+    "rect",
+    {
+      x: -112,
+      y: 239.5,
+      width: 224,
+      height: 8,
+      rx: 4,
+      fill: fills.chrome,
+    },
+    spaceCap
+  )
+  const space: Key = { cap: spaceCap, bar: null, v: 0 }
+
+  // One typebar per key, fanned left to right in key order.
+  const overlay = draw("g", {}, svg)
+  placed.sort((a, b) => a.x - b.x)
+  const bars = placed.map(({ key }, i) => {
+    const angle = -SPREAD + (2 * SPREAD * i) / (placed.length - 1)
+    const pivot = polar(PIVOT_R, angle)
+    const tip = polar(REST_R, angle)
+    const rest = draw("g", {}, basket)
+    draw(
+      "line",
+      {
+        x1: pivot[0],
+        y1: pivot[1],
+        x2: tip[0],
+        y2: tip[1],
+        stroke: i % 2 ? "#C4C9CE" : "#E6E9EC",
+        "stroke-width": 1.25,
+        "stroke-linecap": "round",
+      },
+      rest
+    )
+    const [sx, sy] = polar(REST_R + 3.4, angle)
+    draw(
+      "line",
+      {
+        x1: sx,
+        y1: sy,
+        x2: tip[0],
+        y2: tip[1],
+        stroke: "#7D848A",
+        "stroke-width": 2.6,
+        "stroke-linecap": "round",
+      },
+      rest
+    )
+    const strike = draw("g", { display: "none" }, overlay)
+    const line = (stroke: string, width: number) =>
+      draw(
+        "line",
+        { stroke, "stroke-width": width, "stroke-linecap": "round" },
+        strike
+      )
+    const edge = line("#1C1E21", 3.9)
+    const core = line("#E2E5E8", 1.8)
+    const slug = line("#2A2D31", 5.6)
+    const bar: Bar = { rest, strike, edge, core, slug, pivot, tip, v: 0 }
+    key.bar = bar
+    return bar
+  })
+
+  return {
+    columns,
+    carriage,
+    paper,
+    sheet,
+    shadow,
+    ink,
+    lever,
+    leverPivot,
+    knobs,
+    keys,
+    shifts,
+    space,
+    basket,
+    bars,
+    ribbon,
+    vibrator,
+    spools,
+  }
 }
 
 type Motion = {
@@ -410,8 +1422,9 @@ let machineIds = 0
  * steps one character left. Capitals hold shift, which drops the basket. At
  * the margin the return lever kicks, the platen turns up a line, and the
  * carriage slides home. With `loop`, the finished sheet is pulled out and
- * a fresh one rolls in. Ink is `currentColor`; the paper takes the page
- * color behind it. `prefers-reduced-motion` prints the whole page at once.
+ * a fresh one rolls in. `color` is the enamel; chrome, rubber, and the
+ * ivory sheet are fixed. `prefers-reduced-motion` prints the whole page at
+ * once.
  */
 export function createTypewriter(
   root: HTMLElement,
@@ -457,597 +1470,7 @@ export function createTypewriter(
   /* ---------------------------------------------------------------- */
 
   const build = () => {
-    const columns = columnsOf()
-    const span = columns * CW
-    const platenL = -PAD - 22
-    const platenR = span + PAD + 22
-    const knobW = 14
-    const leverX = platenL - knobW - 3
-    // Room for the carriage at both ends of its travel, and the body.
-    const left = leverX - 52 - (span + CW / 2)
-    const right = platenR + knobW - CW / 2
-    const half = Math.ceil(Math.max(-left, right, 262) + 14)
-    svg.replaceChildren()
-    svg.setAttribute(
-      "viewBox",
-      `${-half} ${VIEW_TOP} ${half * 2} ${VIEW_BOTTOM - VIEW_TOP}`
-    )
-
-    // The sheet fades out at the top of the frame and tucks behind the
-    // platen at the bottom.
-    const defs = draw("defs", {}, svg)
-    const fade = draw(
-      "linearGradient",
-      {
-        id: `${id}-fade-g`,
-        gradientUnits: "userSpaceOnUse",
-        x1: 0,
-        x2: 0,
-        y1: VIEW_TOP,
-        y2: 40,
-      },
-      defs
-    )
-    const soft = 84 / (40 - VIEW_TOP)
-    for (const [offset, alpha] of [
-      [0, 0],
-      [soft, 1],
-      [0.998, 1],
-      [1, 0],
-    ] as const) {
-      draw(
-        "stop",
-        { offset, "stop-color": "#fff", "stop-opacity": alpha },
-        fade
-      )
-    }
-    const box = {
-      x: -4000,
-      y: VIEW_TOP - 4,
-      width: 8000,
-      height: 48 - VIEW_TOP,
-    }
-    const mask = draw(
-      "mask",
-      { id: `${id}-fade`, maskUnits: "userSpaceOnUse", ...box },
-      defs
-    )
-    draw("rect", { ...box, fill: `url(#${id}-fade-g)` }, mask)
-
-    /* Carriage: rail, platen, knobs, return lever, the sheet, the scale. */
-    const carriage = draw("g", {}, svg)
-    draw(
-      "rect",
-      {
-        x: platenL - knobW,
-        y: 42,
-        width: platenR - platenL + knobW * 2,
-        height: 6,
-        rx: 3,
-        fill: "currentColor",
-        "fill-opacity": 0.7,
-      },
-      carriage
-    )
-    draw(
-      "rect",
-      {
-        x: platenL,
-        y: 6,
-        width: platenR - platenL,
-        height: 34,
-        rx: 10,
-        fill: "currentColor",
-      },
-      carriage
-    )
-    draw(
-      "rect",
-      {
-        x: platenL + 8,
-        y: 11,
-        width: platenR - platenL - 16,
-        height: 2,
-        rx: 1,
-        fill: "paper",
-        "fill-opacity": 0.3,
-      },
-      carriage
-    )
-    const knobs = [platenL - knobW, platenR].map((x) => {
-      draw(
-        "rect",
-        { x, y: 2, width: knobW, height: 42, rx: 5, fill: "currentColor" },
-        carriage
-      )
-      const lines = Array.from({ length: RIDGES }, () =>
-        draw(
-          "line",
-          {
-            x1: x + 2.6,
-            x2: x + knobW - 2.6,
-            stroke: "paper",
-            "stroke-width": 1.1,
-            "stroke-linecap": "round",
-          },
-          carriage
-        )
-      )
-      return { x, lines }
-    })
-    const lever = draw("g", {}, carriage)
-    const leverPivot: [number, number] = [leverX, 32]
-    draw(
-      "rect",
-      {
-        x: leverX - 5,
-        y: 22,
-        width: 9,
-        height: 22,
-        rx: 2.5,
-        fill: "currentColor",
-      },
-      lever
-    )
-    draw(
-      "path",
-      {
-        d: `M${leverX} 30L${leverX - 12} 6L${leverX - 34} -12`,
-        fill: "none",
-        stroke: "currentColor",
-        "stroke-width": 5,
-        "stroke-linecap": "round",
-        "stroke-linejoin": "round",
-      },
-      lever
-    )
-    draw(
-      "rect",
-      {
-        x: leverX - 52,
-        y: -23,
-        width: 26,
-        height: 10,
-        rx: 5,
-        fill: "currentColor",
-        transform: `rotate(-24 ${leverX - 39} -18)`,
-      },
-      lever
-    )
-
-    const wrap = draw("g", { mask: `url(#${id}-fade)` }, carriage)
-    const paper = draw("g", {}, wrap)
-    const sheet = draw(
-      "rect",
-      {
-        x: -PAD,
-        y: -TOP_MARGIN,
-        width: span + PAD * 2,
-        height: 600,
-        fill: "paper",
-        stroke: "currentColor",
-        "stroke-opacity": 0.24,
-        "stroke-width": 1,
-      },
-      paper
-    )
-    const ink = draw(
-      "g",
-      { "text-anchor": "middle", "font-size": FONT, fill: "currentColor" },
-      paper
-    )
-
-    // The paper scale, just under the print line.
-    draw(
-      "rect",
-      {
-        x: -PAD + 4,
-        y: 9,
-        width: span + PAD * 2 - 8,
-        height: 5,
-        rx: 2.5,
-        fill: "currentColor",
-      },
-      carriage
-    )
-    let ticks = ""
-    for (let c = 0; c <= columns; c++) {
-      const x = c * CW
-      ticks += `M${x} 9.7V${c % 10 === 0 ? 13.3 : c % 5 === 0 ? 12.2 : 11}`
-    }
-    draw(
-      "path",
-      {
-        d: ticks,
-        stroke: "paper",
-        "stroke-width": 0.8,
-        "stroke-opacity": 0.75,
-        fill: "none",
-      },
-      carriage
-    )
-
-    /* Body: keyboard well, frame, basket, deck, spools, ribbon, keys. */
-    const body = draw("g", {}, svg)
-    draw(
-      "path",
-      {
-        d: "M-226 112H226L246 272H-246Z",
-        fill: "currentColor",
-        "fill-opacity": 0.07,
-      },
-      body
-    )
-    for (const side of [-1, 1]) {
-      draw(
-        "path",
-        {
-          d: `M${side * 212} 108L${side * 232} 108L${side * 260} 272L${side * 238} 272Z`,
-          fill: "currentColor",
-        },
-        body
-      )
-    }
-
-    const basket = draw("g", {}, body)
-    const [ax, ay] = polar(63, -SPREAD - 0.1)
-    const [bx, by] = polar(63, SPREAD + 0.1)
-    const [cx, cy] = polar(55, SPREAD + 0.1)
-    const [dx, dy] = polar(55, -SPREAD - 0.1)
-    draw(
-      "path",
-      {
-        d: `M${ax} ${ay}A63 63 0 0 0 ${bx} ${by}L${cx} ${cy}A55 55 0 0 1 ${dx} ${dy}Z`,
-        fill: "currentColor",
-      },
-      basket
-    )
-
-    // The deck, with the basket showing through its notch.
-    draw(
-      "path",
-      {
-        d: "M-194 50H-67A67 67 0 0 0 67 50H194Q210 50 212 66L228 108Q230 116 220 116H-220Q-230 116 -228 108L-212 66Q-210 50 -194 50Z",
-        fill: "currentColor",
-      },
-      body
-    )
-    draw(
-      "path",
-      {
-        d: "M-216 109H216",
-        stroke: "paper",
-        "stroke-opacity": 0.22,
-        "stroke-width": 1,
-      },
-      body
-    )
-
-    const spools = [-150, 150].map((x) => {
-      draw(
-        "circle",
-        {
-          cx: x,
-          cy: 84,
-          r: 23,
-          fill: "currentColor",
-          stroke: "paper",
-          "stroke-opacity": 0.45,
-          "stroke-width": 1.1,
-        },
-        body
-      )
-      const turn = draw("g", {}, body)
-      for (let i = 0; i < 5; i++) {
-        const a = (i / 5) * TAU
-        draw(
-          "circle",
-          {
-            cx: x + Math.cos(a) * 13,
-            cy: 84 + Math.sin(a) * 13,
-            r: 3.6,
-            fill: "paper",
-          },
-          turn
-        )
-      }
-      draw("circle", { cx: x, cy: 84, r: 4.4, fill: "paper" }, turn)
-      draw("circle", { cx: x, cy: 84, r: 1.8, fill: "currentColor" }, turn)
-      return turn
-    })
-
-    // The type guide either side of the print point.
-    for (const side of [-1, 1]) {
-      draw(
-        "rect",
-        {
-          x: side < 0 ? -22 : 17,
-          y: 1,
-          width: 5,
-          height: 15,
-          rx: 1.5,
-          fill: "currentColor",
-          stroke: "paper",
-          "stroke-width": 1.2,
-          "paint-order": "stroke",
-        },
-        body
-      )
-    }
-
-    const ribbon = [
-      draw(
-        "path",
-        {
-          fill: "none",
-          stroke: "paper",
-          "stroke-width": 6.4,
-          "stroke-linejoin": "round",
-        },
-        body
-      ),
-      draw(
-        "path",
-        {
-          fill: "none",
-          stroke: "currentColor",
-          "stroke-width": 3.2,
-          "stroke-linejoin": "round",
-        },
-        body
-      ),
-    ]
-    const vibrator = draw("g", {}, body)
-    for (const [stroke, width] of [
-      ["paper", 4.4],
-      ["currentColor", 2],
-    ] as const) {
-      draw(
-        "path",
-        {
-          d: "M-12 3V11.5H12V3",
-          fill: "none",
-          stroke,
-          "stroke-width": width,
-          "stroke-linejoin": "round",
-          "stroke-linecap": "round",
-        },
-        vibrator
-      )
-    }
-
-    // Keys: round caps on stems, in four staggered rows.
-    const keyAt = (x: number, y: number, label: string) => {
-      draw(
-        "line",
-        {
-          x1: x,
-          y1: y,
-          x2: x,
-          y2: y + 24,
-          stroke: "currentColor",
-          "stroke-opacity": 0.42,
-          "stroke-width": 2.4,
-          "stroke-linecap": "round",
-        },
-        body
-      )
-      const cap = draw("g", {}, body)
-      draw("circle", { cx: x, cy: y, r: KEY_R + 1.6, fill: "paper" }, cap)
-      draw("circle", { cx: x, cy: y, r: KEY_R, fill: "currentColor" }, cap)
-      draw(
-        "circle",
-        {
-          cx: x,
-          cy: y,
-          r: KEY_R - 2.6,
-          fill: "none",
-          stroke: "paper",
-          "stroke-opacity": 0.45,
-          "stroke-width": 0.9,
-        },
-        cap
-      )
-      const text = draw(
-        "text",
-        {
-          x,
-          y: y + 0.5,
-          "text-anchor": "middle",
-          "dominant-baseline": "central",
-          "font-size": 10,
-          "font-weight": 600,
-          fill: "paper",
-        },
-        cap
-      )
-      text.textContent = label
-      return cap
-    }
-
-    const keys = new Map<string, Key>()
-    const placed: { ch: string; x: number; key: Key }[] = []
-    KEY_ROWS.forEach((row, r) => {
-      Array.from(row).forEach((ch, i) => {
-        const x = -157.5 + (r - 1.5) * 9 + i * KEY_PITCH
-        const key: Key = {
-          cap: keyAt(x, KEY_Y[r]!, ch.toUpperCase()),
-          bar: null,
-          v: 0,
-        }
-        keys.set(ch, key)
-        placed.push({ ch, x, key })
-      })
-    })
-
-    const pill = (x: number, y: number, w: number, h: number) => {
-      for (const sx of [x - w * 0.3, x + w * 0.3]) {
-        draw(
-          "line",
-          {
-            x1: sx,
-            y1: y,
-            x2: sx,
-            y2: y + 22,
-            stroke: "currentColor",
-            "stroke-opacity": 0.42,
-            "stroke-width": 2.4,
-            "stroke-linecap": "round",
-          },
-          body
-        )
-      }
-      const cap = draw("g", {}, body)
-      draw(
-        "rect",
-        {
-          x: x - w / 2 - 1.6,
-          y: y - h / 2 - 1.6,
-          width: w + 3.2,
-          height: h + 3.2,
-          rx: h / 2 + 1.6,
-          fill: "paper",
-        },
-        cap
-      )
-      draw(
-        "rect",
-        {
-          x: x - w / 2,
-          y: y - h / 2,
-          width: w,
-          height: h,
-          rx: h / 2,
-          fill: "currentColor",
-        },
-        cap
-      )
-      return cap
-    }
-    const shifts = [-1, 1].map((side) => {
-      const x = side * 201
-      const cap = pill(x, KEY_Y[3]!, 30, 22)
-      draw(
-        "path",
-        {
-          d: `M${x} ${KEY_Y[3]! - 5}L${x + 5} ${KEY_Y[3]! + 1}H${x + 2}V${KEY_Y[3]! + 5}H${x - 2}V${KEY_Y[3]! + 1}H${x - 5}Z`,
-          fill: "paper",
-        },
-        cap
-      )
-      return { cap, bar: null, v: 0 } satisfies Key
-    })
-    const space: Key = { cap: pill(0, 258, 210, 11), bar: null, v: 0 }
-
-    // Base and feet.
-    draw(
-      "rect",
-      {
-        x: -260,
-        y: 272,
-        width: 520,
-        height: 20,
-        rx: 8,
-        fill: "currentColor",
-      },
-      body
-    )
-    draw(
-      "path",
-      {
-        d: "M-250 277H250",
-        stroke: "paper",
-        "stroke-opacity": 0.22,
-        "stroke-width": 1,
-      },
-      body
-    )
-    for (const x of [-238, 202]) {
-      draw(
-        "rect",
-        {
-          x,
-          y: 290,
-          width: 36,
-          height: 8,
-          rx: 3,
-          fill: "currentColor",
-        },
-        body
-      )
-    }
-
-    // One typebar per key, fanned left to right in key order.
-    const overlay = draw("g", {}, svg)
-    placed.sort((a, b) => a.x - b.x)
-    const bars = placed.map(({ key }, i) => {
-      const angle = -SPREAD + (2 * SPREAD * i) / (placed.length - 1)
-      const pivot = polar(PIVOT_R, angle)
-      const tip = polar(REST_R, angle)
-      const rest = draw(
-        "line",
-        {
-          x1: pivot[0],
-          y1: pivot[1],
-          x2: tip[0],
-          y2: tip[1],
-          stroke: "currentColor",
-          "stroke-width": 1.3,
-          "stroke-linecap": "round",
-        },
-        basket
-      )
-      const strike = draw("g", { display: "none" }, overlay)
-      const arm = draw(
-        "line",
-        {
-          stroke: "paper",
-          "stroke-width": 4.4,
-          "stroke-linecap": "round",
-        },
-        strike
-      )
-      const core = draw(
-        "line",
-        {
-          stroke: "currentColor",
-          "stroke-width": 2,
-          "stroke-linecap": "round",
-        },
-        strike
-      )
-      const slug = draw(
-        "line",
-        {
-          stroke: "currentColor",
-          "stroke-width": 5.5,
-          "stroke-linecap": "round",
-        },
-        strike
-      )
-      const bar: Bar = { rest, strike, arm, core, slug, pivot, tip, v: 0 }
-      key.bar = bar
-      return bar
-    })
-
-    M = {
-      columns,
-      carriage,
-      paper,
-      sheet,
-      ink,
-      lever,
-      leverPivot,
-      knobs,
-      keys,
-      shifts,
-      space,
-      basket,
-      bars,
-      ribbon,
-      vibrator,
-      spools,
-    }
+    M = drawMachine(svg, id, columnsOf(), options.color ?? DEFAULT_COLOR)
   }
 
   /* ---------------------------------------------------------------- */
@@ -1095,8 +1518,11 @@ export function createTypewriter(
   const setSpool = (deg: number) => {
     pose.spool = deg
     M.spools.forEach((spool, i) => {
-      const x = i === 0 ? -150 : 150
-      spool.setAttribute("transform", `rotate(${deg.toFixed(1)} ${x} 84)`)
+      const x = i === 0 ? -SPOOL_X : SPOOL_X
+      spool.setAttribute(
+        "transform",
+        `rotate(${(i === 0 ? -deg : deg).toFixed(1)} ${x} ${SPOOL_Y})`
+      )
     })
   }
   const setLever = (deg: number) => {
@@ -1114,8 +1540,13 @@ export function createTypewriter(
     pose.ribbon = v
     const lift = v * 13
     const y = 7.5 - lift
-    const d = `M-150 61L-12 ${y.toFixed(2)}H12L150 61`
-    for (const path of M.ribbon) path.setAttribute("d", d)
+    const top = SPOOL_Y - 24
+    for (const { path, dy } of M.ribbon) {
+      path.setAttribute(
+        "d",
+        `M${-SPOOL_X} ${top + dy}L-12 ${(y + dy).toFixed(2)}H12L${SPOOL_X} ${top + dy}`
+      )
+    }
     M.vibrator.setAttribute("transform", `translate(0 ${(-lift).toFixed(2)})`)
   }
   const setKey = (key: Key, v: number) => {
@@ -1143,7 +1574,7 @@ export function createTypewriter(
     const len = Math.hypot(tx - px, ty - py) || 1
     const ux = (tx - px) / len
     const uy = (ty - py) / len
-    for (const line of [bar.arm, bar.core]) {
+    for (const line of [bar.edge, bar.core]) {
       line.setAttribute("x1", px.toFixed(2))
       line.setAttribute("y1", py.toFixed(2))
       line.setAttribute("x2", tx.toFixed(2))
@@ -1350,6 +1781,7 @@ export function createTypewriter(
       (M.columns * CW + PAD * 2) * 1.3
     )
     M.sheet.setAttribute("height", sheetH.toFixed(0))
+    M.shadow.setAttribute("height", sheetH.toFixed(0))
   }
 
   /** Print the first `pos` strokes and park the machine, without motion. */
@@ -1597,7 +2029,7 @@ export function createTypewriter(
   }
 
   /* ---------------------------------------------------------------- */
-  /* Paper color                                                       */
+  /* Theme                                                             */
   /* ---------------------------------------------------------------- */
 
   const isDark = () => {
@@ -1609,24 +2041,16 @@ export function createTypewriter(
     if (attr === "light") return false
     return window.matchMedia("(prefers-color-scheme: dark)").matches
   }
-  /** The sheet is the page: the first opaque background behind the machine. */
-  const paintPaper = () => {
-    let color = ""
-    for (let el: Element | null = root; el; el = el.parentElement) {
-      const bg = getComputedStyle(el).backgroundColor
-      if (bg && !/^transparent$|,\s*0\)$|\/\s*0\)$/.test(bg)) {
-        color = bg
-        break
-      }
-    }
+  /** Ivory in light, a touch dimmer in dark so it doesn't glare. */
+  const applyTheme = () => {
     root.style.setProperty(
-      "--typewriter-paper",
-      color || (isDark() ? "#0a0a0a" : "#ffffff")
+      "--typewriter-sheet",
+      isDark() ? "#ECE7DA" : "#FBF9F3"
     )
   }
 
   build()
-  paintPaper()
+  applyTheme()
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
   reduce = mqReduce.matches
@@ -1638,13 +2062,13 @@ export function createTypewriter(
 
   start()
 
-  const theme = new MutationObserver(paintPaper)
+  const theme = new MutationObserver(applyTheme)
   theme.observe(document.documentElement, {
     attributes: true,
     attributeFilter: ["class", "data-theme", "style"],
   })
   const mqDark = window.matchMedia("(prefers-color-scheme: dark)")
-  mqDark.addEventListener("change", paintPaper)
+  mqDark.addEventListener("change", applyTheme)
 
   const io = new IntersectionObserver(([entry]) => {
     onScreen = entry?.isIntersecting ?? true
@@ -1662,7 +2086,7 @@ export function createTypewriter(
         start()
         return
       }
-      if (columnsOf() !== M.columns) rebuild()
+      if (columnsOf() !== M.columns || options.color !== prev.color) rebuild()
       else if (options.jitter !== prev.jitter) {
         for (const motion of running.values()) motion.run(1)
         stopMotion()
@@ -1680,12 +2104,12 @@ export function createTypewriter(
       cancel()
       stopMotion()
       theme.disconnect()
-      mqDark.removeEventListener("change", paintPaper)
+      mqDark.removeEventListener("change", applyTheme)
       io.disconnect()
       mqReduce.removeEventListener("change", onReduce)
       document.removeEventListener("visibilitychange", onVisibility)
       sound?.close()
-      root.style.removeProperty("--typewriter-paper")
+      root.style.removeProperty("--typewriter-sheet")
       spoken.remove()
       svg.remove()
     },

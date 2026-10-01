@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 
 import {
   createTypewriter,
+  DEFAULT_COLOR,
   DEFAULT_COLUMNS,
   DEFAULT_HOLD,
   DEFAULT_JITTER,
@@ -17,6 +18,7 @@ import {
 } from "./typewriter-vanilla"
 
 export {
+  DEFAULT_COLOR,
   DEFAULT_COLUMNS,
   DEFAULT_HOLD,
   DEFAULT_JITTER,
@@ -50,6 +52,7 @@ export function Typewriter({
   loop = true,
   hold = DEFAULT_HOLD,
   startDelay = DEFAULT_START_DELAY,
+  color = DEFAULT_COLOR,
   columns = DEFAULT_COLUMNS,
   jitter = DEFAULT_JITTER,
   sound = false,
@@ -73,6 +76,7 @@ export function Typewriter({
       loop,
       hold,
       startDelay,
+      color,
       columns,
       jitter,
       sound,
@@ -94,11 +98,23 @@ export function Typewriter({
       loop,
       hold,
       startDelay,
+      color,
       columns,
       jitter,
       sound,
     })
-  }, [text, speed, humanize, loop, hold, startDelay, columns, jitter, sound])
+  }, [
+    text,
+    speed,
+    humanize,
+    loop,
+    hold,
+    startDelay,
+    color,
+    columns,
+    jitter,
+    sound,
+  ])
 
   return (
     <div

@@ -394,7 +394,7 @@ Best fit: a letter, a manifesto, or a hero line that should arrive one keystroke
 
 Not this: a wordmark (`ascii-logo`), a blinking input caret, plain typed text in a paragraph (this draws the whole machine), or a background behind other copy.
 
-Deps: none. Props: `text` (`DEFAULT_TEXT`), `speed` (12 chars/s), `humanize` (true), `jitter` (0.3), `columns` (32, range 16–60), `loop` (true), `hold` (2600 ms), `startDelay` (600 ms), `sound` (false), `onDone`.
+Deps: none. Props: `color` (`#8EC3B5`, body enamel), `text` (`DEFAULT_TEXT`), `speed` (12 chars/s), `humanize` (true), `jitter` (0.3), `columns` (32, range 16–60), `loop` (true), `hold` (2600 ms), `startDelay` (600 ms), `sound` (false), `onDone`.
 
 ```tsx
 "use client"
@@ -409,5 +409,5 @@ export function Letter() {
 }
 ```
 
-Pitfalls: `\n` is the only way to force a line break; everything else wraps at words to `columns`. The machine scales with its parent, so text size follows the parent's size, not a `text-*` class; fewer `columns` make a narrower machine with larger type. The sheet uses the first opaque background up the tree, so put it on a surface with a real background color. Ink uses `currentColor`, so color it with a text class. `sound` is Web Audio and stays silent until the visitor has interacted with the page. Reduced motion prints the whole page at once. Changing `text` starts over; other props apply live.
+Pitfalls: `\n` is the only way to force a line break; everything else wraps at words to `columns`. The machine scales with its parent, so text size follows the parent's size, not a `text-*` class; fewer `columns` make a narrower machine with larger type. Only the enamel takes `color`; there is no ink, theme, or paper color prop. The sheet is ivory (dimmer in dark mode). `sound` is Web Audio and stays silent until the visitor has interacted with the page. Reduced motion prints the whole page at once. Changing `text` starts over; other props apply live.
 

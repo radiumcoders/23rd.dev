@@ -5,7 +5,7 @@ description: A real typewriter in SVG — each key presses down, its typebar swi
 
 import { TypewriterDemo } from "@/registry/typewriter/typewriter-demo"
 
-A typewriter that actually types. Every key on the keyboard is wired to its own typebar in the basket. Press a letter and its key goes down, that bar swings up out of the fan, the ribbon lifts, and the letter lands on the sheet as the carriage steps one character left. Capitals hold shift, which drops the basket. At the end of a line the return lever kicks, the platen turns the paper up a line, and the carriage slides home. With `loop` on, the finished sheet is pulled out and a fresh one rolls in from behind the platen.
+A typewriter that actually types — glossy enamel, chrome, a black rubber platen, a red-and-black ribbon, and an ivory sheet. Every key on the keyboard is wired to its own typebar in the basket. Press a letter and its key goes down, that bar swings up out of the fan, the ribbon lifts, and the letter lands on the sheet as the carriage steps one character left. Capitals hold shift, which drops the basket. At the end of a line the return lever kicks, the platen turns the paper up a line, and the carriage slides home. With `loop` on, the finished sheet is pulled out and a fresh one rolls in from behind the platen.
 
 ## Preview
 
@@ -58,13 +58,13 @@ export function Letter() {
   <FrameworkReact>
     ```tsx
     <Typewriter loop={false} onDone={() => console.log("typed")} />
-    <Typewriter speed={8} columns={40} sound />
+    <Typewriter color="#D2463A" speed={8} columns={40} sound />
     ```
   </FrameworkReact>
   <FrameworkSvelte>
     ```svelte
     <Typewriter loop={false} onDone={() => console.log("typed")} />
-    <Typewriter speed={8} columns={40} sound />
+    <Typewriter color="#D2463A" speed={8} columns={40} sound />
     ```
   </FrameworkSvelte>
 </FrameworkCode>
@@ -75,6 +75,7 @@ export function Letter() {
 
 | Prop         | Type         | Default                                             |
 | ------------ | ------------ | --------------------------------------------------- |
+| `color`      | `string`     | `"#8EC3B5"` — body enamel, any CSS color            |
 | `text`       | `string`     | a short letter — `\n` breaks a line                 |
 | `speed`      | `number`     | `12` — characters per second                        |
 | `humanize`   | `boolean`    | `true` — uneven keys, rests after punctuation       |
@@ -88,4 +89,4 @@ export function Letter() {
 | `className`  | `string`     | React only                                          |
 | `class`      | `string`     | Svelte only                                         |
 
-The machine and the letters are inked in `currentColor`, so color it with a text class (`className="text-sky-800"`). The sheet takes the page color: the first opaque background behind the component, so it matches light and dark themes on its own.
+`color` paints the enamel of the body and paper rest; its highlights, shadows, and gloss are mixed from that one color. Chrome, rubber, keys, and ribbon stay as they are. The sheet is ivory, a touch dimmer in dark mode so it doesn't glare.
