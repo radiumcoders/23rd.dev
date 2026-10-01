@@ -388,13 +388,13 @@ Pitfalls: the panel overflows the trigger. Do not put it in `overflow-hidden`. R
 
 ## typewriter
 
-Component. Text typed onto the page by a typeball that rides a full-width rail. For each letter the ball spins that glyph to the front, strikes, and steps one cell right; at the margin it whirls home and drops a line. The paper feeds up when the page fills. With `loop`, the finished sheet is pulled out and typed again.
+Component. A real typewriter drawn in SVG. Every key is wired to its own typebar: a letter presses its key, swings that bar up out of the basket to strike the ribbon, lands on the sheet, and the carriage steps one character left. Capitals hold shift. At the margin the return lever kicks, the platen turns the paper up a line, and the carriage slides home. With `loop`, the sheet is pulled out and a fresh one rolls in.
 
 Best fit: a letter, a manifesto, or a hero line that should arrive one keystroke at a time.
 
-Not this: a wordmark (`ascii-logo`), a blinking input caret, or a background behind other copy.
+Not this: a wordmark (`ascii-logo`), a blinking input caret, plain typed text in a paragraph (this draws the whole machine), or a background behind other copy.
 
-Deps: none. Props: `text` (`DEFAULT_TEXT`), `speed` (14 chars/s), `humanize` (true), `jitter` (0.3), `columns` (0 = fit), `ticks` (true), `loop` (true), `hold` (2600 ms), `startDelay` (600 ms), `sound` (false), `onDone`.
+Deps: none. Props: `text` (`DEFAULT_TEXT`), `speed` (12 chars/s), `humanize` (true), `jitter` (0.3), `columns` (32, range 16–60), `loop` (true), `hold` (2600 ms), `startDelay` (600 ms), `sound` (false), `onDone`.
 
 ```tsx
 "use client"
@@ -402,12 +402,12 @@ import { Typewriter } from "@/components/ui/typewriter"
 
 export function Letter() {
   return (
-    <div className="h-80 w-full overflow-hidden rounded-xl border">
+    <div className="h-96 w-full overflow-hidden rounded-xl border">
       <Typewriter text={"Dear reader,\nthe ribbon is fresh."} />
     </div>
   )
 }
 ```
 
-Pitfalls: `\n` is the only way to force a line break; everything else wraps at words. The font is the project's `font-mono` at the inherited size; set a size with `className="text-lg"`. Ink, rail, and carriage use `currentColor`, so color it with a text class. `sound` is Web Audio and stays silent until the visitor has interacted with the page. Reduced motion prints the whole page at once. Changing `text` starts over; other props apply live.
+Pitfalls: `\n` is the only way to force a line break; everything else wraps at words to `columns`. The machine scales with its parent, so text size follows the parent's size, not a `text-*` class; fewer `columns` make a narrower machine with larger type. The sheet uses the first opaque background up the tree, so put it on a surface with a real background color. Ink uses `currentColor`, so color it with a text class. `sound` is Web Audio and stays silent until the visitor has interacted with the page. Reduced motion prints the whole page at once. Changing `text` starts over; other props apply live.
 

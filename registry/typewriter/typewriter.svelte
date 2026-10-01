@@ -5,6 +5,7 @@
   import { onMount } from "svelte"
   import {
     createTypewriter,
+    DEFAULT_COLUMNS,
     DEFAULT_HOLD,
     DEFAULT_JITTER,
     DEFAULT_SPEED,
@@ -30,8 +31,7 @@
     loop = true,
     hold = DEFAULT_HOLD,
     startDelay = DEFAULT_START_DELAY,
-    columns = 0,
-    ticks = true,
+    columns = DEFAULT_COLUMNS,
     jitter = DEFAULT_JITTER,
     sound = false,
     onDone,
@@ -50,7 +50,6 @@
       hold,
       startDelay,
       columns,
-      ticks,
       jitter,
       sound,
       onDone,
@@ -70,7 +69,6 @@
       hold,
       startDelay,
       columns,
-      ticks,
       jitter,
       sound,
       onDone,
@@ -82,7 +80,7 @@
   bind:this={root}
   data-slot="typewriter"
   class={cn(
-    "relative size-full overflow-hidden bg-background p-6 font-mono text-foreground",
+    "relative size-full overflow-hidden bg-background font-mono text-foreground",
     className
   )}
 ></div>

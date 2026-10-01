@@ -12,6 +12,7 @@ import {
 import { ComponentPreview } from "@/components/component-preview"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
+  DEFAULT_COLUMNS,
   DEFAULT_JITTER,
   DEFAULT_SPEED,
   DEFAULT_TEXT,
@@ -22,9 +23,8 @@ const DEFAULTS = {
   text: DEFAULT_TEXT,
   speed: DEFAULT_SPEED,
   jitter: DEFAULT_JITTER,
-  columns: 0,
+  columns: DEFAULT_COLUMNS,
   humanize: true,
-  ticks: true,
   loop: true,
   sound: false,
 }
@@ -38,7 +38,7 @@ export function TypewriterDemo() {
   return (
     <>
       <ComponentPreview title="Typewriter" stageClassName="min-h-0 p-0">
-        <div className="h-[46svh] min-h-80 w-full">
+        <div className="aspect-[16/9] max-h-[70svh] w-full px-4 pt-2 pb-4">
           <Typewriter
             key={take}
             text={props.text}
@@ -46,10 +46,8 @@ export function TypewriterDemo() {
             jitter={props.jitter}
             columns={props.columns}
             humanize={props.humanize}
-            ticks={props.ticks}
             loop={props.loop}
             sound={props.sound}
-            className="text-[15px] sm:text-lg"
           />
         </div>
       </ComponentPreview>
@@ -62,9 +60,9 @@ export function TypewriterDemo() {
           text: props.text === DEFAULTS.text ? undefined : props.text,
           speed: props.speed,
           jitter: props.jitter,
-          columns: props.columns || undefined,
+          columns:
+            props.columns === DEFAULTS.columns ? undefined : props.columns,
           humanize: props.humanize ? undefined : false,
-          ticks: props.ticks ? undefined : false,
           loop: props.loop ? undefined : false,
           sound: props.sound ? true : undefined,
         }}
@@ -98,7 +96,7 @@ export function TypewriterDemo() {
           label="Speed"
           value={props.speed}
           min={4}
-          max={40}
+          max={30}
           step={1}
           format={(v) => `${v} / s`}
           onChange={(v) => updateProp("speed", v)}
@@ -114,10 +112,9 @@ export function TypewriterDemo() {
         <ControlSlider
           label="Columns"
           value={props.columns}
-          min={0}
-          max={72}
+          min={16}
+          max={60}
           step={1}
-          format={(v) => (v === 0 ? "fit" : String(v))}
           onChange={(v) => updateProp("columns", v)}
         />
         <ControlSwitch
@@ -127,14 +124,8 @@ export function TypewriterDemo() {
           onChange={(v) => updateProp("humanize", v)}
         />
         <ControlSwitch
-          label="Ticks"
-          description="Scale marks along the rail"
-          checked={props.ticks}
-          onChange={(v) => updateProp("ticks", v)}
-        />
-        <ControlSwitch
           label="Loop"
-          description="Feed the page out and type it again"
+          description="Pull the sheet out and type it again"
           checked={props.loop}
           onChange={(v) => updateProp("loop", v)}
         />

@@ -1,8 +1,10 @@
 export const DEFAULT_TEXT =
-  "Dear reader,\nevery letter lands where the carriage stands, then the carriage steps aside for the next one. At the margin it rings, glides home, and drops a line.\n\nYours, 23rd"
+  "Dear reader,\nevery key is wired to a typebar. Press one and its bar swings up out of the basket, strikes the ribbon, and the carriage steps left for the next letter.\n\nYours, 23rd"
 
 /** Characters per second. */
-export const DEFAULT_SPEED = 14
+export const DEFAULT_SPEED = 12
+/** Line length on the sheet, in characters. */
+export const DEFAULT_COLUMNS = 32
 /** Pause on the finished page before it feeds out and starts over, in ms. */
 export const DEFAULT_HOLD = 2600
 /** Wait before the first keystroke, in ms. */
@@ -10,40 +12,24 @@ export const DEFAULT_START_DELAY = 600
 /** Per-letter baseline, tilt, and ink wobble (0–1). */
 export const DEFAULT_JITTER = 0.3
 
-/** Line pitch, in font sizes. Leaves the carriage room under each line. */
-const LEADING = 2.2
-/** Typeball radius, in font sizes. */
-const BALL_R = 1.1
-/** Baseline to the top of the typeball, in font sizes. */
-const BALL_GAP = 0.2
-/** Glyph size on the ball, as a share of its radius. */
-const BALL_GLYPH = 0.56
-/** Rail thickness, in font sizes. */
-const RAIL_H = 0.32
-/** Rail clamp width, in font sizes. */
-const CLAMP_W = 0.26
-/** Gap between the ball and each clamp, in font sizes. */
-const CLAMP_GAP = 0.14
-/** Bell rings this many cells before the right margin. */
+/** Bell rings this many characters before the right margin. */
 const BELL_CELLS = 6
 
 export type TypewriterOptions = {
   /** What gets typed. `\n` starts a new line; long lines wrap at words. */
   text?: string
-  /** Characters per second. Default `14`. */
+  /** Characters per second. Default `12`. */
   speed?: number
   /** Uneven keystrokes, with longer rests after punctuation. Default `true`. */
   humanize?: boolean
-  /** Feed the page out and type it again after `hold`. Default `true`. */
+  /** Pull the sheet out and type it again after `hold`. Default `true`. */
   loop?: boolean
   /** Pause on the finished page before looping, in ms. Default `2600`. */
   hold?: number
   /** Wait before the first keystroke, in ms. Default `600`. */
   startDelay?: number
-  /** Wrap width in characters. `0` fits the frame. Default `0`. */
+  /** Line length on the sheet, in characters (16–60). Default `32`. */
   columns?: number
-  /** Scale ticks along the rail. Default `true`. */
-  ticks?: boolean
   /** Per-letter baseline, tilt, and ink wobble, 0–1. Default `0.3`. */
   jitter?: number
   /** Synthesized key clicks, bell, and return. Default `false`. */
@@ -54,7 +40,7 @@ export type TypewriterOptions = {
 
 export type TypewriterInstance = {
   setOptions: (options: Partial<TypewriterOptions>) => void
-  /** Clear the page and type from the first character. */
+  /** Feed a fresh sheet and type from the first character. */
   restart: () => void
   destroy: () => void
 }
@@ -148,23 +134,6 @@ function hash(n: number) {
 }
 
 const SVG_NS = "http://www.w3.org/2000/svg"
-
-function svgEl<K extends keyof SVGElementTagNameMap>(
-  tag: K,
-  attrs: Record<string, string | number> = {}
-) {
-  const node = document.createElementNS(SVG_NS, tag)
-  for (const [key, value] of Object.entries(attrs)) {
-    node.setAttribute(key, String(value))
-  }
-  return node
-}
-
-function div(style: Partial<CSSStyleDeclaration>) {
-  const node = document.createElement("div")
-  Object.assign(node.style, style)
-  return node
-}
 
 type Sound = {
   key: (space: boolean) => void
@@ -303,250 +272,146 @@ function createSound(): Sound | null {
 
 const TAU = Math.PI * 2
 
-/** The ball's glyph rows, top to bottom — the keyboard's three letter rows. */
-const BALL_FACES = ["qwertyuiop", "asdfghjkl;", "zxcvbnm,.?"]
-/** Latitude of each row on the ball, in radians. */
-const BALL_ROWS = [0.66, 0, -0.66]
-/** Glyphs sit a little inside the silhouette, so the limb stays clean. */
-const BALL_INSET = 0.8
-/** Idle spin, in radians per second. */
-const BALL_DRIFT = 0.55
+// The machine is drawn in one SVG coordinate space. The print point sits at
+// the origin: the line being typed has its baseline on y = 0, and the
+// carriage slides so the next column always lands at x = 0.
 
-type Tween = {
-  from: number
-  to: number
-  start: number
-  ms: number
-  ease: (t: number) => number
+/** Character pitch on the sheet. */
+const CW = 10
+/** Line pitch on the sheet. */
+const LH = 22
+const FONT = 16.5
+/** Sheet margin either side of the text. */
+const PAD = 30
+/** Sheet above the first baseline once it's fed in. */
+const TOP_MARGIN = 38
+const VIEW_TOP = -178
+const VIEW_BOTTOM = 302
+/** Where a typebar's slug lands: the middle of the glyph on the print line. */
+const STRIKE_Y = -5
+/** Centre of the typebar basket, under the print point. */
+const BASKET_Y = 50
+const PIVOT_R = 58
+const REST_R = 30
+/** Half the basket's fan, in radians from straight down. */
+const SPREAD = (74 * Math.PI) / 180
+/** Platen knob radius, for how far it turns per line. */
+const KNOB_R = 21
+const RIDGES = 9
+const KEY_ROWS = ["1234567890", "qwertyuiop", "asdfghjkl;", "zxcvbnm,./"]
+const KEY_Y = [142, 172, 202, 232]
+const KEY_PITCH = 35
+const KEY_R = 12
+/** How far a key travels when pressed. */
+const KEY_TRAVEL = 4.5
+/** Shifted characters, and the key that types them. */
+const SHIFTED: Record<string, string> = {
+  "!": "1",
+  '"': "2",
+  "#": "3",
+  $: "4",
+  "%": "5",
+  _: "6",
+  "&": "7",
+  "'": "8",
+  "(": "9",
+  ")": "0",
+  ":": ";",
+  "?": "/",
+  "<": ",",
+  ">": ".",
 }
 
+const PAPER = "var(--typewriter-paper)"
+
+/** An SVG element. `fill` / `stroke` of `"paper"` paint in the page color. */
+function draw<K extends keyof SVGElementTagNameMap>(
+  tag: K,
+  attrs: Record<string, string | number>,
+  parent?: Element
+) {
+  const node = document.createElementNS(SVG_NS, tag)
+  for (const [key, value] of Object.entries(attrs)) {
+    if ((key === "fill" || key === "stroke") && value === "paper") {
+      node.style.setProperty(key, PAPER)
+    } else {
+      node.setAttribute(key, String(value))
+    }
+  }
+  parent?.append(node)
+  return node
+}
+
+const linear = (t: number) => t
+const easeIn = (t: number) => t * t * t
 const easeOut = (t: number) => 1 - (1 - t) ** 3
 const easeInOut = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
 
-/** Nearest turn of `angle` to `from`, so the ball spins the short way. */
-function nearest(from: number, angle: number) {
-  return from + ((((angle - from) % TAU) + TAU * 1.5) % TAU) - Math.PI
+/** Down fast, hold, ease back up — a key, a typebar, the ribbon. */
+function pulse(t: number, from: number, rise: number, hold: number) {
+  if (t < rise) return from + (1 - from) * easeOut(t / rise)
+  if (t < rise + hold) return 1
+  return 1 - easeInOut((t - rise - hold) / Math.max(0.001, 1 - rise - hold))
 }
 
-type Typeball = {
-  el: SVGSVGElement
-  /**
-   * Size the ball; `radius` and the glyph size are in px. `font` is the
-   * page's computed style — mask content doesn't inherit it everywhere.
-   */
-  layout: (radius: number, glyph: number, font: CSSStyleDeclaration) => void
-  /** Spin and tilt until `ch` faces the paper. */
-  select: (ch: string, ms: number) => void
-  /** Spin whole turns, for the glide home. */
-  whirl: (turns: number, ms: number) => void
-  /** Turn slowly while nothing is being typed. */
-  drift: (on: boolean) => void
-  destroy: () => void
+/** A point on the basket, `angle` radians from straight down. */
+function polar(r: number, angle: number): [number, number] {
+  return [r * Math.sin(angle), BASKET_Y + r * Math.cos(angle)]
 }
 
-let ballIds = 0
+type Bar = {
+  rest: SVGLineElement
+  strike: SVGGElement
+  /** Page-colored outline under the bar, so it reads over the machine. */
+  arm: SVGLineElement
+  core: SVGLineElement
+  slug: SVGLineElement
+  pivot: [number, number]
+  tip: [number, number]
+  v: number
+}
+
+type Key = { cap: SVGGElement; bar: Bar | null; v: number }
+
+type Machine = {
+  columns: number
+  carriage: SVGGElement
+  paper: SVGGElement
+  sheet: SVGRectElement
+  ink: SVGGElement
+  lever: SVGGElement
+  leverPivot: [number, number]
+  knobs: { x: number; lines: SVGLineElement[] }[]
+  keys: Map<string, Key>
+  shifts: Key[]
+  space: Key
+  basket: SVGGElement
+  bars: Bar[]
+  ribbon: SVGPathElement[]
+  vibrator: SVGGElement
+  spools: SVGGElement[]
+}
+
+type Motion = {
+  key: string
+  start: number
+  ms: number
+  ease: (t: number) => number
+  run: (v: number) => void
+  begin?: () => void
+}
+
+let machineIds = 0
 
 /**
- * The type element: a sphere wearing the keyboard in three rows. It spins
- * about its axis and tilts to bring a glyph to the front — the letters are
- * cut through the ink, so the page shows through them.
- */
-function createTypeball(): Typeball {
-  const id = `typewriter-ball-${++ballIds}`
-  const el = svgEl("svg", { overflow: "visible" })
-  el.style.position = "absolute"
-  el.style.overflow = "visible"
-  const defs = svgEl("defs")
-  const shade = svgEl("radialGradient", {
-    id: `${id}-shade`,
-    cx: 0.36,
-    cy: 0.3,
-    r: 0.8,
-  })
-  for (const [offset, alpha] of [
-    [0, 0.5],
-    [0.5, 0.86],
-    [1, 1],
-  ] as const) {
-    shade.append(
-      svgEl("stop", {
-        offset,
-        "stop-color": "currentColor",
-        "stop-opacity": alpha,
-      })
-    )
-  }
-  const mask = svgEl("mask", { id: `${id}-cut`, maskUnits: "userSpaceOnUse" })
-  const paper = svgEl("rect", { fill: "#fff" })
-  const letters = svgEl("g", {
-    fill: "#000",
-    "text-anchor": "middle",
-    "dominant-baseline": "central",
-  })
-  mask.append(paper, letters)
-  defs.append(shade, mask)
-  const sphere = svgEl("circle", {
-    fill: `url(#${id}-shade)`,
-    mask: `url(#${id}-cut)`,
-  })
-  el.append(defs, sphere)
-
-  const cols = BALL_FACES[0]!.length
-  const slots = BALL_FACES.flatMap((face, row) =>
-    Array.from(face, (glyph, col) => {
-      const node = svgEl("text")
-      node.textContent = glyph
-      letters.append(node)
-      return { row, col, glyph, node }
-    })
-  )
-
-  let radius = 16
-  let lon = 0
-  let tilt = 0
-  let lonTween: Tween | null = null
-  let tiltTween: Tween | null = null
-  let drifting = false
-  let raf = 0
-  let last = 0
-  let swapped: (typeof slots)[number] | null = null
-
-  const render = () => {
-    const r = radius * BALL_INSET
-    const sin = Math.sin(tilt)
-    const cos = Math.cos(tilt)
-    for (const slot of slots) {
-      const lat = BALL_ROWS[slot.row]!
-      const theta = (slot.col / cols) * TAU - lon
-      const x = Math.cos(lat) * Math.sin(theta)
-      const y0 = Math.sin(lat)
-      const z0 = Math.cos(lat) * Math.cos(theta)
-      const y = y0 * cos - z0 * sin
-      const z = y0 * sin + z0 * cos
-      const seen = clamp((z - 0.12) / 0.4, 0, 1)
-      if (seen <= 0) {
-        slot.node.setAttribute("fill-opacity", "0")
-        continue
-      }
-      const sx = Math.sqrt(Math.max(0.02, 1 - x * x))
-      const sy = Math.sqrt(Math.max(0.02, 1 - y * y))
-      slot.node.setAttribute("fill-opacity", (seen * 0.86).toFixed(3))
-      slot.node.setAttribute(
-        "transform",
-        `translate(${(x * r).toFixed(2)} ${(-y * r).toFixed(2)}) scale(${sx.toFixed(3)} ${sy.toFixed(3)})`
-      )
-    }
-  }
-
-  const valueOf = (tween: Tween, now: number) => {
-    const t = clamp((now - tween.start) / Math.max(1, tween.ms), 0, 1)
-    return tween.from + (tween.to - tween.from) * tween.ease(t)
-  }
-
-  const frame = (now: number) => {
-    raf = 0
-    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000))
-    last = now
-    if (lonTween) {
-      lon = valueOf(lonTween, now)
-      if (now - lonTween.start >= lonTween.ms) lonTween = null
-    } else if (drifting) {
-      lon += BALL_DRIFT * dt
-    }
-    if (tiltTween) {
-      tilt = valueOf(tiltTween, now)
-      if (now - tiltTween.start >= tiltTween.ms) tiltTween = null
-    }
-    render()
-    if (lonTween || tiltTween || drifting) raf = requestAnimationFrame(frame)
-  }
-
-  const wake = () => {
-    if (raf) return
-    last = performance.now()
-    raf = requestAnimationFrame(frame)
-  }
-
-  const tweenTo = (current: number, to: number, ms: number, ease = easeOut) => {
-    const now = performance.now()
-    return { from: current, to, start: now, ms, ease }
-  }
-
-  const settle = () => {
-    const now = performance.now()
-    if (lonTween) lon = valueOf(lonTween, now)
-    if (tiltTween) tilt = valueOf(tiltTween, now)
-  }
-
-  return {
-    el,
-    layout(nextRadius, glyph, font) {
-      radius = nextRadius
-      const box = radius + 2
-      el.setAttribute("width", String(box * 2))
-      el.setAttribute("height", String(box * 2))
-      el.setAttribute("viewBox", `${-box} ${-box} ${box * 2} ${box * 2}`)
-      sphere.setAttribute("r", String(radius))
-      for (const [key, value] of Object.entries({
-        x: -box,
-        y: -box,
-        width: box * 2,
-        height: box * 2,
-      })) {
-        mask.setAttribute(key, String(value))
-        paper.setAttribute(key, String(value))
-      }
-      letters.setAttribute("font-size", glyph.toFixed(2))
-      Object.assign(letters.style, {
-        fontFamily: font.fontFamily,
-        fontStretch: font.fontStretch,
-        fontWeight: font.fontWeight,
-        fontVariationSettings: font.fontVariationSettings,
-      })
-      render()
-    },
-    select(ch, ms) {
-      const key = ch.toLowerCase()
-      let slot = slots.find((s) => s.glyph === key)
-      if (!slot) {
-        const code = ch.codePointAt(0) ?? 0
-        slot = slots[(code * 7) % slots.length]!
-      }
-      // Capitals and symbols borrow a slot's face until the next letter.
-      if (swapped && swapped !== slot) swapped.node.textContent = swapped.glyph
-      swapped = ch === slot.glyph ? null : slot
-      slot.node.textContent = ch
-      settle()
-      const target = nearest(lon, (slot.col / cols) * TAU)
-      lonTween = tweenTo(lon, target, ms)
-      tiltTween = tweenTo(tilt, BALL_ROWS[slot.row]!, ms)
-      wake()
-    },
-    whirl(turns, ms) {
-      settle()
-      lonTween = tweenTo(lon, lon + turns * TAU, ms, easeInOut)
-      tiltTween = tweenTo(tilt, 0, ms, easeInOut)
-      wake()
-    },
-    drift(on) {
-      drifting = on
-      if (on) wake()
-    },
-    destroy() {
-      cancelAnimationFrame(raf)
-      raf = 0
-    },
-  }
-}
-
-/**
- * A typewriter on the page. A rail spans the frame and a typeball rides it:
- * for every letter the ball spins that glyph to the front, strikes, and
- * steps one cell right. At the end of a line it whirls home and drops to
- * the next, and when the page is full the paper feeds up. Idle when
- * finished, off-screen, or under `prefers-reduced-motion` (which prints the
- * whole page at once).
+ * A typewriter that types. Each letter presses its key, swings that key's
+ * typebar up out of the basket to strike the ribbon, and the carriage
+ * steps one character left. Capitals hold shift, which drops the basket. At
+ * the margin the return lever kicks, the platen turns up a line, and the
+ * carriage slides home. With `loop`, the finished sheet is pulled out and
+ * a fresh one rolls in. Ink is `currentColor`; the paper takes the page
+ * color behind it. `prefers-reduced-motion` prints the whole page at once.
  */
 export function createTypewriter(
   root: HTMLElement,
@@ -554,11 +419,14 @@ export function createTypewriter(
 ): TypewriterInstance {
   let options: TypewriterOptions = { ...initial }
   const textOf = () => options.text ?? DEFAULT_TEXT
-  const speedOf = () => numberOr(options.speed, DEFAULT_SPEED, 1, 120)
+  const speedOf = () => numberOr(options.speed, DEFAULT_SPEED, 1, 60)
   const holdOf = () => numberOr(options.hold, DEFAULT_HOLD, 0, 60000)
   const startOf = () =>
     numberOr(options.startDelay, DEFAULT_START_DELAY, 0, 60000)
   const jitterOf = () => numberOr(options.jitter, DEFAULT_JITTER, 0, 1)
+  const columnsOf = () =>
+    Math.round(numberOr(options.columns, DEFAULT_COLUMNS, 16, 60))
+  const id = `typewriter-${++machineIds}`
 
   // Screen readers get the whole text once; the machine is decoration.
   const spoken = document.createElement("span")
@@ -573,77 +441,828 @@ export function createTypewriter(
     whiteSpace: "nowrap",
     border: "0",
   })
-
-  const stage = div({
-    position: "absolute",
-    inset: "0",
-    overflow: "hidden",
-    borderRadius: "inherit",
-    pointerEvents: "none",
-  })
-  stage.setAttribute("aria-hidden", "true")
-  const viewport = div({ position: "absolute", inset: "0" })
-  const page = div({
-    position: "absolute",
-    left: "0",
-    top: "0",
-    right: "0",
-    whiteSpace: "pre",
-    willChange: "transform",
-  })
-  const carriage = div({
-    position: "absolute",
-    left: "0",
-    top: "0",
+  const svg = draw("svg", {
     width: "100%",
-    willChange: "transform",
+    height: "100%",
+    preserveAspectRatio: "xMidYMid meet",
+    "aria-hidden": "true",
   })
-  const rail = svgEl("svg", { overflow: "visible" })
-  rail.style.position = "absolute"
-  rail.style.left = "0"
-  rail.style.overflow = "visible"
-  const head = div({
-    position: "absolute",
-    left: "0",
-    top: "0",
-    willChange: "transform",
-  })
-  const clamps = svgEl("svg", { overflow: "visible" })
-  clamps.style.position = "absolute"
-  clamps.style.overflow = "visible"
-  const ball = createTypeball()
+  svg.style.display = "block"
+  root.append(spoken, svg)
 
-  head.append(clamps, ball.el)
-  carriage.append(rail, head)
-  viewport.append(page)
-  stage.append(viewport, carriage)
-  root.append(spoken, stage)
+  let M!: Machine
 
-  // Font metrics and frame, refreshed by `measure`.
-  const m = {
-    fs: 16,
-    cw: 9.6,
-    lh: 35,
-    base: 22,
-    width: 0,
-    height: 0,
-    padT: 0,
-    padB: 0,
-    margin: 0,
-    columns: 1,
-    radius: 16,
-    /** Baseline to the ball's centre, which is also the rail's. */
-    axis: 20,
-    /** Cell centre to the outer edge of a rail clamp. */
-    half: 24,
+  /* ---------------------------------------------------------------- */
+  /* Drawing                                                           */
+  /* ---------------------------------------------------------------- */
+
+  const build = () => {
+    const columns = columnsOf()
+    const span = columns * CW
+    const platenL = -PAD - 22
+    const platenR = span + PAD + 22
+    const knobW = 14
+    const leverX = platenL - knobW - 3
+    // Room for the carriage at both ends of its travel, and the body.
+    const left = leverX - 52 - (span + CW / 2)
+    const right = platenR + knobW - CW / 2
+    const half = Math.ceil(Math.max(-left, right, 262) + 14)
+    svg.replaceChildren()
+    svg.setAttribute(
+      "viewBox",
+      `${-half} ${VIEW_TOP} ${half * 2} ${VIEW_BOTTOM - VIEW_TOP}`
+    )
+
+    // The sheet fades out at the top of the frame and tucks behind the
+    // platen at the bottom.
+    const defs = draw("defs", {}, svg)
+    const fade = draw(
+      "linearGradient",
+      {
+        id: `${id}-fade-g`,
+        gradientUnits: "userSpaceOnUse",
+        x1: 0,
+        x2: 0,
+        y1: VIEW_TOP,
+        y2: 40,
+      },
+      defs
+    )
+    const soft = 84 / (40 - VIEW_TOP)
+    for (const [offset, alpha] of [
+      [0, 0],
+      [soft, 1],
+      [0.998, 1],
+      [1, 0],
+    ] as const) {
+      draw(
+        "stop",
+        { offset, "stop-color": "#fff", "stop-opacity": alpha },
+        fade
+      )
+    }
+    const box = {
+      x: -4000,
+      y: VIEW_TOP - 4,
+      width: 8000,
+      height: 48 - VIEW_TOP,
+    }
+    const mask = draw(
+      "mask",
+      { id: `${id}-fade`, maskUnits: "userSpaceOnUse", ...box },
+      defs
+    )
+    draw("rect", { ...box, fill: `url(#${id}-fade-g)` }, mask)
+
+    /* Carriage: rail, platen, knobs, return lever, the sheet, the scale. */
+    const carriage = draw("g", {}, svg)
+    draw(
+      "rect",
+      {
+        x: platenL - knobW,
+        y: 42,
+        width: platenR - platenL + knobW * 2,
+        height: 6,
+        rx: 3,
+        fill: "currentColor",
+        "fill-opacity": 0.7,
+      },
+      carriage
+    )
+    draw(
+      "rect",
+      {
+        x: platenL,
+        y: 6,
+        width: platenR - platenL,
+        height: 34,
+        rx: 10,
+        fill: "currentColor",
+      },
+      carriage
+    )
+    draw(
+      "rect",
+      {
+        x: platenL + 8,
+        y: 11,
+        width: platenR - platenL - 16,
+        height: 2,
+        rx: 1,
+        fill: "paper",
+        "fill-opacity": 0.3,
+      },
+      carriage
+    )
+    const knobs = [platenL - knobW, platenR].map((x) => {
+      draw(
+        "rect",
+        { x, y: 2, width: knobW, height: 42, rx: 5, fill: "currentColor" },
+        carriage
+      )
+      const lines = Array.from({ length: RIDGES }, () =>
+        draw(
+          "line",
+          {
+            x1: x + 2.6,
+            x2: x + knobW - 2.6,
+            stroke: "paper",
+            "stroke-width": 1.1,
+            "stroke-linecap": "round",
+          },
+          carriage
+        )
+      )
+      return { x, lines }
+    })
+    const lever = draw("g", {}, carriage)
+    const leverPivot: [number, number] = [leverX, 32]
+    draw(
+      "rect",
+      {
+        x: leverX - 5,
+        y: 22,
+        width: 9,
+        height: 22,
+        rx: 2.5,
+        fill: "currentColor",
+      },
+      lever
+    )
+    draw(
+      "path",
+      {
+        d: `M${leverX} 30L${leverX - 12} 6L${leverX - 34} -12`,
+        fill: "none",
+        stroke: "currentColor",
+        "stroke-width": 5,
+        "stroke-linecap": "round",
+        "stroke-linejoin": "round",
+      },
+      lever
+    )
+    draw(
+      "rect",
+      {
+        x: leverX - 52,
+        y: -23,
+        width: 26,
+        height: 10,
+        rx: 5,
+        fill: "currentColor",
+        transform: `rotate(-24 ${leverX - 39} -18)`,
+      },
+      lever
+    )
+
+    const wrap = draw("g", { mask: `url(#${id}-fade)` }, carriage)
+    const paper = draw("g", {}, wrap)
+    const sheet = draw(
+      "rect",
+      {
+        x: -PAD,
+        y: -TOP_MARGIN,
+        width: span + PAD * 2,
+        height: 600,
+        fill: "paper",
+        stroke: "currentColor",
+        "stroke-opacity": 0.24,
+        "stroke-width": 1,
+      },
+      paper
+    )
+    const ink = draw(
+      "g",
+      { "text-anchor": "middle", "font-size": FONT, fill: "currentColor" },
+      paper
+    )
+
+    // The paper scale, just under the print line.
+    draw(
+      "rect",
+      {
+        x: -PAD + 4,
+        y: 9,
+        width: span + PAD * 2 - 8,
+        height: 5,
+        rx: 2.5,
+        fill: "currentColor",
+      },
+      carriage
+    )
+    let ticks = ""
+    for (let c = 0; c <= columns; c++) {
+      const x = c * CW
+      ticks += `M${x} 9.7V${c % 10 === 0 ? 13.3 : c % 5 === 0 ? 12.2 : 11}`
+    }
+    draw(
+      "path",
+      {
+        d: ticks,
+        stroke: "paper",
+        "stroke-width": 0.8,
+        "stroke-opacity": 0.75,
+        fill: "none",
+      },
+      carriage
+    )
+
+    /* Body: keyboard well, frame, basket, deck, spools, ribbon, keys. */
+    const body = draw("g", {}, svg)
+    draw(
+      "path",
+      {
+        d: "M-226 112H226L246 272H-246Z",
+        fill: "currentColor",
+        "fill-opacity": 0.07,
+      },
+      body
+    )
+    for (const side of [-1, 1]) {
+      draw(
+        "path",
+        {
+          d: `M${side * 212} 108L${side * 232} 108L${side * 260} 272L${side * 238} 272Z`,
+          fill: "currentColor",
+        },
+        body
+      )
+    }
+
+    const basket = draw("g", {}, body)
+    const [ax, ay] = polar(63, -SPREAD - 0.1)
+    const [bx, by] = polar(63, SPREAD + 0.1)
+    const [cx, cy] = polar(55, SPREAD + 0.1)
+    const [dx, dy] = polar(55, -SPREAD - 0.1)
+    draw(
+      "path",
+      {
+        d: `M${ax} ${ay}A63 63 0 0 0 ${bx} ${by}L${cx} ${cy}A55 55 0 0 1 ${dx} ${dy}Z`,
+        fill: "currentColor",
+      },
+      basket
+    )
+
+    // The deck, with the basket showing through its notch.
+    draw(
+      "path",
+      {
+        d: "M-194 50H-67A67 67 0 0 0 67 50H194Q210 50 212 66L228 108Q230 116 220 116H-220Q-230 116 -228 108L-212 66Q-210 50 -194 50Z",
+        fill: "currentColor",
+      },
+      body
+    )
+    draw(
+      "path",
+      {
+        d: "M-216 109H216",
+        stroke: "paper",
+        "stroke-opacity": 0.22,
+        "stroke-width": 1,
+      },
+      body
+    )
+
+    const spools = [-150, 150].map((x) => {
+      draw(
+        "circle",
+        {
+          cx: x,
+          cy: 84,
+          r: 23,
+          fill: "currentColor",
+          stroke: "paper",
+          "stroke-opacity": 0.45,
+          "stroke-width": 1.1,
+        },
+        body
+      )
+      const turn = draw("g", {}, body)
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * TAU
+        draw(
+          "circle",
+          {
+            cx: x + Math.cos(a) * 13,
+            cy: 84 + Math.sin(a) * 13,
+            r: 3.6,
+            fill: "paper",
+          },
+          turn
+        )
+      }
+      draw("circle", { cx: x, cy: 84, r: 4.4, fill: "paper" }, turn)
+      draw("circle", { cx: x, cy: 84, r: 1.8, fill: "currentColor" }, turn)
+      return turn
+    })
+
+    // The type guide either side of the print point.
+    for (const side of [-1, 1]) {
+      draw(
+        "rect",
+        {
+          x: side < 0 ? -22 : 17,
+          y: 1,
+          width: 5,
+          height: 15,
+          rx: 1.5,
+          fill: "currentColor",
+          stroke: "paper",
+          "stroke-width": 1.2,
+          "paint-order": "stroke",
+        },
+        body
+      )
+    }
+
+    const ribbon = [
+      draw(
+        "path",
+        {
+          fill: "none",
+          stroke: "paper",
+          "stroke-width": 6.4,
+          "stroke-linejoin": "round",
+        },
+        body
+      ),
+      draw(
+        "path",
+        {
+          fill: "none",
+          stroke: "currentColor",
+          "stroke-width": 3.2,
+          "stroke-linejoin": "round",
+        },
+        body
+      ),
+    ]
+    const vibrator = draw("g", {}, body)
+    for (const [stroke, width] of [
+      ["paper", 4.4],
+      ["currentColor", 2],
+    ] as const) {
+      draw(
+        "path",
+        {
+          d: "M-12 3V11.5H12V3",
+          fill: "none",
+          stroke,
+          "stroke-width": width,
+          "stroke-linejoin": "round",
+          "stroke-linecap": "round",
+        },
+        vibrator
+      )
+    }
+
+    // Keys: round caps on stems, in four staggered rows.
+    const keyAt = (x: number, y: number, label: string) => {
+      draw(
+        "line",
+        {
+          x1: x,
+          y1: y,
+          x2: x,
+          y2: y + 24,
+          stroke: "currentColor",
+          "stroke-opacity": 0.42,
+          "stroke-width": 2.4,
+          "stroke-linecap": "round",
+        },
+        body
+      )
+      const cap = draw("g", {}, body)
+      draw("circle", { cx: x, cy: y, r: KEY_R + 1.6, fill: "paper" }, cap)
+      draw("circle", { cx: x, cy: y, r: KEY_R, fill: "currentColor" }, cap)
+      draw(
+        "circle",
+        {
+          cx: x,
+          cy: y,
+          r: KEY_R - 2.6,
+          fill: "none",
+          stroke: "paper",
+          "stroke-opacity": 0.45,
+          "stroke-width": 0.9,
+        },
+        cap
+      )
+      const text = draw(
+        "text",
+        {
+          x,
+          y: y + 0.5,
+          "text-anchor": "middle",
+          "dominant-baseline": "central",
+          "font-size": 10,
+          "font-weight": 600,
+          fill: "paper",
+        },
+        cap
+      )
+      text.textContent = label
+      return cap
+    }
+
+    const keys = new Map<string, Key>()
+    const placed: { ch: string; x: number; key: Key }[] = []
+    KEY_ROWS.forEach((row, r) => {
+      Array.from(row).forEach((ch, i) => {
+        const x = -157.5 + (r - 1.5) * 9 + i * KEY_PITCH
+        const key: Key = {
+          cap: keyAt(x, KEY_Y[r]!, ch.toUpperCase()),
+          bar: null,
+          v: 0,
+        }
+        keys.set(ch, key)
+        placed.push({ ch, x, key })
+      })
+    })
+
+    const pill = (x: number, y: number, w: number, h: number) => {
+      for (const sx of [x - w * 0.3, x + w * 0.3]) {
+        draw(
+          "line",
+          {
+            x1: sx,
+            y1: y,
+            x2: sx,
+            y2: y + 22,
+            stroke: "currentColor",
+            "stroke-opacity": 0.42,
+            "stroke-width": 2.4,
+            "stroke-linecap": "round",
+          },
+          body
+        )
+      }
+      const cap = draw("g", {}, body)
+      draw(
+        "rect",
+        {
+          x: x - w / 2 - 1.6,
+          y: y - h / 2 - 1.6,
+          width: w + 3.2,
+          height: h + 3.2,
+          rx: h / 2 + 1.6,
+          fill: "paper",
+        },
+        cap
+      )
+      draw(
+        "rect",
+        {
+          x: x - w / 2,
+          y: y - h / 2,
+          width: w,
+          height: h,
+          rx: h / 2,
+          fill: "currentColor",
+        },
+        cap
+      )
+      return cap
+    }
+    const shifts = [-1, 1].map((side) => {
+      const x = side * 201
+      const cap = pill(x, KEY_Y[3]!, 30, 22)
+      draw(
+        "path",
+        {
+          d: `M${x} ${KEY_Y[3]! - 5}L${x + 5} ${KEY_Y[3]! + 1}H${x + 2}V${KEY_Y[3]! + 5}H${x - 2}V${KEY_Y[3]! + 1}H${x - 5}Z`,
+          fill: "paper",
+        },
+        cap
+      )
+      return { cap, bar: null, v: 0 } satisfies Key
+    })
+    const space: Key = { cap: pill(0, 258, 210, 11), bar: null, v: 0 }
+
+    // Base and feet.
+    draw(
+      "rect",
+      {
+        x: -260,
+        y: 272,
+        width: 520,
+        height: 20,
+        rx: 8,
+        fill: "currentColor",
+      },
+      body
+    )
+    draw(
+      "path",
+      {
+        d: "M-250 277H250",
+        stroke: "paper",
+        "stroke-opacity": 0.22,
+        "stroke-width": 1,
+      },
+      body
+    )
+    for (const x of [-238, 202]) {
+      draw(
+        "rect",
+        {
+          x,
+          y: 290,
+          width: 36,
+          height: 8,
+          rx: 3,
+          fill: "currentColor",
+        },
+        body
+      )
+    }
+
+    // One typebar per key, fanned left to right in key order.
+    const overlay = draw("g", {}, svg)
+    placed.sort((a, b) => a.x - b.x)
+    const bars = placed.map(({ key }, i) => {
+      const angle = -SPREAD + (2 * SPREAD * i) / (placed.length - 1)
+      const pivot = polar(PIVOT_R, angle)
+      const tip = polar(REST_R, angle)
+      const rest = draw(
+        "line",
+        {
+          x1: pivot[0],
+          y1: pivot[1],
+          x2: tip[0],
+          y2: tip[1],
+          stroke: "currentColor",
+          "stroke-width": 1.3,
+          "stroke-linecap": "round",
+        },
+        basket
+      )
+      const strike = draw("g", { display: "none" }, overlay)
+      const arm = draw(
+        "line",
+        {
+          stroke: "paper",
+          "stroke-width": 4.4,
+          "stroke-linecap": "round",
+        },
+        strike
+      )
+      const core = draw(
+        "line",
+        {
+          stroke: "currentColor",
+          "stroke-width": 2,
+          "stroke-linecap": "round",
+        },
+        strike
+      )
+      const slug = draw(
+        "line",
+        {
+          stroke: "currentColor",
+          "stroke-width": 5.5,
+          "stroke-linecap": "round",
+        },
+        strike
+      )
+      const bar: Bar = { rest, strike, arm, core, slug, pivot, tip, v: 0 }
+      key.bar = bar
+      return bar
+    })
+
+    M = {
+      columns,
+      carriage,
+      paper,
+      sheet,
+      ink,
+      lever,
+      leverPivot,
+      knobs,
+      keys,
+      shifts,
+      space,
+      basket,
+      bars,
+      ribbon,
+      vibrator,
+      spools,
+    }
   }
+
+  /* ---------------------------------------------------------------- */
+  /* Poses                                                             */
+  /* ---------------------------------------------------------------- */
+
+  const pose = {
+    carriage: 0,
+    paper: 0,
+    knob: 0,
+    spool: 0,
+    lever: 0,
+    shift: 0,
+    ribbon: 0,
+  }
+
+  const carriageAt = (col: number) => -(col * CW + CW / 2)
+
+  const setCarriage = (x: number) => {
+    pose.carriage = x
+    M.carriage.setAttribute("transform", `translate(${x.toFixed(2)} 0)`)
+  }
+  const setPaper = (y: number) => {
+    pose.paper = y
+    M.paper.setAttribute("transform", `translate(0 ${y.toFixed(2)})`)
+  }
+  /** Knurling on the platen knobs, scrolling as the platen turns. */
+  const setKnob = (phase: number) => {
+    pose.knob = phase
+    for (const knob of M.knobs) {
+      knob.lines.forEach((line, i) => {
+        const a = phase + (i / RIDGES) * TAU
+        const facing = Math.cos(a)
+        if (facing <= 0.05) {
+          line.setAttribute("stroke-opacity", "0")
+          return
+        }
+        const y = (23 + Math.sin(a) * 19).toFixed(2)
+        line.setAttribute("y1", y)
+        line.setAttribute("y2", y)
+        line.setAttribute("stroke-opacity", (0.18 + facing * 0.42).toFixed(2))
+      })
+    }
+  }
+  const setSpool = (deg: number) => {
+    pose.spool = deg
+    M.spools.forEach((spool, i) => {
+      const x = i === 0 ? -150 : 150
+      spool.setAttribute("transform", `rotate(${deg.toFixed(1)} ${x} 84)`)
+    })
+  }
+  const setLever = (deg: number) => {
+    pose.lever = deg
+    const [x, y] = M.leverPivot
+    M.lever.setAttribute("transform", `rotate(${deg.toFixed(2)} ${x} ${y})`)
+  }
+  const setShift = (v: number) => {
+    pose.shift = v
+    M.basket.setAttribute("transform", `translate(0 ${(v * 4).toFixed(2)})`)
+    for (const key of M.shifts) setKey(key, v)
+  }
+  /** The ribbon vibrator lifts the ribbon over the print point. */
+  const setRibbon = (v: number) => {
+    pose.ribbon = v
+    const lift = v * 13
+    const y = 7.5 - lift
+    const d = `M-150 61L-12 ${y.toFixed(2)}H12L150 61`
+    for (const path of M.ribbon) path.setAttribute("d", d)
+    M.vibrator.setAttribute("transform", `translate(0 ${(-lift).toFixed(2)})`)
+  }
+  const setKey = (key: Key, v: number) => {
+    key.v = v
+    key.cap.setAttribute(
+      "transform",
+      v > 0.001 ? `translate(0 ${(v * KEY_TRAVEL).toFixed(2)})` : ""
+    )
+  }
+  /** 0 rests in the basket; 1 is the slug on the paper. */
+  const setBar = (bar: Bar, v: number) => {
+    bar.v = v
+    if (v <= 0.001) {
+      bar.rest.removeAttribute("display")
+      bar.strike.setAttribute("display", "none")
+      return
+    }
+    bar.rest.setAttribute("display", "none")
+    bar.strike.removeAttribute("display")
+    const drop = pose.shift * 4
+    const [px, py0] = bar.pivot
+    const py = py0 + drop
+    const tx = bar.tip[0] + (0 - bar.tip[0]) * v
+    const ty = bar.tip[1] + drop + (STRIKE_Y - bar.tip[1] - drop) * v
+    const len = Math.hypot(tx - px, ty - py) || 1
+    const ux = (tx - px) / len
+    const uy = (ty - py) / len
+    for (const line of [bar.arm, bar.core]) {
+      line.setAttribute("x1", px.toFixed(2))
+      line.setAttribute("y1", py.toFixed(2))
+      line.setAttribute("x2", tx.toFixed(2))
+      line.setAttribute("y2", ty.toFixed(2))
+    }
+    bar.slug.setAttribute("x1", (tx - ux * 6).toFixed(2))
+    bar.slug.setAttribute("y1", (ty - uy * 6).toFixed(2))
+    bar.slug.setAttribute("x2", tx.toFixed(2))
+    bar.slug.setAttribute("y2", ty.toFixed(2))
+  }
+
+  /** Everything at rest, the carriage and sheet where the text has got to. */
+  const restPose = () => {
+    setCarriage(carriageAt(cursor.col))
+    setPaper(-cursor.line * LH)
+    setKnob(pose.knob)
+    setSpool(pose.spool)
+    setLever(0)
+    setShift(0)
+    setRibbon(0)
+    for (const key of M.keys.values()) setKey(key, 0)
+    setKey(M.space, 0)
+    for (const bar of M.bars) setBar(bar, 0)
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Motion                                                            */
+  /* ---------------------------------------------------------------- */
+
+  const queued: Motion[] = []
+  const running = new Map<string, Motion>()
+  let raf = 0
+
+  const frame = (now: number) => {
+    raf = 0
+    queued.sort((a, b) => a.start - b.start)
+    while (queued.length && queued[0]!.start <= now) {
+      const motion = queued.shift()!
+      motion.begin?.()
+      running.set(motion.key, motion)
+    }
+    for (const [key, motion] of running) {
+      const t = clamp((now - motion.start) / motion.ms, 0, 1)
+      motion.run(motion.ease(t))
+      if (t >= 1) running.delete(key)
+    }
+    if (queued.length || running.size) raf = requestAnimationFrame(frame)
+  }
+  const wake = () => {
+    if (!raf) raf = requestAnimationFrame(frame)
+  }
+  /** Run `run(0…1)` over `ms`. A motion with the same key replaces it. */
+  const play = (
+    key: string,
+    ms: number,
+    run: (v: number) => void,
+    {
+      delay = 0,
+      ease = linear,
+      begin,
+    }: {
+      delay?: number
+      ease?: (t: number) => number
+      begin?: () => void
+    } = {}
+  ) => {
+    queued.push({
+      key,
+      start: performance.now() + delay,
+      ms: Math.max(1, ms),
+      ease,
+      run,
+      begin,
+    })
+    wake()
+  }
+  /** Ease a pose from wherever it is when the motion starts. */
+  const tween = (
+    key: string,
+    get: () => number,
+    set: (v: number) => void,
+    to: number,
+    ms: number,
+    opts: { delay?: number; ease?: (t: number) => number } = {}
+  ) => {
+    let from = 0
+    play(key, ms, (v) => set(from + (to - from) * v), {
+      ...opts,
+      begin: () => {
+        from = get()
+      },
+    })
+  }
+  const stopMotion = () => {
+    queued.length = 0
+    running.clear()
+    cancelAnimationFrame(raf)
+    raf = 0
+  }
+
+  const press = (name: string, key: Key, ms: number, delay = 0) => {
+    let from = 0
+    play(name, ms, (t) => setKey(key, pulse(t, from, 0.22, 0.28)), {
+      delay,
+      begin: () => {
+        from = key.v
+      },
+    })
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Typing                                                            */
+  /* ---------------------------------------------------------------- */
 
   let strokes: TypewriterStroke[] = []
   /** Strokes on the page. */
   let pos = 0
   let cursor = { line: 0, col: 0 }
-  let scroll = 0
-  let lines: HTMLDivElement[] = []
+  let sheetH = 600
   let phase: "waiting" | "typing" | "done" | "feeding" = "waiting"
   let rang = false
   let destroyed = false
@@ -679,9 +1298,6 @@ export function createTypewriter(
     timer = 0
     pending = null
   }
-  /** The ball turns idly between pages, but only while anyone can see it. */
-  const idle = () =>
-    ball.drift((phase === "waiting" || phase === "done") && active())
   const sync = () => {
     if (active()) {
       if (pending && !timer) arm()
@@ -690,93 +1306,12 @@ export function createTypewriter(
       timer = 0
       remaining = Math.max(0, dueAt - performance.now())
     }
-    idle()
-  }
-  const setPhase = (next: typeof phase) => {
-    phase = next
-    idle()
   }
 
   const soundOn = () => {
     if (!options.sound) return null
     sound ??= createSound()
     return sound
-  }
-
-  const cellX = (col: number) => m.margin + col * m.cw
-  const lineTop = (line: number) => m.padT + line * m.lh
-  /** How far the paper must feed up to keep the carriage on `line` in frame. */
-  const scrollFor = (line: number) => {
-    const floor = m.height - Math.min(m.padB, m.fs * 0.6)
-    return Math.max(0, lineTop(line) + m.base + m.axis + m.radius - floor)
-  }
-
-  const setTransition = (
-    el: HTMLElement,
-    ms: number,
-    ease: string,
-    delay = 0
-  ) => {
-    el.style.transition =
-      ms > 0 ? `transform ${ms}ms ${ease} ${Math.round(delay)}ms` : "none"
-  }
-  const placeHead = (col: number, ms = 0, ease = "linear", delay = 0) => {
-    setTransition(head, ms, ease, delay)
-    head.style.transform = `translate3d(${cellX(col)}px,0,0)`
-  }
-  const placeCarriage = (line: number, ms = 0, ease = "linear") => {
-    setTransition(carriage, ms, ease)
-    const y = Math.round(lineTop(line) - scroll + m.base)
-    carriage.style.transform = `translate3d(0,${y}px,0)`
-  }
-  const placePage = (ms = 0, ease = "linear") => {
-    page.style.transition =
-      ms > 0 ? `transform ${ms}ms ${ease}, opacity ${ms}ms ${ease}` : "none"
-    page.style.transform = `translate3d(0,${-scroll}px,0)`
-    viewport.style.maskImage = viewport.style.webkitMaskImage =
-      scroll > 0
-        ? `linear-gradient(to bottom, transparent 0, #000 ${Math.max(m.padT, m.lh * 0.8)}px)`
-        : ""
-  }
-
-  const lineEl = (index: number) => {
-    while (lines.length <= index) {
-      const el = div({
-        position: "absolute",
-        left: "0",
-        right: "0",
-        top: `${lineTop(lines.length)}px`,
-        height: `${m.lh}px`,
-      })
-      page.append(el)
-      lines.push(el)
-    }
-    return lines[index]!
-  }
-
-  const letter = (stroke: Extract<TypewriterStroke, { kind: "char" }>) => {
-    const jitter = jitterOf()
-    const n = Math.floor(stroke.src) * 4
-    const el = document.createElement("span")
-    el.textContent = stroke.ch
-    Object.assign(el.style, {
-      position: "absolute",
-      top: "0",
-      left: `${cellX(stroke.col)}px`,
-      width: `${m.cw}px`,
-      height: `${m.lh}px`,
-      lineHeight: `${m.lh}px`,
-      textAlign: "center",
-    })
-    if (jitter > 0) {
-      const dx = (hash(n) - 0.5) * jitter * 0.07 * m.fs
-      const dy = (hash(n + 1) - 0.5) * jitter * 0.1 * m.fs
-      const tilt = (hash(n + 2) - 0.5) * jitter * 3.2
-      el.style.transform = `translate(${dx.toFixed(2)}px,${dy.toFixed(2)}px) rotate(${tilt.toFixed(2)}deg)`
-      el.style.opacity = (1 - hash(n + 3) * jitter * 0.42).toFixed(3)
-    }
-    lineEl(stroke.line).append(el)
-    return el
   }
 
   const after = (stroke: TypewriterStroke | undefined) => {
@@ -786,198 +1321,61 @@ export function createTypewriter(
       : { line: stroke.line, col: 0 }
   }
 
-  /** Paint the first `pos` strokes and park the carriage, without motion. */
+  const letter = (stroke: Extract<TypewriterStroke, { kind: "char" }>) => {
+    const jitter = jitterOf()
+    const n = Math.floor(stroke.src) * 4
+    const x = stroke.col * CW + CW / 2
+    const y = stroke.line * LH
+    const el = draw("text", { x, y }, M.ink)
+    el.textContent = stroke.ch
+    let ink = 1
+    if (jitter > 0) {
+      const dx = (hash(n) - 0.5) * jitter * 1.1
+      const dy = (hash(n + 1) - 0.5) * jitter * 1.6
+      const tilt = (hash(n + 2) - 0.5) * jitter * 3.2
+      el.setAttribute(
+        "transform",
+        `translate(${dx.toFixed(2)} ${dy.toFixed(2)}) rotate(${tilt.toFixed(2)} ${x} ${y})`
+      )
+      ink = 1 - hash(n + 3) * jitter * 0.42
+    }
+    el.setAttribute("fill-opacity", ink.toFixed(3))
+    return { el, ink }
+  }
+
+  const sizeSheet = () => {
+    const lines = (strokes.at(-1)?.line ?? 0) + 1
+    sheetH = Math.max(
+      TOP_MARGIN + lines * LH + 60,
+      (M.columns * CW + PAD * 2) * 1.3
+    )
+    M.sheet.setAttribute("height", sheetH.toFixed(0))
+  }
+
+  /** Print the first `pos` strokes and park the machine, without motion. */
   const paint = () => {
-    page.replaceChildren()
-    lines = []
+    M.ink.replaceChildren()
     for (let i = 0; i < pos; i++) {
       const stroke = strokes[i]!
       if (stroke.kind === "char" && stroke.ch !== " ") letter(stroke)
     }
     cursor = after(strokes[pos - 1])
-    scroll = scrollFor(cursor.line)
-    placePage()
-    placeCarriage(cursor.line)
-    placeHead(cursor.col)
-    rang = cursor.col >= m.columns - BELL_CELLS
+    rang = cursor.col >= M.columns - BELL_CELLS
+    restPose()
   }
 
-  const drawRail = () => {
-    const { width, fs, cw, columns } = m
-    const h = Math.max(3, Math.round(RAIL_H * fs))
-    rail.setAttribute("width", String(width))
-    rail.setAttribute("height", String(h + 1))
-    rail.setAttribute("viewBox", `0 0 ${width} ${h + 1}`)
-    rail.style.top = `${Math.round(m.axis - h / 2)}px`
-    rail.replaceChildren()
-    const g = svgEl("g", { fill: "none", stroke: "currentColor" })
-    g.append(
-      svgEl("path", {
-        d: `M0 0.5H${width}M0 ${h + 0.5}H${width}`,
-        "stroke-opacity": 0.3,
-        "stroke-width": 1,
-      })
-    )
-    if (options.ticks ?? true) {
-      let minor = ""
-      let major = ""
-      for (let c = 0; c <= columns; c++) {
-        const x = Math.round(m.margin + c * cw + cw / 2) + 0.5
-        if (c % 5 === 0) major += `M${x} 1V${c % 10 === 0 ? h : h * 0.62}`
-        else minor += `M${x} 1V${h * 0.36}`
-      }
-      g.append(
-        svgEl("path", { d: minor, "stroke-opacity": 0.22, "stroke-width": 1 }),
-        svgEl("path", { d: major, "stroke-opacity": 0.42, "stroke-width": 1 })
-      )
+  const keyFor = (ch: string) => {
+    const lower = ch.toLowerCase()
+    const own = M.keys.get(lower)
+    if (own) return { key: own, shift: ch !== lower }
+    const base = SHIFTED[ch]
+    if (base) return { key: M.keys.get(base)!, shift: true }
+    // Anything the keyboard doesn't have borrows a key.
+    const all = [...M.keys.values()]
+    return {
+      key: all[(ch.codePointAt(0) ?? 0) % all.length]!,
+      shift: false,
     }
-    // Margin stops: where the carriage returns to, and where the bell rings.
-    const stopW = Math.max(2, Math.round(fs * 0.14))
-    const stopH = h + Math.round(fs * 0.32)
-    for (const x of [m.margin, m.margin + columns * cw]) {
-      g.append(
-        svgEl("rect", {
-          x: Math.round(x - stopW / 2),
-          y: Math.round((h - stopH) / 2) + 0.5,
-          width: stopW,
-          height: stopH,
-          rx: stopW / 2,
-          fill: "currentColor",
-          "fill-opacity": 0.55,
-          stroke: "none",
-        })
-      )
-    }
-    rail.append(g)
-  }
-
-  /** The ball, and the two clamps that hold it on the rail. */
-  const drawHead = () => {
-    const { fs, cw, radius, axis, half } = m
-    const box = radius + 2
-    ball.layout(radius, radius * BALL_GLYPH, getComputedStyle(root))
-    ball.el.style.left = `${cw / 2 - box}px`
-    ball.el.style.top = `${axis - box}px`
-
-    const railH = Math.max(3, Math.round(RAIL_H * fs))
-    const w = Math.max(3, Math.round(CLAMP_W * fs))
-    const h = railH + Math.round(fs * 0.42)
-    const gap = Math.round(CLAMP_GAP * fs)
-    clamps.setAttribute("width", String(half * 2))
-    clamps.setAttribute("height", String(h))
-    clamps.setAttribute("viewBox", `${-half} ${-h / 2} ${half * 2} ${h}`)
-    clamps.style.left = `${cw / 2 - half}px`
-    clamps.style.top = `${axis - h / 2}px`
-    clamps.replaceChildren()
-    for (const side of [-1, 1]) {
-      const inner = radius + gap
-      const x = side < 0 ? -inner - w : inner
-      clamps.append(
-        // The collar that grips the rail…
-        svgEl("rect", {
-          x,
-          y: -h / 2,
-          width: w,
-          height: h,
-          rx: Math.min(w / 2, fs * 0.12),
-          fill: "currentColor",
-        }),
-        // …and the axle stub it holds the ball by.
-        svgEl("rect", {
-          x: side < 0 ? -inner : radius - 1,
-          y: -Math.max(1, railH * 0.25),
-          width: gap + 1,
-          height: Math.max(2, railH * 0.5),
-          fill: "currentColor",
-        })
-      )
-    }
-  }
-
-  const measure = () => {
-    const cs = getComputedStyle(root)
-    const fs = parseFloat(cs.fontSize) || 16
-    const probe = document.createElement("span")
-    probe.textContent = "0000000000"
-    Object.assign(probe.style, {
-      position: "absolute",
-      visibility: "hidden",
-      whiteSpace: "pre",
-    })
-    const marker = document.createElement("span")
-    Object.assign(marker.style, {
-      display: "inline-block",
-      width: "0",
-      height: "0",
-      verticalAlign: "baseline",
-    })
-    const lh = Math.round(fs * LEADING)
-    const row = div({
-      position: "absolute",
-      visibility: "hidden",
-      lineHeight: `${lh}px`,
-      height: `${lh}px`,
-    })
-    row.append("x", marker)
-    stage.append(probe, row)
-    const cw = probe.getBoundingClientRect().width / 10 || fs * 0.6
-    const base = marker.offsetTop
-    probe.remove()
-    row.remove()
-
-    const width = root.clientWidth
-    const height = root.clientHeight
-    const padL = parseFloat(cs.paddingLeft) || 0
-    const padR = parseFloat(cs.paddingRight) || 0
-    const radius = Math.round(fs * BALL_R)
-    const half = Math.ceil(
-      radius + Math.round(CLAMP_GAP * fs) + Math.round(CLAMP_W * fs)
-    )
-    const reach = half - cw / 2
-    const edge = fs * 0.5
-    // The carriage never hangs off the frame, even at the margins.
-    const margin = Math.max(padL, Math.ceil(reach + edge))
-    const fit = Math.floor(
-      Math.min(width - padR - margin, width - edge - reach - cw - margin) / cw
-    )
-    const wanted = Math.floor(numberOr(options.columns, 0, 0, 1000))
-    const columns = Math.max(1, wanted > 0 ? Math.min(wanted, fit) : fit)
-
-    const changed =
-      fs !== m.fs ||
-      cw !== m.cw ||
-      lh !== m.lh ||
-      columns !== m.columns ||
-      width !== m.width
-    Object.assign(m, {
-      fs,
-      cw,
-      lh,
-      base,
-      width,
-      height,
-      padT: parseFloat(cs.paddingTop) || 0,
-      padB: parseFloat(cs.paddingBottom) || 0,
-      margin,
-      columns,
-      radius,
-      axis: Math.round(BALL_GAP * fs + radius),
-      half,
-    })
-    return changed
-  }
-
-  /** Lay the text out again for the current frame, keeping the place. */
-  const relayout = () => {
-    const at = strokes[pos - 1]?.src ?? -1
-    strokes = layoutTypewriter(textOf(), m.columns)
-    pos = phase === "done" ? strokes.length : 0
-    if (phase !== "done") {
-      while (pos < strokes.length && strokes[pos]!.src <= at) pos += 1
-    }
-    drawRail()
-    drawHead()
-    paint()
   }
 
   const pace = (ch: string) => {
@@ -991,66 +1389,118 @@ export function createTypewriter(
     return base * factor
   }
 
-  /** Spin the glyph round, strike, then step the carriage a cell right. */
+  /** Press the key, swing its bar into the ribbon, step the carriage. */
   const strike = (stroke: Extract<TypewriterStroke, { kind: "char" }>) => {
     const base = 1000 / speedOf()
-    const spin = stroke.ch === " " ? 0 : clamp(base * 0.4, 16, 70)
-    const step = Math.min(90, base * 0.7)
-    if (stroke.ch !== " ") {
-      ball.select(stroke.ch, spin)
-      letter(stroke).animate([{ opacity: 0 }, {}], {
-        duration: Math.min(70, step),
-        delay: spin,
-        easing: "ease-out",
-        fill: "backwards",
-      })
-      ball.el.animate(
-        [
-          { transform: "translateY(0)" },
-          { transform: `translateY(${(-m.fs * 0.22).toFixed(2)}px)` },
-          { transform: "translateY(0)" },
-        ],
-        {
-          duration: Math.min(110, base * 0.9),
-          delay: spin * 0.55,
-          easing: "cubic-bezier(.3,.7,.4,1)",
-        }
-      )
-    }
-    cursor = { line: stroke.line, col: stroke.col + 1 }
-    placeHead(cursor.col, step, "cubic-bezier(.2,.8,.2,1)", spin)
+    const ms = clamp(base * 1.7, 90, 170)
     const audio = soundOn()
-    audio?.key(stroke.ch === " ")
+    const step = carriageAt(stroke.col + 1)
+    cursor = { line: stroke.line, col: stroke.col + 1 }
+
+    if (stroke.ch === " ") {
+      press("space", M.space, ms)
+      tween("carriage", () => pose.carriage, setCarriage, step, ms * 0.4, {
+        delay: ms * 0.2,
+        ease: easeOut,
+      })
+      audio?.key(true)
+    } else {
+      const { key, shift } = keyFor(stroke.ch)
+      const lead = shift ? ms * 0.25 : 0
+      const impact = lead + ms * 0.42
+      if (shift) {
+        let from = 0
+        play("shift", ms * 1.6, (t) => setShift(pulse(t, from, 0.16, 0.5)), {
+          begin: () => {
+            from = pose.shift
+          },
+        })
+      }
+      press(`key-${stroke.ch.toLowerCase()}`, key, ms * 1.1, lead)
+      const bar = key.bar
+      if (bar) {
+        let from = 0
+        play(
+          `bar-${M.bars.indexOf(bar)}`,
+          ms,
+          (t) => {
+            const v =
+              t < 0.42
+                ? from + (1 - from) * easeIn(t / 0.42)
+                : 1 - easeOut((t - 0.42) / 0.58)
+            setBar(bar, v)
+          },
+          {
+            delay: lead,
+            begin: () => {
+              from = bar.v
+            },
+          }
+        )
+      }
+      let lifted = 0
+      play("ribbon", ms * 0.9, (t) => setRibbon(pulse(t, lifted, 0.4, 0.08)), {
+        delay: lead + ms * 0.08,
+        begin: () => {
+          lifted = pose.ribbon
+        },
+      })
+      const { el, ink } = letter(stroke)
+      el.setAttribute("fill-opacity", "0")
+      play(
+        `ink-${stroke.src}`,
+        60,
+        (v) => {
+          el.setAttribute("fill-opacity", (v * ink).toFixed(3))
+        },
+        { delay: impact }
+      )
+      tween("carriage", () => pose.carriage, setCarriage, step, ms * 0.36, {
+        delay: impact + 6,
+        ease: easeOut,
+      })
+      tween("spool", () => pose.spool, setSpool, pose.spool + 5, ms * 0.3, {
+        delay: impact,
+      })
+      if (audio) window.setTimeout(() => audio.key(false), impact)
+    }
+
     if (
       !rang &&
-      cursor.col >= m.columns - BELL_CELLS &&
-      m.columns > BELL_CELLS * 2
+      cursor.col >= M.columns - BELL_CELLS &&
+      M.columns > BELL_CELLS * 2
     ) {
       rang = true
       audio?.bell()
     }
   }
 
-  /** Whirl home along the rail and drop a line. */
+  /** Kick the lever, turn up a line, slide the carriage home. */
   const carriageReturn = (
     stroke: Extract<TypewriterStroke, { kind: "return" }>
   ) => {
-    const glide = clamp(200 + stroke.from * 7, 240, 620)
-    const drop = 260
+    const glide = clamp(220 + stroke.from * 8, 260, 640)
     cursor = { line: stroke.line, col: 0 }
     rang = false
-    const next = Math.max(scroll, scrollFor(cursor.line))
-    if (next !== scroll) {
-      scroll = next
-      placePage(drop, "cubic-bezier(.3,.7,.2,1)")
-    }
-    placeCarriage(cursor.line, drop, "cubic-bezier(.3,.7,.2,1)")
-    placeHead(0, glide, "cubic-bezier(.65,0,.25,1)")
-    if (stroke.from > 0) {
-      ball.whirl(-(0.5 + stroke.from / Math.max(1, m.columns)), glide)
-    }
+    play("lever", 420, (t) => setLever(-24 * pulse(t, 0, 0.3, 0.12)))
+    tween("paper", () => pose.paper, setPaper, -stroke.line * LH, 220, {
+      delay: 60,
+      ease: easeInOut,
+    })
+    tween("knob", () => pose.knob, setKnob, pose.knob + LH / KNOB_R, 220, {
+      delay: 60,
+      ease: easeInOut,
+    })
+    tween("carriage", () => pose.carriage, setCarriage, carriageAt(0), glide, {
+      delay: 130,
+      ease: easeInOut,
+    })
     soundOn()?.carriage(glide)
-    return glide
+    return glide + 130
+  }
+
+  const setPhase = (next: typeof phase) => {
+    phase = next
   }
 
   const finish = () => {
@@ -1064,46 +1514,57 @@ export function createTypewriter(
       finish()
       return
     }
-    if (phase !== "typing") setPhase("typing")
+    setPhase("typing")
     const stroke = strokes[pos++]!
     if (stroke.kind === "char") {
       strike(stroke)
       schedule(step, pace(stroke.ch))
     } else {
-      const glide = carriageReturn(stroke)
-      schedule(step, glide + pace(" ") * 0.8)
+      const ms = carriageReturn(stroke)
+      schedule(step, ms + pace(" ") * 0.8)
     }
+  }
+
+  /** Roll a fresh sheet up from behind the platen. */
+  const feedIn = (then: () => void) => {
+    setPaper(40 + TOP_MARGIN)
+    tween("paper", () => pose.paper, setPaper, 0, 900, { ease: easeOut })
+    tween("knob", () => pose.knob, setKnob, pose.knob + 5, 900, {
+      ease: easeOut,
+    })
+    schedule(then, 940)
   }
 
   /** Pull the finished sheet up and out, bring the carriage home, go again. */
   const feedOut = () => {
     setPhase("feeding")
-    const ms = 820
-    const pull = "cubic-bezier(.55,0,.75,.2)"
-    const lift = lineTop(cursor.line + 1) + m.lh
-    page.style.transition = `transform ${ms}ms ${pull}, opacity ${ms}ms ease-in`
-    page.style.transform = `translate3d(0,${-scroll - lift}px,0)`
-    page.style.opacity = "0"
-    scroll = 0
-    // Same curve as the sheet, which travels further, so the carriage rises
-    // behind the last line instead of through it.
-    placeCarriage(0, ms, pull)
-    placeHead(0, ms, "cubic-bezier(.65,0,.35,1)")
-    if (cursor.col > 0) ball.whirl(-1, ms)
+    const ms = 950
+    tween("paper", () => pose.paper, setPaper, VIEW_TOP - sheetH - 20, ms, {
+      ease: easeIn,
+    })
+    tween("knob", () => pose.knob, setKnob, pose.knob + 7, ms, {
+      ease: easeIn,
+    })
+    tween("carriage", () => pose.carriage, setCarriage, carriageAt(0), 720, {
+      ease: easeInOut,
+    })
+    if (cursor.col > 0) {
+      play("lever", 420, (t) => setLever(-24 * pulse(t, 0, 0.3, 0.12)))
+    }
     schedule(() => {
       pos = 0
-      page.style.opacity = ""
       paint()
       setPhase("waiting")
-      schedule(step, startOf() * 0.6)
-    }, ms + 60)
+      feedIn(() => schedule(step, startOf() * 0.5))
+    }, ms + 40)
   }
 
   const start = () => {
     cancel()
-    page.style.opacity = ""
-    strokes = layoutTypewriter(textOf(), m.columns)
+    stopMotion()
+    strokes = layoutTypewriter(textOf(), M.columns)
     spoken.textContent = textOf()
+    sizeSheet()
     if (reduce) {
       pos = strokes.length
       setPhase("done")
@@ -1113,12 +1574,59 @@ export function createTypewriter(
     pos = 0
     setPhase("waiting")
     paint()
-    schedule(step, startOf())
+    feedIn(() => schedule(step, startOf()))
   }
 
-  measure()
-  drawRail()
-  drawHead()
+  /** Redraw for a new line length, keeping the place in the text. */
+  const rebuild = () => {
+    const at = strokes[pos - 1]?.src ?? -1
+    stopMotion()
+    build()
+    strokes = layoutTypewriter(textOf(), M.columns)
+    if (phase === "done") pos = strokes.length
+    else {
+      pos = 0
+      while (pos < strokes.length && strokes[pos]!.src <= at) pos += 1
+    }
+    sizeSheet()
+    paint()
+    if (phase === "typing" || phase === "feeding") {
+      setPhase("typing")
+      schedule(step, 200)
+    } else if (phase === "waiting") schedule(step, startOf())
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Paper color                                                       */
+  /* ---------------------------------------------------------------- */
+
+  const isDark = () => {
+    const html = document.documentElement
+    if (html.classList.contains("dark")) return true
+    if (html.classList.contains("light")) return false
+    const attr = html.getAttribute("data-theme")
+    if (attr === "dark") return true
+    if (attr === "light") return false
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+  }
+  /** The sheet is the page: the first opaque background behind the machine. */
+  const paintPaper = () => {
+    let color = ""
+    for (let el: Element | null = root; el; el = el.parentElement) {
+      const bg = getComputedStyle(el).backgroundColor
+      if (bg && !/^transparent$|,\s*0\)$|\/\s*0\)$/.test(bg)) {
+        color = bg
+        break
+      }
+    }
+    root.style.setProperty(
+      "--typewriter-paper",
+      color || (isDark() ? "#0a0a0a" : "#ffffff")
+    )
+  }
+
+  build()
+  paintPaper()
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
   reduce = mqReduce.matches
@@ -1130,20 +1638,13 @@ export function createTypewriter(
 
   start()
 
-  const onResize = () => {
-    if (measure()) relayout()
-    else {
-      scroll = Math.max(scroll, scrollFor(cursor.line))
-      placePage()
-      placeCarriage(cursor.line)
-    }
-  }
-  const ro = new ResizeObserver(onResize)
-  ro.observe(root)
-  // Webfonts can land after mount and change the cell width.
-  void document.fonts?.ready.then(() => {
-    if (!destroyed) onResize()
+  const theme = new MutationObserver(paintPaper)
+  theme.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class", "data-theme", "style"],
   })
+  const mqDark = window.matchMedia("(prefers-color-scheme: dark)")
+  mqDark.addEventListener("change", paintPaper)
 
   const io = new IntersectionObserver(([entry]) => {
     onScreen = entry?.isIntersecting ?? true
@@ -1161,13 +1662,12 @@ export function createTypewriter(
         start()
         return
       }
-      if (options.columns !== prev.columns) {
-        measure()
-        relayout()
-      } else if (options.jitter !== prev.jitter) {
+      if (columnsOf() !== M.columns) rebuild()
+      else if (options.jitter !== prev.jitter) {
+        for (const motion of running.values()) motion.run(1)
+        stopMotion()
         paint()
       }
-      if (options.ticks !== prev.ticks) drawRail()
       const loop = options.loop ?? true
       if (loop !== (prev.loop ?? true) && phase === "done") {
         if (loop) schedule(feedOut, holdOf())
@@ -1178,14 +1678,16 @@ export function createTypewriter(
     destroy() {
       destroyed = true
       cancel()
-      ball.destroy()
-      ro.disconnect()
+      stopMotion()
+      theme.disconnect()
+      mqDark.removeEventListener("change", paintPaper)
       io.disconnect()
       mqReduce.removeEventListener("change", onReduce)
       document.removeEventListener("visibilitychange", onVisibility)
       sound?.close()
+      root.style.removeProperty("--typewriter-paper")
       spoken.remove()
-      stage.remove()
+      svg.remove()
     },
   }
 }

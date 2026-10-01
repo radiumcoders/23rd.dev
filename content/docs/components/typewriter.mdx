@@ -1,11 +1,11 @@
 ---
 title: Typewriter
-description: Text typed onto the page by a typeball on a rail — it spins each letter to the front and strikes, steps right, and at the margin whirls home and drops a line.
+description: A real typewriter in SVG — each key presses down, its typebar swings up to strike the ribbon, and the carriage steps along as the letter lands on the sheet.
 ---
 
 import { TypewriterDemo } from "@/registry/typewriter/typewriter-demo"
 
-A typewriter, not a blinking caret. A rail spans the frame with a scale of ticks and two margin stops, and a typeball rides it — a sphere wearing the keyboard in three rows, clamped to the rail. For every keystroke the ball spins and tilts until that letter faces the paper, strikes, and steps one cell right. At the end of a line it whirls home along the rail and drops to the next; when the page is full the paper feeds up. Between pages the ball turns slowly on its own. With `loop` on, the finished sheet is pulled out and typed again. Everything is ink in `currentColor`, so it follows the theme.
+A typewriter that actually types. Every key on the keyboard is wired to its own typebar in the basket. Press a letter and its key goes down, that bar swings up out of the fan, the ribbon lifts, and the letter lands on the sheet as the carriage steps one character left. Capitals hold shift, which drops the basket. At the end of a line the return lever kicks, the platen turns the paper up a line, and the carriage slides home. With `loop` on, the finished sheet is pulled out and a fresh one rolls in from behind the platen.
 
 ## Preview
 
@@ -21,7 +21,7 @@ Or install straight from the public GitHub source registry:
 
 ## Usage
 
-Give the parent a size. The typewriter fills it, sets its text in your mono font, and inherits the font size.
+Give the parent a size. The machine scales to fit and stays centered, with room above it for the sheet to grow as lines feed up.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -32,7 +32,7 @@ import { Typewriter } from "@/components/ui/typewriter"
 
 export function Letter() {
   return (
-    <div className="h-80 w-full overflow-hidden rounded-xl border">
+    <div className="h-96 w-full overflow-hidden rounded-xl border">
       <Typewriter text={"Dear reader,\nthe ribbon is fresh."} />
     </div>
   )
@@ -45,14 +45,14 @@ export function Letter() {
   import Typewriter from "$lib/components/ui/typewriter.svelte"
 </script>
 
-<div class="h-80 w-full overflow-hidden rounded-xl border">
+<div class="h-96 w-full overflow-hidden rounded-xl border">
   <Typewriter text={"Dear reader,\nthe ribbon is fresh."} />
 </div>
 ```
   </FrameworkSvelte>
 </FrameworkCode>
 
-`\n` starts a new line; everything else wraps at words to fit the frame, or at `columns` characters when you set it. Type once and stop, or slow it down and switch the clicks on.
+`\n` starts a new line; everything else wraps at words to `columns` characters, and the sheet, platen, and carriage travel resize to match. Type once and stop, or slow it down and switch the clicks on.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -73,20 +73,19 @@ export function Letter() {
 
 ## Props
 
-| Prop         | Type         | Default                                              |
-| ------------ | ------------ | ---------------------------------------------------- |
-| `text`       | `string`     | a short letter — `\n` breaks a line                  |
-| `speed`      | `number`     | `14` — characters per second                         |
-| `humanize`   | `boolean`    | `true` — uneven keys, rests after punctuation        |
-| `jitter`     | `number`     | `0.3` — 0–1, per-letter baseline, tilt, and ink      |
-| `columns`    | `number`     | `0` — wrap width in characters, `0` fits the frame   |
-| `ticks`      | `boolean`    | `true` — scale marks along the rail                  |
-| `loop`       | `boolean`    | `true` — feed the page out and type it again         |
-| `hold`       | `number`     | `2600` — ms on the finished page before looping      |
-| `startDelay` | `number`     | `600` — ms before the first keystroke                |
-| `sound`      | `boolean`    | `false` — synthesized clicks, bell, and return       |
-| `onDone`     | `() => void` | called each time the last character lands            |
-| `className`  | `string`     | React only                                           |
-| `class`      | `string`     | Svelte only                                          |
+| Prop         | Type         | Default                                             |
+| ------------ | ------------ | --------------------------------------------------- |
+| `text`       | `string`     | a short letter — `\n` breaks a line                 |
+| `speed`      | `number`     | `12` — characters per second                        |
+| `humanize`   | `boolean`    | `true` — uneven keys, rests after punctuation       |
+| `jitter`     | `number`     | `0.3` — 0–1, per-letter baseline, tilt, and ink     |
+| `columns`    | `number`     | `32` — line length on the sheet, 16–60              |
+| `loop`       | `boolean`    | `true` — pull the sheet out and type it again       |
+| `hold`       | `number`     | `2600` — ms on the finished page before looping     |
+| `startDelay` | `number`     | `600` — ms before the first keystroke               |
+| `sound`      | `boolean`    | `false` — synthesized clicks, bell, and return      |
+| `onDone`     | `() => void` | called each time the last character lands          |
+| `className`  | `string`     | React only                                          |
+| `class`      | `string`     | Svelte only                                         |
 
-Color it with a text color on the component or its parent (`className="text-sky-700"`); the rail, carriage, and letters all use `currentColor`. The root has `p-6` padding, and the text margin moves in further when the carriage needs room to stay inside the frame.
+The machine and the letters are inked in `currentColor`, so color it with a text class (`className="text-sky-800"`). The sheet takes the page color: the first opaque background behind the component, so it matches light and dark themes on its own.

@@ -142,7 +142,7 @@ Same shell for `ShaderAnimeFire`, `ShaderFire`, `ShaderSky`, `AsciiFluid`, `Logo
 
 `Folio` and `StretchyFooter` are the scroller by default. Put the page in `children`. For a real document, set `windowScroll` and mark the tilting or lifting element (`data-folio-page` or `data-stretchy-page`).
 
-`Typewriter` fills its parent like a background but is content: it types `text` in the mono font, inherits the font size, and inks in `currentColor`. Give the parent a height; the paper feeds up when the page fills.
+`Typewriter` is a whole machine drawn in SVG that scales to fit its parent, centered, with the sheet growing above it as lines feed. Give the parent a height (roughly 2:1 wide). Ink is `currentColor`; the sheet takes the first opaque background behind it.
 
 `GooeyColorPicker` is an inline control. It opens upward from the trigger. Give it room (`overflow-visible`); do not clip it in `overflow-hidden`.
 
@@ -186,7 +186,7 @@ Categories match `content/docs/components/meta.json`.
 | `dithered-404` | Pages | Bayer 404 burned by a fireball cursor, then reforms | React + Svelte |
 | `folio` | Sections | Page leans on scroll, then springs flat | React + Svelte |
 | `gooey-color-picker` | Components | Swatch opens into hue, alpha, and hex under an SVG goo filter | React + Svelte |
-| `typewriter` | Components | A typeball on a rail types text letter by letter, returns at the margin | React + Svelte |
+| `typewriter` | Components | A real typewriter in SVG: keys press, typebars strike, the carriage steps | React + Svelte |
 
 ## Minimal installs that must be right
 

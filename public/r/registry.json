@@ -378,7 +378,7 @@
     {
       "name": "typewriter",
       "title": "Typewriter",
-      "description": "Text typed onto the page by a typeball riding a rail — it spins each letter to the front, strikes, steps right, and at the margin whirls home and drops a line.",
+      "description": "A real typewriter in SVG — each key presses down, its typebar swings up to strike the ribbon, and the carriage steps along as the letter lands on the sheet.",
       "files": [
         {
           "path": "registry/typewriter/typewriter.tsx",
@@ -391,7 +391,7 @@
     {
       "name": "typewriter-svelte",
       "title": "Typewriter",
-      "description": "Text typed onto the page by a typeball riding a rail — it spins each letter to the front, strikes, steps right, and at the margin whirls home and drops a line.",
+      "description": "A real typewriter in SVG — each key presses down, its typebar swings up to strike the ribbon, and the carriage steps along as the letter lands on the sheet.",
       "files": [
         {
           "path": "registry/typewriter/typewriter.svelte",

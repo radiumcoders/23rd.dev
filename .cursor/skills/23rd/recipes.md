@@ -229,7 +229,7 @@ import { Typewriter } from "@/components/ui/typewriter"
 
 export function Note() {
   return (
-    <div className="h-72 overflow-hidden rounded-xl border text-lg">
+    <div className="h-96 overflow-hidden rounded-xl border">
       <Typewriter text={"Dear reader,\nwe shipped it."} loop={false} />
     </div>
   )

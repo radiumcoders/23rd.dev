@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 
 import {
   createTypewriter,
+  DEFAULT_COLUMNS,
   DEFAULT_HOLD,
   DEFAULT_JITTER,
   DEFAULT_SPEED,
@@ -16,6 +17,7 @@ import {
 } from "./typewriter-vanilla"
 
 export {
+  DEFAULT_COLUMNS,
   DEFAULT_HOLD,
   DEFAULT_JITTER,
   DEFAULT_SPEED,
@@ -34,9 +36,10 @@ export type TypewriterProps = TypewriterOptions & {
 }
 
 /**
- * A typewriter on the page — a typeball rides a rail across the frame,
- * spins each letter to the front, strikes, steps right, and at the margin
- * whirls home and drops a line. Ink follows `currentColor`. Honors
+ * A typewriter that types — each letter presses its key, swings that key's
+ * typebar up to strike the ribbon, and steps the carriage left. At the
+ * margin the lever kicks, the platen turns up a line, and the carriage
+ * slides home. Ink follows `currentColor`. Honors
  * `prefers-reduced-motion`.
  */
 export function Typewriter({
@@ -47,8 +50,7 @@ export function Typewriter({
   loop = true,
   hold = DEFAULT_HOLD,
   startDelay = DEFAULT_START_DELAY,
-  columns = 0,
-  ticks = true,
+  columns = DEFAULT_COLUMNS,
   jitter = DEFAULT_JITTER,
   sound = false,
   onDone,
@@ -72,7 +74,6 @@ export function Typewriter({
       hold,
       startDelay,
       columns,
-      ticks,
       jitter,
       sound,
       onDone: () => onDoneRef.current?.(),
@@ -94,29 +95,17 @@ export function Typewriter({
       hold,
       startDelay,
       columns,
-      ticks,
       jitter,
       sound,
     })
-  }, [
-    text,
-    speed,
-    humanize,
-    loop,
-    hold,
-    startDelay,
-    columns,
-    ticks,
-    jitter,
-    sound,
-  ])
+  }, [text, speed, humanize, loop, hold, startDelay, columns, jitter, sound])
 
   return (
     <div
       ref={rootRef}
       data-slot="typewriter"
       className={cn(
-        "relative size-full overflow-hidden bg-background p-6 font-mono text-foreground",
+        "relative size-full overflow-hidden bg-background font-mono text-foreground",
         className
       )}
     />
