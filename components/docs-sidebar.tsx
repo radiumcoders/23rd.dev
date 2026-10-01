@@ -3,10 +3,22 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutGroup, motion, useReducedMotion } from "motion/react"
+import {
+  arc,
+  cancelFrame,
+  frame,
+  frameData,
+  LayoutGroup,
+  motion,
+  time,
+  useReducedMotion,
+  type MotionPath,
+  type ValueTransition,
+} from "motion/react"
 
 import { DocsSidebarTrigger } from "@/components/docs-sidebar-trigger"
 import { Logo } from "@/components/logo"
+import { Triad } from "@/components/triad"
 import {
   Sidebar,
   SidebarContent,
@@ -50,7 +62,7 @@ function isCurrent(pathname: string, url: string) {
 }
 
 const headingClassName =
-  "mt-4 mb-0.5 h-auto px-3 py-1 truncate text-[11px] font-medium tracking-[0.16em] text-foreground/35 uppercase first:mt-0"
+  "mt-6 mb-1 h-auto truncate px-2 py-1 font-mono text-[10.5px] font-normal tracking-[0.18em] text-muted-foreground/80 uppercase first:mt-0"
 
 const markSpring = {
   type: "spring" as const,
@@ -59,68 +71,109 @@ const markSpring = {
   mass: 0.7,
 }
 
-function DashMark({
-  layoutId,
-  opacity,
-}: {
-  layoutId: string
-  opacity: number
-}) {
+/**
+ * The marker bows left, toward the sidebar's edge. Only ~24px sit between
+ * it and the scroll area's clip, so the bow is capped in pixels instead of
+ * growing with the trip like a plain `arc()` would.
+ */
+const MARK_BOW = 18
+const MARK_STRENGTH = 0.3
+
+const markPath: MotionPath = {
+  interpolateProjection(delta) {
+    // `translate` is where the marker starts relative to its new row:
+    // negative means the old row sat above, so it is travelling down.
+    const distance = Math.hypot(delta.x.translate, delta.y.translate)
+    // A quadratic arc peaks at half its control-point offset.
+    const strength = Math.min(MARK_STRENGTH, (2 * MARK_BOW) / distance)
+    // `arc()` bends relative to travel, so pick the side per trip.
+    const direction = delta.y.translate < 0 ? "ccw" : "cw"
+    return arc({ strength, direction }).interpolateProjection(delta)
+  },
+  animateVisualElement: (...args) =>
+    arc({ strength: MARK_STRENGTH }).animateVisualElement(...args),
+}
+
+/** The longest step, in ms, the marker's clock takes in one frame. */
+const MARK_MAX_STEP = 1000 / 60
+
+/**
+ * Motion's frame loop, on a clock that never jumps more than
+ * `MARK_MAX_STEP` per frame. Firefox stalls ~100ms swapping the page right
+ * after the marker takes off, and on the real clock the spring spends that
+ * stall mid-flight, so its first frame lands well down the arc. Here a
+ * stalled frame just pauses the flight.
+ */
+const markDriver: NonNullable<ValueTransition["driver"]> = (update) => {
+  let last: number | undefined
+  let clock: number | undefined
+  const step = ({ timestamp }: { timestamp: number }) => {
+    clock =
+      last === undefined || clock === undefined
+        ? timestamp
+        : clock + Math.min(timestamp - last, MARK_MAX_STEP)
+    last = timestamp
+    update(clock)
+  }
+
+  return {
+    start: (keepAlive = true) => frame.update(step, keepAlive),
+    stop: () => cancelFrame(step),
+    now: () =>
+      clock ?? (frameData.isProcessing ? frameData.timestamp : time.now()),
+  }
+}
+
+/** Room the marker takes before the open page's name. */
+const MARK_GUTTER = "translate-x-[21px]"
+
+/**
+ * The open page's marker. Every page shares one `layoutId`, so when the
+ * open page changes Motion flies the marker along an arc to the new row.
+ * It hangs off the `<li>`, not the button, whose `overflow-hidden` would
+ * clip it mid-flight.
+ */
+function ActiveMark() {
   const reduce = useReducedMotion() ?? false
 
   return (
     <motion.span
-      layoutId={layoutId}
+      layoutId="docs-sidebar-mark"
       aria-hidden
-      className="pointer-events-none ml-2 h-px min-w-3 flex-1 bg-[repeating-linear-gradient(90deg,currentColor_0_5px,transparent_5px_8px)]"
-      initial={false}
-      animate={{ opacity }}
-      transition={reduce ? { duration: 0 } : markSpring}
-    />
+      className="pointer-events-none absolute inset-y-0 left-2 z-10 flex items-center"
+      transition={
+        reduce
+          ? { duration: 0 }
+          : { ...markSpring, path: markPath, driver: markDriver }
+      }
+    >
+      <Triad />
+    </motion.span>
   )
 }
 
-type TabHover = {
-  hoveredUrl: string | null
-  onHover: (url: string) => void
-}
-
-function PageItem({
-  node,
-  pathname,
-  indented = false,
-  hoveredUrl,
-  onHover,
-}: {
-  node: PageNode
-  pathname: string
-  indented?: boolean
-} & TabHover) {
+function PageItem({ node, pathname }: { node: PageNode; pathname: string }) {
   const active = isCurrent(pathname, node.url)
-  const showHover = hoveredUrl === node.url && !active
 
   return (
-    <SidebarMenuItem
-      onPointerEnter={() => onHover(node.url)}
-      onMouseEnter={() => onHover(node.url)}
-    >
+    <SidebarMenuItem>
+      {active ? <ActiveMark /> : null}
       <SidebarMenuButton
         render={
           <Link href={node.url} aria-label={String(node.name ?? "Page")} />
         }
         isActive={active}
-        className={cn(
-          "h-8 gap-0 overflow-visible rounded-lg bg-transparent font-normal text-foreground/45 transition-colors duration-200 hover:bg-transparent hover:text-foreground/80 active:bg-transparent data-active:bg-transparent data-active:font-normal data-active:text-foreground data-active:hover:bg-transparent data-active:hover:text-foreground [&>span:last-child]:overflow-visible [&>span:last-child]:text-clip",
-          indented && "pl-6"
-        )}
+        className="h-8 gap-0 rounded-lg bg-transparent px-2 font-normal text-foreground/70 transition-colors duration-150 hover:bg-transparent hover:text-foreground active:bg-transparent data-active:bg-transparent data-active:font-medium data-active:text-foreground data-active:hover:bg-transparent"
       >
-        <span className="min-w-0 truncate">{node.name}</span>
-        {active ? (
-          <DashMark layoutId="docs-sidebar-selected-dashes" opacity={0.85} />
-        ) : null}
-        {showHover ? (
-          <DashMark layoutId="docs-sidebar-hover-dashes" opacity={0.4} />
-        ) : null}
+        {/* The name steps aside for the marker instead of jumping. */}
+        <span
+          className={cn(
+            "min-w-0 truncate transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+            active && MARK_GUTTER
+          )}
+        >
+          {node.name}
+        </span>
       </SidebarMenuButton>
     </SidebarMenuItem>
   )
@@ -132,7 +185,9 @@ function SeparatorItem({ node }: { node: SeparatorNode }) {
   }
 
   return (
-    <SidebarGroupLabel className={headingClassName}>{node.name}</SidebarGroupLabel>
+    <SidebarGroupLabel className={headingClassName}>
+      {node.name}
+    </SidebarGroupLabel>
   )
 }
 
@@ -143,21 +198,12 @@ function folderKey(node: FolderNode, index: number) {
 function NavItems({
   nodes,
   pathname,
-  indented = false,
-  hoveredUrl,
-  onHover,
 }: {
   nodes: TreeNode[]
   pathname: string
-  indented?: boolean
-} & TabHover) {
-  let inSection = indented
-
+}) {
   return nodes.map((node, i) => {
     if (isSeparator(node)) {
-      if (node.name != null && node.name !== "") {
-        inSection = true
-      }
       return (
         <SeparatorItem
           key={`sep-${String(node.name ?? "")}-${i}`}
@@ -167,16 +213,7 @@ function NavItems({
     }
 
     if (isPage(node)) {
-      return (
-        <PageItem
-          key={node.url}
-          node={node}
-          pathname={pathname}
-          indented={inSection}
-          hoveredUrl={hoveredUrl}
-          onHover={onHover}
-        />
-      )
+      return <PageItem key={node.url} node={node} pathname={pathname} />
     }
 
     if (isFolder(node)) {
@@ -185,25 +222,13 @@ function NavItems({
       return (
         <React.Fragment key={folderKey(node, i)}>
           {node.index ? (
-            <PageItem
-              node={node.index}
-              pathname={pathname}
-              indented={inSection}
-              hoveredUrl={hoveredUrl}
-              onHover={onHover}
-            />
+            <PageItem node={node.index} pathname={pathname} />
           ) : hasSectionedChildren ? null : (
             <SidebarGroupLabel className={headingClassName}>
               {node.name}
             </SidebarGroupLabel>
           )}
-          <NavItems
-            nodes={node.children}
-            pathname={pathname}
-            indented={inSection || hasSectionedChildren || !node.index}
-            hoveredUrl={hoveredUrl}
-            onHover={onHover}
-          />
+          <NavItems nodes={node.children} pathname={pathname} />
         </React.Fragment>
       )
     }
@@ -212,30 +237,14 @@ function NavItems({
   })
 }
 
-function NavList({
-  nodes,
-  pathname,
-  indented = false,
-}: {
-  nodes: TreeNode[]
-  pathname: string
-  indented?: boolean
-}) {
-  const [hoveredUrl, setHoveredUrl] = React.useState<string | null>(null)
+/** Scopes the marker's `layoutId` so the desktop and mobile lists don't share one. */
+function NavList({ nodes, pathname }: { nodes: TreeNode[]; pathname: string }) {
+  const id = React.useId()
 
   return (
-    <LayoutGroup id="docs-sidebar-tabs">
-      <SidebarMenu
-        onPointerLeave={() => setHoveredUrl(null)}
-        onMouseLeave={() => setHoveredUrl(null)}
-      >
-        <NavItems
-          nodes={nodes}
-          pathname={pathname}
-          indented={indented}
-          hoveredUrl={hoveredUrl}
-          onHover={(url) => setHoveredUrl(url)}
-        />
+    <LayoutGroup id={id}>
+      <SidebarMenu>
+        <NavItems nodes={nodes} pathname={pathname} />
       </SidebarMenu>
     </LayoutGroup>
   )

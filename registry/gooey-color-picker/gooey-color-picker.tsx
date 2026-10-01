@@ -3,8 +3,10 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type PointerEvent as ReactPointerEvent,
 } from "react"
 import { AnimatePresence, motion } from "motion/react"
@@ -74,29 +76,34 @@ function useControllableColor(
   return [color, setColor] as const
 }
 
-function bindDrag(onMove: (clientX: number, clientY: number) => void) {
-  return (event: ReactPointerEvent<HTMLElement>) => {
-    event.preventDefault()
-    const target = event.currentTarget
-    target.setPointerCapture(event.pointerId)
-    onMove(event.clientX, event.clientY)
+function startDrag(
+  event: ReactPointerEvent<HTMLElement>,
+  onMove: (clientX: number, clientY: number) => void
+) {
+  event.preventDefault()
+  const target = event.currentTarget
+  target.setPointerCapture(event.pointerId)
+  onMove(event.clientX, event.clientY)
 
-    function move(e: PointerEvent) {
-      onMove(e.clientX, e.clientY)
-    }
-    function up(e: PointerEvent) {
-      window.removeEventListener("pointermove", move)
-      window.removeEventListener("pointerup", up)
-      try {
-        target.releasePointerCapture(e.pointerId)
-      } catch {
-        // ignore
-      }
-    }
-    window.addEventListener("pointermove", move)
-    window.addEventListener("pointerup", up)
+  function move(e: PointerEvent) {
+    onMove(e.clientX, e.clientY)
   }
+  function up(e: PointerEvent) {
+    window.removeEventListener("pointermove", move)
+    window.removeEventListener("pointerup", up)
+    try {
+      target.releasePointerCapture(e.pointerId)
+    } catch {
+      // ignore
+    }
+  }
+  window.addEventListener("pointermove", move)
+  window.addEventListener("pointerup", up)
 }
+
+const noopSubscribe = () => () => {}
+const hasEyeDropper = () => "EyeDropper" in window
+const noEyeDropper = () => false
 
 function TriggerIcon({ open }: { open: boolean }) {
   const paths = open ? CLOSE_PATHS : PALETTE_PATHS
@@ -171,22 +178,25 @@ export function GooeyColorPicker({
   const alphaRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
   const [color, setColor] = useControllableColor(value, defaultValue, onChange)
+  // Drag and eyedropper handlers read the latest color without re-binding.
   const colorRef = useRef(color)
-  colorRef.current = color
+  useLayoutEffect(() => {
+    colorRef.current = color
+  })
   const css = toCss(color)
   const opaque = toCss({ ...color, a: 1 })
   const hex = toHex(color)
   const [hexDraft, setHexDraft] = useState(hex)
   const hexFocused = useRef(false)
-  const [supportsEyeDropper, setSupportsEyeDropper] = useState(false)
+  const supportsEyeDropper = useSyncExternalStore(
+    noopSubscribe,
+    hasEyeDropper,
+    noEyeDropper
+  )
 
   useEffect(() => {
     if (!hexFocused.current) setHexDraft(hex)
   }, [hex])
-
-  useEffect(() => {
-    setSupportsEyeDropper(typeof window !== "undefined" && "EyeDropper" in window)
-  }, [])
 
   // Commit a color from any picker surface (wheel, alpha, eyedropper) and keep
   // the code field in sync — even while the input is focused.
@@ -334,6 +344,9 @@ export function GooeyColorPicker({
           role="slider"
           tabIndex={open ? 0 : -1}
           aria-label="Color"
+          aria-valuemin={0}
+          aria-valuemax={360}
+          aria-valuenow={Math.round(color.h)}
           aria-valuetext={`hue ${Math.round(color.h)}, saturation ${Math.round(color.s)}`}
           className={cn(
             "relative size-40 shrink-0 touch-none rounded-full outline-none",
@@ -354,7 +367,7 @@ export function GooeyColorPicker({
               )
             `,
           }}
-          onPointerDown={bindDrag((x, y) => updateWheelFromPointer(x, y))}
+          onPointerDown={(event) => startDrag(event, updateWheelFromPointer)}
           onKeyDown={(event) => {
             if (event.key === "ArrowLeft") {
               event.preventDefault()
@@ -399,7 +412,7 @@ export function GooeyColorPicker({
           style={{
             background: `linear-gradient(to right, transparent, ${opaque})`,
           }}
-          onPointerDown={bindDrag((x) => updateAlphaFromPointer(x))}
+          onPointerDown={(event) => startDrag(event, updateAlphaFromPointer)}
           onKeyDown={(event) => {
             if (event.key === "ArrowRight" || event.key === "ArrowUp") {
               event.preventDefault()

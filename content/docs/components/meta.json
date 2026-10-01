@@ -8,10 +8,10 @@
     "ascii-fluid",
     "---Shaders---",
     "shader-gradient",
+    "shader-anime-fire",
     "shader-fire",
     "shader-sky",
     "---Footers---",
-    "tangle-footer",
     "stretchy-footer",
     "---Characters---",
     "live-orb",
@@ -21,6 +21,7 @@
     "---Sections---",
     "folio",
     "---Components---",
-    "gooey-color-picker"
+    "gooey-color-picker",
+    "typewriter"
   ]
 }

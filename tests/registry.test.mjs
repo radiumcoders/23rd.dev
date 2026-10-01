@@ -137,12 +137,14 @@ test("detectVanillaImports finds every sibling *-vanilla specifier", () => {
   ])
 })
 
-test("published stretchy-footer-svelte inlines both vanilla engines", () => {
+test("published stretchy-footer inlines the shared engine", () => {
   const dir = join(ROOT, "registry/stretchy-footer")
-  const out = publishedFileContent(dir, "stretchy-footer.svelte")
-  assert.doesNotMatch(out, /from\s+["']\.\/[^"']+-vanilla["']/)
-  assert.match(out, /export function createSpring/)
-  assert.match(out, /export function applyResistance/)
+  for (const file of ["stretchy-footer.tsx", "stretchy-footer.svelte"]) {
+    const out = publishedFileContent(dir, file)
+    assert.doesNotMatch(out, /from\s+["']\.\/[^"']+-vanilla["']/)
+    assert.doesNotMatch(out, /from\s+["']motion/)
+    assert.match(out, /export function createStretchyFooter/)
+  }
 })
 
 test("makeStandalone keeps framework imports while dropping two vanilla engines", () => {
@@ -244,7 +246,7 @@ test("built registry.json lists exactly the source items", () => {
   )
 })
 
-for (const { dir, item } of items) {
+for (const { item } of items) {
   test(`built ${item.name}.json matches its source`, () => {
     const builtPath = join(BUILD_DIR, `${item.name}.json`)
     assert.ok(existsSync(builtPath), `public/r/${item.name}.json missing`)

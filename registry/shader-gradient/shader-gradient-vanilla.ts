@@ -1,15 +1,20 @@
 export type ShaderGradientTheme = "light" | "dark" | "auto"
 
 export type ShaderGradientOptions = {
-  /** Up to 4 hex colors — order: sky, sage, cream, lavender */
+  /**
+   * Up to 4 colors, any CSS hex. The flow cycles through them in order and
+   * back to the first, so neighbours should sit well together.
+   */
   colors?: string[]
-  /** Drift speed. Default 0.14 */
+  /** Flow speed. Default `0.14`. */
   speed?: number
-  /** Wash softness / size 0–1. Default 0.7 */
+  /** Softness, 0–1: higher is broader, calmer bands. Default `0.7`. */
   blur?: number
-  /** Color strength 0–1. Default 0.95 */
+  /** Color strength, 0–1; lower lets the paper / ink show through. Default `0.95`. */
   intensity?: number
-  /** Follow pointer gently. Default true */
+  /** Film grain, 0–1. `0` turns it off. Default `0.35`. */
+  grain?: number
+  /** The flow swirls gently around the pointer. Default `true`. */
   interactive?: boolean
   /**
    * Palette mode. Default `auto` follows shadcn / next-themes
@@ -25,37 +30,41 @@ export type ShaderGradientInstance = {
   destroy: () => void
 }
 
-/** Airy hero wash — sky / sage / cream / lavender on paper */
-export const LIGHT_COLORS = ["#7CB4E0", "#B4D8C4", "#EFE4BC", "#D2D7EC"]
+/** Peach, butter, sky and lilac, flowing over warm paper. */
+export const LIGHT_COLORS = ["#F7A48B", "#F9D78E", "#9FCBF0", "#BBA9EE"]
 /**
- * Dusk hues that still read on slate — sky / sage / amber / lilac.
- * Bright enough to see, dark enough not to go pastel neon.
+ * Blue, violet, magenta and coral over near-black ink — a narrow hue arc,
+ * so every blend on the cycle stays rich instead of passing through grey.
  */
-export const DARK_COLORS = ["#3A6FA0", "#2F6B52", "#8A6B32", "#4A4D7A"]
+export const DARK_COLORS = ["#3D52F2", "#9150F2", "#E0479F", "#FF7B60"]
+const LIGHT_BASE = "#FBF8F4"
+const DARK_BASE = "#07080B"
 
-export const LIGHT_FALLBACK = {
-  backgroundColor: "#FCFBF9",
-  backgroundImage: [
-    "radial-gradient(60% 45% at 60% 20%, #8FC0E4 0%, transparent 70%)",
-    "radial-gradient(40% 50% at 90% 46%, #8FC0E4 0%, transparent 70%)",
-    "radial-gradient(30% 40% at 100% 60%, #BEDCCA 0%, transparent 70%)",
-    "radial-gradient(38% 46% at 4% 56%, #F0E7C4 0%, transparent 70%)",
-    "radial-gradient(28% 24% at 90% 74%, #F0E7C4 0%, transparent 70%)",
-    "radial-gradient(40% 38% at 32% 38%, #D5D9EC 0%, transparent 70%)",
-  ].join(", "),
-} as const
+export const DEFAULT_SPEED = 0.14
+export const DEFAULT_BLUR = 0.7
+export const DEFAULT_INTENSITY = 0.95
+export const DEFAULT_GRAIN = 0.35
 
-export const DARK_FALLBACK = {
-  backgroundColor: "#08090C",
-  backgroundImage: [
-    "radial-gradient(60% 45% at 60% 20%, #3A6FA0 0%, transparent 70%)",
-    "radial-gradient(40% 50% at 90% 46%, #3A6FA0 0%, transparent 70%)",
-    "radial-gradient(30% 40% at 100% 60%, #2F6B52 0%, transparent 70%)",
-    "radial-gradient(38% 46% at 4% 56%, #8A6B32 0%, transparent 70%)",
-    "radial-gradient(28% 24% at 90% 74%, #8A6B32 0%, transparent 70%)",
-    "radial-gradient(40% 38% at 32% 38%, #4A4D7A 0%, transparent 70%)",
-  ].join(", "),
-} as const
+/** Film grain for the CSS fallback — the same idea, as an SVG turbulence tile. */
+const GRAIN_TILE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`
+
+function fallback(colors: string[], base: string) {
+  const [a, b, c, d] = colors
+  return {
+    backgroundColor: base,
+    backgroundImage: [
+      GRAIN_TILE,
+      `radial-gradient(70% 60% at 18% 22%, ${a} 0%, transparent 70%)`,
+      `radial-gradient(60% 60% at 82% 30%, ${b} 0%, transparent 70%)`,
+      `radial-gradient(70% 60% at 70% 88%, ${c} 0%, transparent 70%)`,
+      `radial-gradient(55% 55% at 12% 86%, ${d} 0%, transparent 70%)`,
+    ].join(", "),
+  } as const
+}
+
+/** Shown before the first frame and wherever WebGL isn't available. */
+export const LIGHT_FALLBACK = fallback(LIGHT_COLORS, LIGHT_BASE)
+export const DARK_FALLBACK = fallback(DARK_COLORS, DARK_BASE)
 
 const VERT = `
 attribute vec2 a_position;
@@ -69,36 +78,43 @@ precision highp float;
 
 uniform vec2 u_resolution;
 uniform float u_time;
-uniform float u_speed;
 uniform float u_blur;
 uniform float u_intensity;
-uniform float u_dark;
+uniform float u_grain;
+uniform float u_grainSeed;
+uniform float u_pixel;
+uniform float u_pointer;
+uniform vec2 u_mouse;
+// Palette stops and the paper / ink underneath, in OKLab.
+uniform vec3 u_c0;
 uniform vec3 u_c1;
 uniform vec3 u_c2;
 uniform vec3 u_c3;
-uniform vec3 u_c4;
-uniform vec2 u_mouse;
+uniform vec3 u_base;
 
+// Dave Hoskins' hash — no sin(), so it stays stable on mobile GPUs.
 float hash(vec2 p) {
-  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
 }
 
 float noise(vec2 p) {
   vec2 i = floor(p);
   vec2 f = fract(p);
-  float a = hash(i);
-  float b = hash(i + vec2(1.0, 0.0));
-  float c = hash(i + vec2(0.0, 1.0));
-  float d = hash(i + vec2(1.0, 1.0));
   vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+  return mix(
+    mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+    mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
+    u.y
+  );
 }
 
 float fbm(vec2 p) {
   float v = 0.0;
   float a = 0.5;
   mat2 m = mat2(1.6, 1.2, -1.2, 1.6);
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 3; i++) {
     v += a * noise(p);
     p = m * p;
     a *= 0.5;
@@ -106,119 +122,107 @@ float fbm(vec2 p) {
   return v;
 }
 
-// Super-gaussian field — elliptical, rotatable, flat-topped.
-// The flat top is what stops each wash from showing a bright center dot.
-float smear(vec2 p, vec2 c, vec2 r, float ang, float plateau) {
-  vec2 d = p - c;
-  float s = sin(ang);
-  float co = cos(ang);
-  d = vec2(d.x * co + d.y * s, -d.x * s + d.y * co) / r;
-  return exp(-pow(dot(d, d) + 0.0001, plateau));
+// Weight of the stop at 'at' on a cyclic 0–1 track: a smoothed hat, so any
+// two neighbouring weights always sum to one.
+float stop(float v, float at) {
+  float d = abs(v - at);
+  d = min(d, 1.0 - d);
+  return smoothstep(0.0, 1.0, 1.0 - clamp(d * 4.0, 0.0, 1.0));
+}
+
+vec3 palette(float v) {
+  return u_c0 * stop(v, 0.0) + u_c1 * stop(v, 0.25) +
+         u_c2 * stop(v, 0.5) + u_c3 * stop(v, 0.75);
+}
+
+vec3 oklabToLinear(vec3 c) {
+  float l = c.x + 0.3963377774 * c.y + 0.2158037573 * c.z;
+  float m = c.x - 0.1055613458 * c.y - 0.0638541728 * c.z;
+  float s = c.x - 0.0894841775 * c.y - 1.2914855480 * c.z;
+  l = l * l * l;
+  m = m * m * m;
+  s = s * s * s;
+  return vec3(
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
+  );
+}
+
+vec3 linearToSrgb(vec3 c) {
+  c = clamp(c, 0.0, 1.0);
+  vec3 lo = c * 12.92;
+  vec3 hi = 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055;
+  return mix(lo, hi, step(vec3(0.0031308), c));
 }
 
 void main() {
-  vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+  vec2 uv = gl_FragCoord.xy / u_resolution;
   float aspect = u_resolution.x / max(u_resolution.y, 1.0);
+  float scale = mix(2.0, 0.8, u_blur);
+  vec2 p = vec2(uv.x * aspect, uv.y) * scale;
+  float t = u_time;
 
-  // Square-ish space so washes keep their shape on any container
-  vec2 st = vec2(uv.x * aspect, uv.y);
+  // A soft swirl around the pointer.
+  vec2 d = p - vec2(u_mouse.x * aspect, u_mouse.y) * scale;
+  p += vec2(-d.y, d.x) * exp(-dot(d, d) * 1.4) * 0.4 * u_pointer;
 
-  float t = u_time * u_speed;
+  // Domain warping: noise fed back through itself twice gives slow,
+  // liquid bands that never read as a loop.
+  vec2 q = vec2(
+    fbm(p + vec2(0.0, 0.12 * t)),
+    fbm(p + vec2(5.2, 1.3) - 0.1 * t)
+  );
+  vec2 r = vec2(
+    fbm(p + 2.2 * q + vec2(1.7, 9.2) + 0.07 * t),
+    fbm(p + 2.2 * q + vec2(8.3, 2.8) - 0.06 * t)
+  );
+  float f = fbm(p + 2.0 * r);
 
-  // Low-frequency warp — gives the wash a watercolor edge instead of a clean ellipse
-  vec2 warp = vec2(
-    fbm(st * 1.2 + vec2(t * 0.22, t * 0.16)),
-    fbm(st * 1.2 + vec2(-t * 0.18, t * 0.2) + 5.3)
-  ) - 0.5;
-  st += warp * (0.07 + u_blur * 0.08);
-  st -= (u_mouse - 0.5) * 0.05;
+  // Where on the palette this pixel sits. The track is cyclic, so wrapping
+  // past the last color flows back into the first without a seam.
+  float v = fract(f * 2.4 + 0.35 * r.x + 0.02 * t);
+  vec3 lab = palette(v);
 
-  float grow = 0.85 + u_blur * 0.4;
+  // Some of the paper / ink breathes through, so it isn't wall-to-wall color.
+  // Ink dulls far faster than paper does, so on a dark base only a little
+  // shows, and the color gets a chroma lift to glow against it.
+  float air = smoothstep(0.28, 0.72, fbm(p * 0.6 - q + 13.0 + 0.03 * t));
+  float floorMix = mix(0.82, 0.45, u_base.x);
+  lab.yz *= mix(1.15, 1.0, u_base.x);
+  lab = mix(u_base, lab, u_intensity * mix(floorMix, 1.0, air));
 
-  // Slow drift — long periods so it never reads as looping
-  vec2 d1 = vec2(sin(t * 0.71), cos(t * 0.53)) * 0.045;
-  vec2 d2 = vec2(cos(t * 0.61), sin(t * 0.83)) * 0.04;
-  vec2 d3 = vec2(sin(t * 0.49), cos(t * 0.77)) * 0.05;
-  vec2 d4 = vec2(cos(t * 0.87), sin(t * 0.59)) * 0.045;
+  vec3 col = linearToSrgb(oklabToLinear(lab));
 
-  // Big sky sweep across the upper right — the dominant mass
-  float g1 = smear(st, vec2((0.54 + d1.x) * aspect, 0.84 + d1.y),
-                   vec2(0.54, 0.30) * grow, -0.5, 1.9);
-  // Broad reinforcement, pulled toward the middle of the sweep
-  float g2 = smear(st, vec2((0.66 + d2.x) * aspect, 0.72 + d2.y),
-                   vec2(0.42, 0.30) * grow, -0.45, 1.9);
-  // Sky trailing down the right edge
-  float g3 = smear(st, vec2((0.92 + d2.y) * aspect, 0.50 + d2.x),
-                   vec2(0.26, 0.32) * grow, 0.3, 1.7);
-  // Sage green hugging the right edge
-  float g4 = smear(st, vec2((0.99 + d3.x) * aspect, 0.44 + d3.y),
-                   vec2(0.28, 0.34) * grow, 0.0, 1.7);
-  // Butter cream on the left and low right
-  float g5 = smear(st, vec2((0.06 + d4.x) * aspect, 0.44 + d4.y),
-                   vec2(0.34, 0.38) * grow, 0.4, 1.8);
-  float g6 = smear(st, vec2((0.86 + d1.y) * aspect, 0.22 + d1.x),
-                   vec2(0.28, 0.22) * grow, -0.2, 1.6);
-  // Lavender transition between the sky and the cream
-  float g7 = smear(st, vec2((0.32 + d3.y) * aspect, 0.60 + d3.x),
-                   vec2(0.32, 0.28) * grow, 0.2, 1.6);
-  // Very wide base tint so the middle never falls back to bare white
-  float g8 = smear(st, vec2((0.50 + d4.y) * aspect, 0.40 + d4.x),
-                   vec2(0.95, 0.80) * grow, 0.0, 1.2);
-
-  float w1 = g1 * 1.00;
-  float w2 = g2 * 0.45;
-  float w3 = g3 * 0.70;
-  float w4 = g4 * 0.95;
-  float w5 = g5 * 0.95;
-  float w6 = g6 * 0.85;
-  float w7 = g7 * 0.50;
-  float w8 = g8 * 0.30;
-
-  float sum = w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8;
-
-  // Neutral pale cast — keeps the open middle from going dead white
-  vec3 base = mix(u_c4, u_c3, 0.5);
-
-  // Weighted average keeps hues clean — no successive-mix muddiness
-  vec3 tint =
-    (u_c1 * w1 + u_c1 * w2 + u_c1 * w3 + u_c2 * w4 +
-     u_c3 * w5 + u_c3 * w6 + u_c4 * w7 + base * w8) /
-    max(sum, 0.0001);
-
-  // Screen-style coverage so overlaps deepen smoothly instead of clipping
-  float cover = 1.0 -
-    (1.0 - clamp(w1, 0.0, 1.0)) * (1.0 - clamp(w2, 0.0, 1.0)) *
-    (1.0 - clamp(w3, 0.0, 1.0)) * (1.0 - clamp(w4, 0.0, 1.0)) *
-    (1.0 - clamp(w5, 0.0, 1.0)) * (1.0 - clamp(w6, 0.0, 1.0)) *
-    (1.0 - clamp(w7, 0.0, 1.0)) * (1.0 - clamp(w8, 0.0, 1.0));
-
-  // Let the lower left breathe back to bare paper / slate
-  float fade = smoothstep(-0.35, 0.55, uv.x * 0.42 + uv.y * 0.72);
-  cover *= fade * clamp(u_intensity, 0.0, 1.0);
-
-  vec3 col;
-  if (u_dark < 0.5) {
-    vec3 paper = vec3(0.988, 0.986, 0.982);
-    col = mix(paper, tint, clamp(cover, 0.0, 1.0));
-  } else {
-    // Near-black ink — dusk hues lift off the void without going neon
-    vec3 slate = vec3(0.03, 0.032, 0.042);
-    float glow = clamp(cover * 0.72, 0.0, 1.0);
-    col = mix(slate, tint, glow);
-  }
-
-  // Dither — kills banding across these very low-contrast ramps
-  col += (hash(gl_FragCoord.xy + fract(u_time)) - 0.5) * 0.005;
+  // Film grain on a CSS-pixel grid: two hashes averaged for a softer,
+  // more photographic distribution than flat white noise.
+  vec2 cell = floor(gl_FragCoord.xy / u_pixel);
+  float g = (hash(cell + u_grainSeed) + hash(cell.yx - u_grainSeed * 1.7)) * 0.5;
+  col += (g - 0.5) * u_grain * 0.2;
+  // Always a hair of dither, so the smooth ramps never band.
+  col += (hash(cell * 1.31 + u_grainSeed) - 0.5) * 0.004;
 
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
 `
 
 function isDev() {
-  return typeof process !== "undefined" && process.env?.NODE_ENV !== "production"
+  return (
+    typeof process !== "undefined" && process.env?.NODE_ENV !== "production"
+  )
 }
 
-function hexToRgb(hex: string): [number, number, number] {
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function numberOr(value: unknown, fallback: number, min: number, max: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback
+  return clamp(value, min, max)
+}
+
+/** Hex → OKLab, so the shader can blend without going muddy. */
+function hexToOklab(hex: string): [number, number, number] {
   const h = hex.replace("#", "").trim()
   const full =
     h.length === 3
@@ -228,8 +232,20 @@ function hexToRgb(hex: string): [number, number, number] {
           .join("")
       : h.padEnd(6, "0").slice(0, 6)
   const n = Number.parseInt(full, 16)
-  if (Number.isNaN(n)) return [0.72, 0.86, 0.94]
-  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]
+  const srgb = Number.isNaN(n)
+    ? [0.5, 0.5, 0.5]
+    : [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]
+  const [r, g, b] = srgb.map((c) =>
+    c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+  ) as [number, number, number]
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
+  return [
+    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+  ]
 }
 
 /** Resolves shadcn / next-themes dark mode (`attribute="class"` → `html.dark`). */
@@ -269,31 +285,26 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
 }
 
 /**
- * Quiet WebGL atmosphere for heroes and empty states — soft-focus color
- * fields behind UI. Theme-aware light / dusk.
+ * A grainy liquid gradient for heroes and empty states. The palette flows
+ * through slow domain-warped noise, blends in OKLab so neighbours never go
+ * muddy, and carries a film grain. Theme-aware; pauses off-screen and in
+ * hidden tabs; holds a still frame under `prefers-reduced-motion`.
  */
 export function createShaderGradient(
   canvas: HTMLCanvasElement,
   initial: ShaderGradientOptions = {}
 ): ShaderGradientInstance | null {
-  let options: Required<
-    Pick<
-      ShaderGradientOptions,
-      "speed" | "blur" | "intensity" | "interactive" | "theme"
-    >
-  > &
-    ShaderGradientOptions = {
-    speed: 0.14,
-    blur: 0.7,
-    intensity: 0.95,
+  let options: ShaderGradientOptions = {
     interactive: true,
     theme: "auto",
     ...initial,
   }
 
   const mouse = { x: 0.5, y: 0.5 }
-  const targetMouse = { x: 0.5, y: 0.5 }
-  let reduce = false
+  const target = { x: 0.5, y: 0.5 }
+  // Pointer pull eases in and out, so leaving the hero never snaps.
+  let pull = 0
+  let pullTarget = 0
   let dark = resolveDark(options.theme ?? "auto")
   options.onThemeChange?.(dark)
 
@@ -348,46 +359,110 @@ export function createShaderGradient(
   gl.enableVertexAttribArray(loc)
   gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
 
-  const uResolution = gl.getUniformLocation(program, "u_resolution")
-  const uTime = gl.getUniformLocation(program, "u_time")
-  const uSpeed = gl.getUniformLocation(program, "u_speed")
-  const uBlur = gl.getUniformLocation(program, "u_blur")
-  const uIntensity = gl.getUniformLocation(program, "u_intensity")
-  const uDark = gl.getUniformLocation(program, "u_dark")
-  const uC1 = gl.getUniformLocation(program, "u_c1")
-  const uC2 = gl.getUniformLocation(program, "u_c2")
-  const uC3 = gl.getUniformLocation(program, "u_c3")
-  const uC4 = gl.getUniformLocation(program, "u_c4")
-  const uMouse = gl.getUniformLocation(program, "u_mouse")
+  const u = (name: string) => gl.getUniformLocation(program, name)
+  const uResolution = u("u_resolution")
+  const uTime = u("u_time")
+  const uBlur = u("u_blur")
+  const uIntensity = u("u_intensity")
+  const uGrain = u("u_grain")
+  const uGrainSeed = u("u_grainSeed")
+  const uPixel = u("u_pixel")
+  const uPointer = u("u_pointer")
+  const uMouse = u("u_mouse")
+  const uStops = [u("u_c0"), u("u_c1"), u("u_c2"), u("u_c3")]
+  const uBase = u("u_base")
 
-  let raf = 0
-  let running = true
-  const start = performance.now()
-  let frozenTime = 0
-
+  // The gradient is soft enough that one sample per CSS pixel is plenty;
+  // it also keeps the grain the same size on every screen.
+  let pixel = 1
   const resize = () => {
     const parent = canvas.parentElement
     if (!parent) return
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
     const w = parent.clientWidth
     const h = parent.clientHeight
     if (w <= 0 || h <= 0) return
-    canvas.width = Math.max(1, Math.floor(w * dpr))
-    canvas.height = Math.max(1, Math.floor(h * dpr))
+    pixel = Math.min(window.devicePixelRatio || 1, 1)
+    canvas.width = Math.max(1, Math.floor(w * pixel))
+    canvas.height = Math.max(1, Math.floor(h * pixel))
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
     gl.viewport(0, 0, canvas.width, canvas.height)
+    wake()
   }
 
-  resize()
-  const ro = new ResizeObserver(resize)
-  if (canvas.parentElement) ro.observe(canvas.parentElement)
+  let colorsKey = ""
+  const syncColors = () => {
+    const source = options.colors?.length
+      ? options.colors
+      : dark
+        ? DARK_COLORS
+        : LIGHT_COLORS
+    const key = `${source.join()}|${dark}`
+    if (key === colorsKey) return
+    colorsKey = key
+    uStops.forEach((loc, i) => {
+      gl.uniform3fv(loc, hexToOklab(source[i % source.length]!))
+    })
+    gl.uniform3fv(uBase, hexToOklab(dark ? DARK_BASE : LIGHT_BASE))
+  }
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
-  const onReduce = () => {
-    reduce = mqReduce.matches
+  let onScreen = true
+  let raf = 0
+  let last = 0
+  let clock = 0
+
+  const moving = () =>
+    onScreen && !mqReduce.matches && document.visibilityState !== "hidden"
+
+  function wake() {
+    if (raf) return
+    last = performance.now()
+    raf = requestAnimationFrame(tick)
   }
-  onReduce()
+
+  // An arrow, not a declaration, so TypeScript keeps `gl` narrowed inside.
+  const tick = (now: number) => {
+    raf = 0
+    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000))
+    last = now
+    const live = moving()
+    if (live) clock += dt
+
+    mouse.x += (target.x - mouse.x) * 0.05
+    mouse.y += (target.y - mouse.y) * 0.05
+    pull += (pullTarget - pull) * 0.04
+
+    syncColors()
+    const speed = numberOr(options.speed, DEFAULT_SPEED, 0, 4)
+    gl.uniform2f(uResolution, canvas.width, canvas.height)
+    gl.uniform1f(uTime, clock * speed * 4)
+    gl.uniform1f(uBlur, numberOr(options.blur, DEFAULT_BLUR, 0, 1))
+    gl.uniform1f(
+      uIntensity,
+      numberOr(options.intensity, DEFAULT_INTENSITY, 0, 1)
+    )
+    gl.uniform1f(uGrain, numberOr(options.grain, DEFAULT_GRAIN, 0, 1))
+    // Grain re-rolls at 24 fps, like film, and holds still when paused.
+    gl.uniform1f(uGrainSeed, (Math.floor(clock * 24) % 997) * 13.7)
+    gl.uniform1f(uPixel, pixel)
+    gl.uniform1f(uPointer, options.interactive === false ? 0 : pull)
+    gl.uniform2f(uMouse, mouse.x, mouse.y)
+    gl.drawArrays(gl.TRIANGLES, 0, 6)
+
+    if (live) raf = requestAnimationFrame(tick)
+  }
+
+  const ro = new ResizeObserver(resize)
+  if (canvas.parentElement) ro.observe(canvas.parentElement)
+  const io = new IntersectionObserver(([entry]) => {
+    onScreen = entry?.isIntersecting ?? true
+    wake()
+  })
+  io.observe(canvas)
+  const onVisibility = () => wake()
+  document.addEventListener("visibilitychange", onVisibility)
+  const onReduce = () => wake()
   mqReduce.addEventListener("change", onReduce)
 
   const syncTheme = () => {
@@ -395,6 +470,7 @@ export function createShaderGradient(
     if (next === dark) return
     dark = next
     options.onThemeChange?.(dark)
+    wake()
   }
   const mo = new MutationObserver(syncTheme)
   mo.observe(document.documentElement, {
@@ -405,66 +481,36 @@ export function createShaderGradient(
   mqDark.addEventListener("change", syncTheme)
 
   const onMove = (e: PointerEvent) => {
-    if (!options.interactive) return
-    const parent = canvas.parentElement
-    if (!parent) return
-    const rect = parent.getBoundingClientRect()
+    if (options.interactive === false) return
+    const rect = canvas.getBoundingClientRect()
     if (rect.width <= 0 || rect.height <= 0) return
-    targetMouse.x = (e.clientX - rect.left) / rect.width
-    targetMouse.y = 1 - (e.clientY - rect.top) / rect.height
+    const x = (e.clientX - rect.left) / rect.width
+    const y = 1 - (e.clientY - rect.top) / rect.height
+    const inside = x >= 0 && x <= 1 && y >= 0 && y <= 1
+    pullTarget = inside ? 1 : 0
+    if (inside) {
+      target.x = x
+      target.y = y
+    }
   }
   window.addEventListener("pointermove", onMove, { passive: true })
 
-  const tick = (now: number) => {
-    if (!running) return
-
-    if (reduce) {
-      if (frozenTime === 0) frozenTime = (now - start) / 1000
-    } else {
-      frozenTime = 0
-    }
-
-    const time = reduce ? frozenTime : (now - start) / 1000
-    const paletteSrc = options.colors ?? (dark ? DARK_COLORS : LIGHT_COLORS)
-    const palette = [0, 1, 2, 3].map((i) =>
-      hexToRgb(paletteSrc[i % paletteSrc.length] ?? LIGHT_COLORS[i]!)
-    )
-
-    mouse.x += (targetMouse.x - mouse.x) * 0.03
-    mouse.y += (targetMouse.y - mouse.y) * 0.03
-
-    gl.uniform2f(uResolution, canvas.width, canvas.height)
-    gl.uniform1f(uTime, time)
-    gl.uniform1f(uSpeed, reduce ? 0 : (options.speed ?? 0.14))
-    gl.uniform1f(uBlur, Math.min(1, Math.max(0, options.blur ?? 0.7)))
-    gl.uniform1f(uIntensity, Math.min(1, Math.max(0, options.intensity ?? 0.95)))
-    gl.uniform1f(uDark, dark ? 1 : 0)
-    gl.uniform3f(uC1, palette[0]![0], palette[0]![1], palette[0]![2])
-    gl.uniform3f(uC2, palette[1]![0], palette[1]![1], palette[1]![2])
-    gl.uniform3f(uC3, palette[2]![0], palette[2]![1], palette[2]![2])
-    gl.uniform3f(uC4, palette[3]![0], palette[3]![1], palette[3]![2])
-    gl.uniform2f(
-      uMouse,
-      options.interactive ? mouse.x : 0.5,
-      options.interactive ? mouse.y : 0.5
-    )
-
-    gl.drawArrays(gl.TRIANGLES, 0, 6)
-    raf = requestAnimationFrame(tick)
-  }
-
-  raf = requestAnimationFrame(tick)
+  resize()
+  wake()
 
   return {
     setOptions(next) {
       options = { ...options, ...next }
       syncTheme()
+      wake()
     },
     destroy() {
-      running = false
       cancelAnimationFrame(raf)
+      raf = 0
       ro.disconnect()
+      io.disconnect()
       mo.disconnect()
+      document.removeEventListener("visibilitychange", onVisibility)
       mqReduce.removeEventListener("change", onReduce)
       mqDark.removeEventListener("change", syncTheme)
       window.removeEventListener("pointermove", onMove)

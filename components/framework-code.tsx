@@ -20,7 +20,7 @@ export function FrameworkSvelte({ children }: { children: ReactNode }) {
 
 /**
  * Shows the React or Svelte usage snippet based on the docs framework picker.
- * The picker sits in the same muted chrome as the code block below it.
+ * The picker is the header row of the same plate as the code below it.
  */
 export function FrameworkCode({
   children,
@@ -30,11 +30,17 @@ export function FrameworkCode({
   className?: string
 }) {
   return (
-    <div data-slot="framework-code" className={cn("not-prose my-6", className)}>
-      <div className="flex h-9 items-center justify-end rounded-t-2xl bg-muted/50 px-3.5">
+    <div
+      data-slot="framework-code"
+      className={cn(
+        "not-prose my-6 overflow-hidden rounded-xl border bg-card",
+        className
+      )}
+    >
+      <div className="flex h-10 items-center border-b px-3.5">
         <FrameworkSelect />
       </div>
-      <div className="[&_figure]:my-0 [&_figure]:rounded-t-none [&_figure]:pt-0">
+      <div className="[&_figure]:my-0 [&_figure]:rounded-none [&_figure]:border-0">
         {children}
       </div>
     </div>

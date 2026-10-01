@@ -1,0 +1,31 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "items": [
+    {
+      "name": "typewriter",
+      "type": "registry:ui",
+      "title": "Typewriter",
+      "description": "A real, playable typewriter in SVG — each key presses down, its typebar swings up to strike the ribbon, and the carriage steps along. Click it and type.",
+      "files": [
+        {
+          "path": "typewriter.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/typewriter.tsx"
+        }
+      ]
+    },
+    {
+      "name": "typewriter-svelte",
+      "type": "registry:ui",
+      "title": "Typewriter",
+      "description": "A real, playable typewriter in SVG — each key presses down, its typebar swings up to strike the ribbon, and the carriage steps along. Click it and type.",
+      "files": [
+        {
+          "path": "typewriter.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/typewriter.svelte"
+        }
+      ]
+    }
+  ]
+}

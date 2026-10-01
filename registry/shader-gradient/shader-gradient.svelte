@@ -6,6 +6,10 @@
   import {
     createShaderGradient,
     DARK_FALLBACK,
+    DEFAULT_BLUR,
+    DEFAULT_GRAIN,
+    DEFAULT_INTENSITY,
+    DEFAULT_SPEED,
     LIGHT_FALLBACK,
     resolveDark,
     type ShaderGradientInstance,
@@ -23,9 +27,10 @@
   let {
     class: className = "",
     colors,
-    speed = 0.14,
-    blur = 0.7,
-    intensity = 0.95,
+    speed = DEFAULT_SPEED,
+    blur = DEFAULT_BLUR,
+    intensity = DEFAULT_INTENSITY,
+    grain = DEFAULT_GRAIN,
     interactive = true,
     theme = "auto",
   }: Props = $props()
@@ -58,6 +63,7 @@
       speed,
       blur,
       intensity,
+      grain,
       interactive,
       theme,
       onThemeChange: (dark) => {
@@ -82,6 +88,7 @@
       speed,
       blur,
       intensity,
+      grain,
       interactive,
       theme,
     })
@@ -93,8 +100,11 @@
 <div
   data-slot="shader-gradient"
   aria-hidden="true"
-  class={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}
+  class={cn("pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] [mask-image:linear-gradient(#000,#000)]", className)}
   style="background-color: {fallback.backgroundColor}; background-image: {fallback.backgroundImage};"
 >
-  <canvas bind:this={canvas} class="absolute inset-0 size-full"></canvas>
+  <!-- Firefox can hand an opaque WebGL canvas straight to the system
+       compositor, which ignores rounded clips. The mask on the root keeps it
+       in the page's own layer, so the parent's radius holds. -->
+  <canvas bind:this={canvas} class="absolute inset-0 size-full rounded-[inherit]"></canvas>
 </div>

@@ -7,6 +7,10 @@ import { cn } from "@/lib/utils"
 import {
   createShaderGradient,
   DARK_FALLBACK,
+  DEFAULT_BLUR,
+  DEFAULT_GRAIN,
+  DEFAULT_INTENSITY,
+  DEFAULT_SPEED,
   LIGHT_FALLBACK,
   resolveDark,
   type ShaderGradientInstance,
@@ -16,6 +20,10 @@ import {
 export {
   DARK_COLORS,
   DARK_FALLBACK,
+  DEFAULT_BLUR,
+  DEFAULT_GRAIN,
+  DEFAULT_INTENSITY,
+  DEFAULT_SPEED,
   LIGHT_COLORS,
   LIGHT_FALLBACK,
 } from "./shader-gradient-vanilla"
@@ -33,15 +41,16 @@ export type ShaderGradientProps = Omit<
 }
 
 /**
- * Quiet WebGL atmosphere for heroes and empty states — soft-focus color
- * fields behind UI. Theme-aware light / dusk.
+ * A grainy liquid gradient for heroes and empty states — the palette flows
+ * through slow warped noise under a film grain. Theme-aware.
  */
 export function ShaderGradient({
   className,
   colors,
-  speed = 0.14,
-  blur = 0.7,
-  intensity = 0.95,
+  speed = DEFAULT_SPEED,
+  blur = DEFAULT_BLUR,
+  intensity = DEFAULT_INTENSITY,
+  grain = DEFAULT_GRAIN,
   interactive = true,
   theme = "auto",
 }: ShaderGradientProps) {
@@ -73,6 +82,7 @@ export function ShaderGradient({
       speed,
       blur,
       intensity,
+      grain,
       interactive,
       theme,
       onThemeChange: setIsDark,
@@ -91,11 +101,12 @@ export function ShaderGradient({
       speed,
       blur,
       intensity,
+      grain,
       interactive,
       theme,
       onThemeChange: setIsDark,
     })
-  }, [colors, speed, blur, intensity, interactive, theme])
+  }, [colors, speed, blur, intensity, grain, interactive, theme])
 
   const fallback = isDark ? DARK_FALLBACK : LIGHT_FALLBACK
 
@@ -104,7 +115,7 @@ export function ShaderGradient({
       data-slot="shader-gradient"
       aria-hidden
       className={cn(
-        "pointer-events-none absolute inset-0 overflow-hidden",
+        "pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] [mask-image:linear-gradient(#000,#000)]",
         className
       )}
       style={{
@@ -112,7 +123,13 @@ export function ShaderGradient({
         backgroundImage: fallback.backgroundImage,
       }}
     >
-      <canvas ref={canvasRef} className="absolute inset-0 size-full" />
+      {/* Firefox can hand an opaque WebGL canvas straight to the system
+          compositor, which ignores rounded clips. The mask on the root keeps
+          it in the page's own layer, so the parent's radius holds. */}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 size-full rounded-[inherit]"
+      />
     </div>
   )
 }

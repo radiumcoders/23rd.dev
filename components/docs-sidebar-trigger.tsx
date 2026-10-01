@@ -20,15 +20,11 @@ export function DocsSidebarTrigger({
   const { open, openMobile, isMobile, toggleSidebar } = useSidebar()
   const expanded = isMobile ? openMobile : open
   const [revealed, setRevealed] = React.useState(!expanded)
+  // Opening hides it straight away; closing reveals it after the slide.
+  if (expanded && revealed) setRevealed(false)
 
   React.useEffect(() => {
-    if (!showWhenCollapsed) return
-
-    if (expanded) {
-      setRevealed(false)
-      return
-    }
-
+    if (!showWhenCollapsed || expanded) return
     const id = window.setTimeout(() => setRevealed(true), CLOSE_MS)
     return () => window.clearTimeout(id)
   }, [expanded, showWhenCollapsed])

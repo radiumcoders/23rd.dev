@@ -1,4 +1,8 @@
-import { Geist, Geist_Mono } from "next/font/google"
+import {
+  Bricolage_Grotesque,
+  Hanken_Grotesk,
+  Martian_Mono,
+} from "next/font/google"
 import { RootProvider } from "fumadocs-ui/provider/next"
 import type { Metadata, Viewport } from "next"
 import type { ReactNode } from "react"
@@ -94,17 +98,25 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: light)", color: "#eeefef" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f0f0e" },
   ],
   colorScheme: "light dark",
 }
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
+const fontSans = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-sans" })
 
-const fontMono = Geist_Mono({
+const fontMono = Martian_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
+  axes: ["wdth"],
+})
+
+/** Display face for component names. */
+const fontDisplay = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-display",
+  axes: ["opsz"],
 })
 
 export default function RootLayout({
@@ -120,7 +132,12 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("font-sans antialiased", fontMono.variable, geist.variable)}
+      className={cn(
+        "font-sans antialiased",
+        fontSans.variable,
+        fontMono.variable,
+        fontDisplay.variable
+      )}
     >
       <head>
         <script

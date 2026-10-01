@@ -9,6 +9,14 @@
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: var(--font-sans);
+    --color-bench: var(--bench);
+    --color-sheet: var(--sheet);
+    --color-plate: var(--plate);
+    --color-screen: var(--screen);
+    --color-ink: var(--ink);
+    --color-graphite: var(--graphite);
+    --color-wash: var(--wash);
+    --color-rule: var(--rule);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,6 +56,36 @@
     --radius-3xl: calc(var(--radius) * 1.25);
     --radius-4xl: calc(var(--radius) * 1.3);
     --animate-sidebar-open-blur: sidebar-open-blur 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    --animate-toc-rail: toc-rail 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    --animate-toc-item: toc-item 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    --animate-toc-scope: toc-scope 1.1s linear infinite;
+}
+
+/* On this page — the SVG rail draws in, rows follow it, the scope trace runs. */
+@keyframes toc-rail {
+    from {
+        stroke-dashoffset: 1;
+    }
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes toc-item {
+    from {
+        opacity: 0;
+        translate: -3px 0;
+    }
+    to {
+        opacity: 1;
+        translate: 0 0;
+    }
+}
+
+@keyframes toc-scope {
+    to {
+        transform: translateX(-12px);
+    }
 }
 
 @keyframes sidebar-open-blur {
@@ -80,6 +118,30 @@
     animation: 420ms cubic-bezier(0.16, 1, 0.3, 1) 40ms both page-blur-in;
 }
 
+/*
+ * Firefox stops painting the rest of the page while a view transition runs,
+ * so the sidebar marker's whole flight happens unseen and it just jumps.
+ * There the transition ends at once and the new page fades in as a plain
+ * animation, which leaves everything else live.
+ */
+@supports (-moz-appearance: none) {
+    ::view-transition-group(.page-blur),
+    ::view-transition-old(.page-blur),
+    ::view-transition-new(.page-blur) {
+        animation: none;
+    }
+
+    .docs-page {
+        animation: 420ms cubic-bezier(0.16, 1, 0.3, 1) both page-fade-in;
+    }
+}
+
+@keyframes page-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
 @keyframes page-blur-out {
     to {
         filter: blur(2.5px);
@@ -98,75 +160,51 @@
     }
 }
 
+/*
+ * v2 tokens — "monitor bench".
+ * The chrome is a quiet, achromatic bench; the only colour on the page comes
+ * from the components running on their screens. Dark mode is carbon: a deep,
+ * faintly warm black rather than blue-grey slate.
+ *
+ *   bench     page ground: sidebar, table of contents
+ *   sheet     the inset panel the page content sits on
+ *   plate     surfaces on the sheet: code, controls, tables, menus
+ *   screen    the stage a live component renders on
+ *   ink       text and primary actions
+ *   graphite  secondary text
+ *   wash      hover and pressed fills
+ *   rule      borders and dividers
+ */
 :root {
     color-scheme: light;
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
+    --bench: #eeefef;
+    --sheet: #ffffff;
+    --plate: #f6f7f7;
+    --screen: #ffffff;
+    --ink: #141517;
+    --graphite: #5e6269;
+    --wash: #e6e8e9;
+    --rule: #d8dadc;
+
+    /* Subpixel triad — the "this one is on" indicator. */
+    --triad-r: #ff3b3b;
+    --triad-g: #1fc760;
+    --triad-b: #3563ff;
+
     --radius: 0.5rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --radius-screen: 14px;
 }
 
 .dark {
     color-scheme: dark;
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --bench: #0f0f0e;
+    --sheet: #090908;
+    --plate: #161614;
+    --screen: #060605;
+    --ink: #edece8;
+    --graphite: #9b9994;
+    --wash: #1f1e1c;
+    --rule: #272624;
 }
 
 /* Before `html.dark` exists, :root is light. Keep system-dark users on dark
@@ -174,54 +212,72 @@
 @media (prefers-color-scheme: dark) {
     :root:not(.light) {
         color-scheme: dark;
-        --background: oklch(0.145 0 0);
-        --foreground: oklch(0.985 0 0);
-        --card: oklch(0.205 0 0);
-        --card-foreground: oklch(0.985 0 0);
-        --popover: oklch(0.205 0 0);
-        --popover-foreground: oklch(0.985 0 0);
-        --primary: oklch(0.922 0 0);
-        --primary-foreground: oklch(0.205 0 0);
-        --secondary: oklch(0.269 0 0);
-        --secondary-foreground: oklch(0.985 0 0);
-        --muted: oklch(0.269 0 0);
-        --muted-foreground: oklch(0.708 0 0);
-        --accent: oklch(0.269 0 0);
-        --accent-foreground: oklch(0.985 0 0);
-        --destructive: oklch(0.704 0.191 22.216);
-        --border: oklch(1 0 0 / 10%);
-        --input: oklch(1 0 0 / 15%);
-        --ring: oklch(0.556 0 0);
-        --chart-1: oklch(0.87 0 0);
-        --chart-2: oklch(0.556 0 0);
-        --chart-3: oklch(0.439 0 0);
-        --chart-4: oklch(0.371 0 0);
-        --chart-5: oklch(0.269 0 0);
-        --sidebar: oklch(0.205 0 0);
-        --sidebar-foreground: oklch(0.985 0 0);
-        --sidebar-primary: oklch(0.488 0.243 264.376);
-        --sidebar-primary-foreground: oklch(0.985 0 0);
-        --sidebar-accent: oklch(0.269 0 0);
-        --sidebar-accent-foreground: oklch(0.985 0 0);
-        --sidebar-border: oklch(1 0 0 / 10%);
-        --sidebar-ring: oklch(0.556 0 0);
-        --color-fd-background: hsl(0, 0%, 7.04%);
-        --color-fd-foreground: hsl(0, 0%, 92%);
-        --color-fd-muted: hsl(0, 0%, 12.9%);
-        --color-fd-muted-foreground: hsla(0, 0%, 70%, 0.8);
-        --color-fd-popover: hsl(0, 0%, 11.6%);
-        --color-fd-popover-foreground: hsl(0, 0%, 86.9%);
-        --color-fd-card: hsl(0, 0%, 9.8%);
-        --color-fd-card-foreground: hsl(0, 0%, 98%);
-        --color-fd-border: hsla(0, 0%, 40%, 20%);
-        --color-fd-primary: hsl(0, 0%, 98%);
-        --color-fd-primary-foreground: hsl(0, 0%, 9%);
-        --color-fd-secondary: hsl(0, 0%, 12.9%);
-        --color-fd-secondary-foreground: hsl(0, 0%, 92%);
-        --color-fd-accent: hsla(0, 0%, 40.9%, 30%);
-        --color-fd-accent-foreground: hsl(0, 0%, 90%);
-        --color-fd-ring: hsl(0, 0%, 54.9%);
+        --bench: #0f0f0e;
+        --sheet: #090908;
+        --plate: #161614;
+        --screen: #060605;
+        --ink: #edece8;
+        --graphite: #9b9994;
+        --wash: #1f1e1c;
+        --rule: #272624;
     }
+}
+
+/* shadcn + Fumadocs roles, mapped onto the bench tokens. */
+:root,
+.dark {
+    --background: var(--bench);
+    --foreground: var(--ink);
+    --card: var(--plate);
+    --card-foreground: var(--ink);
+    --popover: var(--plate);
+    --popover-foreground: var(--ink);
+    --primary: var(--ink);
+    --primary-foreground: var(--bench);
+    --secondary: var(--wash);
+    --secondary-foreground: var(--ink);
+    --muted: var(--wash);
+    --muted-foreground: var(--graphite);
+    --accent: var(--wash);
+    --accent-foreground: var(--ink);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: var(--rule);
+    --input: var(--rule);
+    --ring: color-mix(in oklab, var(--ink) 55%, transparent);
+    --chart-1: var(--triad-r);
+    --chart-2: var(--triad-g);
+    --chart-3: var(--triad-b);
+    --chart-4: var(--graphite);
+    --chart-5: var(--ink);
+    --sidebar: var(--bench);
+    --sidebar-foreground: var(--ink);
+    --sidebar-primary: var(--ink);
+    --sidebar-primary-foreground: var(--bench);
+    --sidebar-accent: var(--wash);
+    --sidebar-accent-foreground: var(--ink);
+    --sidebar-border: var(--rule);
+    --sidebar-ring: var(--ring);
+
+    --color-fd-background: var(--bench);
+    --color-fd-foreground: var(--ink);
+    --color-fd-muted: var(--wash);
+    --color-fd-muted-foreground: var(--graphite);
+    --color-fd-popover: var(--plate);
+    --color-fd-popover-foreground: var(--ink);
+    --color-fd-card: var(--plate);
+    --color-fd-card-foreground: var(--ink);
+    --color-fd-border: var(--rule);
+    --color-fd-primary: var(--ink);
+    --color-fd-primary-foreground: var(--bench);
+    --color-fd-secondary: var(--wash);
+    --color-fd-secondary-foreground: var(--ink);
+    --color-fd-accent: var(--wash);
+    --color-fd-accent-foreground: var(--ink);
+    --color-fd-ring: var(--ring);
+}
+
+.dark {
+    --destructive: oklch(0.704 0.191 22.216);
 }
 
 @layer base {
@@ -266,6 +322,18 @@
     @apply bg-background text-foreground;
   }
 
+  ::selection {
+    background-color: var(--ink);
+    color: var(--bench);
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-variation-settings: "wdth" 87.5;
+  }
+
   html {
     @apply bg-background font-sans;
     scrollbar-gutter: stable;
@@ -275,6 +343,67 @@
     margin-right: 0px !important;
     --removed-body-scroll-bar-size: 0px !important;
   }
+}
+
+/* Display face for component names — never for running text or labels.
+   Bricolage at its largest optical size, set tight. */
+@utility font-display {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-weight: 700;
+  font-variation-settings: "opsz" 96;
+  letter-spacing: -0.035em;
+}
+
+/* Reading column. Fumadocs' typography plugin uses :where(), so these win. */
+.prose {
+  --tw-prose-body: color-mix(in oklab, var(--ink) 86%, var(--bench));
+  --tw-prose-headings: var(--ink);
+  line-height: 1.7;
+}
+
+.prose h2 {
+  margin-top: 3.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+.prose h3 {
+  margin-top: 2.25rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.prose a:not([data-card]) {
+  font-weight: inherit;
+  text-decoration-color: color-mix(in oklab, var(--ink) 30%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 150ms;
+}
+
+.prose a:not([data-card]):hover {
+  text-decoration-color: var(--ink);
+}
+
+.prose strong {
+  font-weight: 600;
+}
+
+.prose :not(pre) > code {
+  padding: 0.1em 0.35em;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  background: var(--plate);
+  font-size: 0.8125em;
+}
+
+.prose kbd {
+  border-color: var(--rule);
+  background: var(--plate);
+  box-shadow: 0 1px 0 var(--rule);
 }
 
 @media (prefers-reduced-motion: reduce) {

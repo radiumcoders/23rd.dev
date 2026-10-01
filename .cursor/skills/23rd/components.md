@@ -44,7 +44,7 @@ Background. Two vertical staves. Notes fall, bloom at the playhead, then flare. 
 
 Best fit: a music, broadcast, or terminal hero that should feel like a CRT score.
 
-Not this: fire (`shader-fire`), sky (`shader-sky`), a footer.
+Not this: fire (`shader-anime-fire`), sky (`shader-sky`), a footer.
 
 Deps: none. Key props: `color`, `glow` (50, range 0–100), `speed` (1.35 beats/s), `density` (1), `sway` (true), `seed` (23), `theme`.
 
@@ -61,7 +61,7 @@ export function Score() {
 }
 ```
 
-Pitfalls: omit `color` so theme can swap (dark `#4DFF6A` on `#050505`, light `#147A3A` on a transparent canvas). Dark mode paints a solid `#050505` rectangle — clip the parent. Issue [#28](https://github.com/radiumcoders/23rd.dev/issues/28) is that square edge. The docs sentence “Press d to toggle” is not implemented on the component or the demo. Do not add a `d` shortcut.
+Pitfalls: omit `color` so theme can swap (dark `#4DFF6A`, light `#147A3A`). The canvas is transparent in both themes; the parent paints the background. Issue [#28](https://github.com/radiumcoders/23rd.dev/issues/28) is that square edge. The docs sentence “Press d to toggle” is not implemented on the component or the demo. Do not add a `d` shortcut.
 
 ## radiant-lines
 
@@ -143,13 +143,39 @@ export function Hero() {
 
 Pitfalls: custom `colors` stick; they do not cross-fade into the dark palette. Stock light `#7CB4E0 #B4D8C4 #EFE4BC #D2D7EC`. Stock dark `#3A6FA0 #2F6B52 #8A6B32 #4A4D7A`. If WebGL fails, a CSS `LIGHT_FALLBACK` / `DARK_FALLBACK` radial stack is used. `interactive` eases the wash toward the pointer.
 
+## shader-anime-fire
+
+Shader. Cel-shaded flames lick up from the bottom edge in flat bands. Ember / flame / core.
+
+Best fit: fire along the floor of a hero. `dither` prints the bands as Bayer pixels.
+
+Not this: a 404 (`dithered-404` owns the burning glyph and the fireball cursor). A quiet wash (`shader-fire`).
+
+Deps: none. Key props: `colors`, `speed` (0.6), `intensity` (1), `height` (0.45), `interactive` (true), `dither` (false), `pixelSize` (1), `theme`.
+
+```tsx
+"use client"
+import { ShaderAnimeFire } from "@/components/ui/shader-anime-fire"
+
+export function Hero() {
+  return (
+    <section className="relative isolate min-h-svh overflow-hidden bg-background">
+      <ShaderAnimeFire />
+      <div className="relative z-10 p-10">Your content</div>
+    </section>
+  )
+}
+```
+
+Pitfalls: `interactive` makes a plume of flame reach up toward the pointer. `dither` defaults off. Custom `colors` do not follow theme. Light `#D8341A #F9731E #FFBA3A`. Dark `#B4200A #FF6512 #FFC04A`.
+
 ## shader-fire
 
 Shader. Sparse tongues from the bottom edge. Ember / flame / highlight.
 
 Best fit: heat behind a hero. `dither` turns the wash into Bayer pixels.
 
-Not this: a 404 (`dithered-404` owns the burning glyph and the fireball cursor).
+Not this: a 404 (`dithered-404` owns the burning glyph and the fireball cursor). Bold graphic flames (`shader-anime-fire`).
 
 Deps: none. Key props: `colors`, `speed` (0.55), `intensity` (0.55), `height` (0.45), `interactive` (true), `dither` (false), `pixelSize` (1), `theme`.
 
@@ -195,34 +221,13 @@ export function Sky() {
 
 Pitfalls: `interactive` defaults false (unlike gradient and fire). Custom `colors` stay put. Light `#2478C8 #8ECBF2 #F7FBFF #C5D8EC`. Dark `#9AA3AD #C8CED4 #5C6570 #3F4750`.
 
-## tangle-footer
-
-Footer. Five nested semicircle ribbons of repeated text. GPU rotation, pauses off-screen.
-
-Best fit: a site footer that is the visual, with a few phrases.
-
-Not this: rubber-band overscroll (`stretchy-footer`), a hero background.
-
-Deps: React needs `motion`. Svelte has none. Key props: `lines`, `ribbon`, `textColor`, `background`, `height`, `seed` (23), `label` (`"Site footer"`).
-
-```tsx
-"use client"
-import { TangleFooter } from "@/components/ui/tangle-footer"
-
-export function Footer() {
-  return <TangleFooter lines={["Open the docs.", "Install what you need."]} />
-}
-```
-
-Pitfalls: default height is half the measured width (upper semicircle, aspect `2 / 1`). A shorter `height` scales the nest down. `background="transparent"` when the parent already paints the stage. Theme colors when props are omitted: ribbon `#141414` / `#E8E4DC`, text `#F4F0E8` / `#161616`, field `#EFEAE2` / `#121210`, via `--tangle-ribbon` and `--tangle-text`. Reduced motion skips the spin. Default lines are the five sentences in `DEFAULT_LINES`.
-
 ## stretchy-footer
 
 Footer behavior. Overscroll past the bottom stretches an aurora and lifts the page, then snaps back.
 
 Best fit: a Dia-like end of a long page. The component can be the scroller, or an overlay on window / element scroll.
 
-Not this: tilting the page (`folio`), spinning type (`tangle-footer`).
+Not this: tilting the page (`folio`).
 
 Deps: React needs `motion`. Svelte uses `stretchy-footer-spring-vanilla.ts` and declares no npm deps. Key props: `children`, `scrollRef` / Svelte `scrollEl`, `windowScroll` (false), `contentSelector` (`[data-stretchy-page]`), `maxStretch` (280), `colors`, `stiffness` (380), `damping` (32), `columns` (48), `blur` (14), `glow` (0.22), `label`, `demoId`.
 
@@ -302,7 +307,7 @@ Page. A Bayer-dithered “404” burned by a fireball cursor into embers and smo
 
 Best fit: the not-found route, full viewport.
 
-Not this: decorative fire behind a normal hero (`shader-fire`). Set `dither={false}` only when you want the soft fire on the same 404 glyph.
+Not this: decorative fire behind a normal hero (`shader-anime-fire`). Set `dither={false}` only when you want the soft fire on the same 404 glyph.
 
 Deps: none. Key props: `color`, `pixelSize` (4), `brush` (28), `interactive` (true), `dither` (true), `theme`.
 
@@ -330,7 +335,7 @@ Section. The sheet tips one way on scroll down, the other on scroll up, blur on 
 
 Best fit: a long editorial page that should feel like one sheet.
 
-Not this: overscroll aurora (`stretchy-footer`). Do not use it when the user needs an obvious effect on a trackpad — issue [#29](https://github.com/radiumcoders/23rd.dev/issues/29) says the lean is barely visible on Mac. The docs “show effect” button calls `playFolioDemo`; that is a preview, not a stronger public tilt.
+Not this: overscroll aurora (`stretchy-footer`). The lean follows wheel speed, so a fast trackpad swipe leans about as far as a mouse flick; slow reading-speed scrolls stay subtle. The docs “show effect” button calls `playFolioDemo`; that is a preview, not a stronger public tilt.
 
 Deps: none. Key props: `children`, `blur` (4), `perspective` (1000, floor 1000), `returnMs` (520), `windowScroll` (false), `contentSelector` (`[data-folio-page]`), `label` (`"Tilting page"`), `demoId`.
 
@@ -380,3 +385,29 @@ Controlled when `value` is not `undefined`. Otherwise uncontrolled, seeded from 
 `GooeyColor` is `{ h: 0–360, s: 0–100, l: 0–100, a: 0–1 }`. Strings accept hex (`#RGB`, `#RGBA`, `#RRGGBB`, `#RRGGBBAA`) and `hsl` / `hsla`. `onChange` second arg is `hsla(...)` from `toCss`. EyeDropper appears only when `window.EyeDropper` exists; it is not a prop.
 
 Pitfalls: the panel overflows the trigger. Do not put it in `overflow-hidden`. React also exports `parseColor`. No `className` on Svelte — use `class`.
+
+## typewriter
+
+Component. A real typewriter drawn in SVG. Every key is wired to its own typebar: a letter presses its key, swings that bar up out of the basket to strike the ribbon, lands on the sheet, and the carriage steps one character left. Capitals hold shift. At the margin the return lever kicks, the platen turns the paper up a line, and the carriage slides home. With `loop`, the sheet is pulled out and a fresh one rolls in.
+
+Best fit: a letter, a manifesto, or a hero line that should arrive one keystroke at a time.
+
+Not this: a wordmark (`ascii-logo`), a blinking input caret, plain typed text in a paragraph (this draws the whole machine), or a background behind other copy.
+
+Deps: none. Props: `color` (`#8EC3B5`, body enamel), `text` (`DEFAULT_TEXT`), `speed` (12 chars/s), `humanize` (true), `jitter` (0.3), `columns` (32, range 16–60), `loop` (true), `hold` (2600 ms), `startDelay` (600 ms), `sound` (false), `interactive` (true), `label` (none; nameplate text), `onDone`.
+
+```tsx
+"use client"
+import { Typewriter } from "@/components/ui/typewriter"
+
+export function Letter() {
+  return (
+    <div className="h-96 w-full overflow-hidden rounded-xl border">
+      <Typewriter text={"Dear reader,\nthe ribbon is fresh."} />
+    </div>
+  )
+}
+```
+
+Pitfalls: `\n` is the only way to force a line break; everything else wraps at words to `columns`. The machine scales with its parent, so text size follows the parent's size, not a `text-*` class; fewer `columns` make a narrower machine with larger type. Only the enamel takes `color`; there is no ink, theme, or paper color prop. `interactive` makes the root focusable: keyboard typing, Enter = return, Backspace = carriage back a space (overstrike), and clicking keys, space, shift (locks), and the lever. The first manual key stops the script; remount with a new `key` to bring it back. The sheet is ivory (dimmer in dark mode). `sound` is Web Audio and stays silent until the visitor has interacted with the page. Reduced motion prints the whole page at once. Changing `text` starts over; other props apply live.
+

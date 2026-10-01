@@ -83,7 +83,7 @@ type PhosphorScoreProps = {
 }
 ```
 
-`DARK_COLOR` `#4DFF6A`, `LIGHT_COLOR` `#147A3A`, `DARK_BG` `#050505`, `LIGHT_BG` `"transparent"`. A set `color` replaces ink only. Background still follows dark vs light.
+`DARK_COLOR` `#4DFF6A`, `LIGHT_COLOR` `#147A3A`, `DARK_BG` and `LIGHT_BG` are both `"transparent"`. A set `color` replaces ink only.
 
 ## radiant-lines
 
@@ -147,6 +147,28 @@ type ShaderGradientProps = {
 
 `LIGHT_FALLBACK` and `DARK_FALLBACK` are CSS background stacks used when WebGL is unavailable. Palette line in the engine: `options.colors ?? (dark ? DARK_COLORS : LIGHT_COLORS)`.
 
+## shader-anime-fire
+
+```ts
+type ShaderAnimeFireProps = {
+  colors?: string[] // ember, flame, core
+  speed?: number // 0.6
+  intensity?: number // 1
+  height?: number // 0.45
+  interactive?: boolean // true
+  dither?: boolean // false
+  pixelSize?: number // 1
+  theme?: "light" | "dark" | "auto"
+  className?: string
+}
+```
+
+`LIGHT_COLORS`: `#9C3A24`, `#C96A32`, `#E6C4A0`.
+
+`DARK_COLORS`: `#A33A18`, `#D4682A`, `#E8B45A`.
+
+Same `colors ?? theme palette` rule. Fallbacks exported as `LIGHT_FALLBACK` / `DARK_FALLBACK`.
+
 ## shader-fire
 
 ```ts
@@ -193,30 +215,6 @@ type ShaderSkyProps = {
 `DARK_COLORS`: `#9AA3AD`, `#C8CED4`, `#5C6570`, `#3F4750`.
 
 `skyFallback(colors, dark)` builds the CSS fallback. Custom `colors` do not swap.
-
-## tangle-footer
-
-```ts
-type TangleFooterProps = {
-  lines?: string[] // DEFAULT_LINES, five phrases
-  ribbon?: string
-  textColor?: string
-  background?: string // or "transparent"
-  height?: number // omit → half of measured width
-  seed?: number // 23
-  label?: string // "Site footer"
-  className?: string
-}
-```
-
-When `ribbon` / `textColor` are omitted the footer sets:
-
-- `--tangle-ribbon`: `#141414` / dark `#E8E4DC`
-- `--tangle-text`: `#F4F0E8` / dark `#161616`
-
-Stroke and fill read those variables. Field classes: `bg-[#EFEAE2] dark:bg-[#121210]` unless `background` is set.
-
-`RING_COUNT` is 5. Not a prop.
 
 ## stretchy-footer
 
@@ -363,6 +361,31 @@ type FolioPlayDetail = {
 ```
 
 React exports `playFolioDemo`, `FOLIO_PLAY` (`"folio:play"`), `applyFolioFrame`. The Svelte component listens for that window event. Reduced motion: no tilt, no blur.
+
+## typewriter
+
+```ts
+type TypewriterProps = {
+  color?: string // "#8EC3B5" body enamel; shades are mixed from it
+  text?: string // DEFAULT_TEXT; "\n" breaks a line
+  speed?: number // 12 characters per second, clamped 1–60
+  humanize?: boolean // true
+  loop?: boolean // true
+  hold?: number // 2600 ms on the finished page before looping
+  startDelay?: number // 600 ms before the first keystroke
+  columns?: number // 32 characters per line, clamped 16–60
+  jitter?: number // 0.3, 0–1
+  sound?: boolean // false
+  interactive?: boolean // true: focusable; type on it or click its keys
+  label?: string // nameplate text on the front; omit for none
+  onDone?: () => void // each time the last character lands
+  className?: string
+}
+```
+
+Also exported: `DEFAULT_COLOR`, `DEFAULT_TEXT`, `DEFAULT_SPEED`, `DEFAULT_COLUMNS`, `DEFAULT_HOLD`, `DEFAULT_START_DELAY`, `DEFAULT_JITTER`, `layoutTypewriter(text, columns)`, types `TypewriterStroke`, `TypewriterOptions`, `TypewriterInstance`.
+
+Vanilla `TypewriterInstance`: `{ setOptions, restart, destroy }`. Not returned to app code by the React component; remount with a `key` to type again. No `ticks` or `theme` props; `color` is the only color prop and it paints the enamel.
 
 ## Events that are not props
 

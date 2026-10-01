@@ -2,30 +2,25 @@
 </script>
 
 <script lang="ts">
-  import { onMount } from "svelte"
+  import { onMount, untrack } from "svelte"
   import {
-    applyResistance,
-    columnScale,
+    createStretchyFooter,
     DEFAULT_BLUR,
     DEFAULT_COLORS,
     DEFAULT_COLUMNS,
+    DEFAULT_DAMPING,
     DEFAULT_GLOW,
-    elementAtBottom,
-    hexToRgba,
-    POP_BOOST,
-    PULL_GAIN,
-    STRETCHY_FOOTER_PLAY,
-    WHEEL_IDLE_MS,
-    windowAtBottom,
-    type StretchyFooterPlayDetail,
+    DEFAULT_MAX_STRETCH,
+    DEFAULT_STIFFNESS,
+    type StretchyFooterInstance,
+    type StretchyFooterOptions,
   } from "./stretchy-footer-vanilla"
-  import { createSpring, type Spring } from "./stretchy-footer-spring-vanilla"
 
   function cn(...parts: Array<string | false | null | undefined>) {
     return parts.filter(Boolean).join(" ")
   }
 
-  interface Props {
+  interface Props extends StretchyFooterOptions {
     class?: string
     /**
      * Page content inside the overflow scroller.
@@ -34,13 +29,13 @@
     children?: import("svelte").Snippet
     /**
      * External scroll container. When set, this component only paints the
-     * aurora overlay and binds overscroll listeners to that element.
+     * aurora overlay and binds overscroll to that element.
      * When omitted (and `windowScroll` is false), this component *is* the scroller.
      */
     scrollEl?: HTMLElement
     /**
      * Bind overscroll to the window and paint a fixed bottom aurora.
-     * Use on full pages (e.g. the component docs) instead of a nested scroller.
+     * Use on full pages instead of a nested scroller.
      */
     windowScroll?: boolean
     /**
@@ -48,27 +43,8 @@
      * Used with `windowScroll` / `scrollEl`. Default `[data-stretchy-page]`.
      */
     contentSelector?: string
-    /** Peak stretch in px. Default `280`. */
-    maxStretch?: number
-    /** Spectrum stops across the aurora columns. */
-    colors?: string[]
-    /** Spring stiffness. Default `380`. */
-    stiffness?: number
-    /** Spring damping. Default `32`. */
-    damping?: number
-    /** How many vertical aurora bars. Default `48`. */
-    columns?: number
-    /** Gaussian blur on the aurora bars, in px. Default `14`. */
-    blur?: number
-    /** White floor bloom opacity (0–1). Default `0.22`. */
-    glow?: number
-    /** Accessible label for the decorative field. */
+    /** Accessible label for the scroll region. */
     label?: string
-    /**
-     * Optional id for docs demos. `playStretchyFooterDemo({ target })` only
-     * animates footers whose `demoId` matches.
-     */
-    demoId?: string
   }
 
   let {
@@ -77,99 +53,69 @@
     scrollEl,
     windowScroll = false,
     contentSelector = "[data-stretchy-page]",
-    maxStretch = 280,
+    maxStretch = DEFAULT_MAX_STRETCH,
     colors = DEFAULT_COLORS,
-    stiffness = 380,
-    damping = 32,
+    stiffness = DEFAULT_STIFFNESS,
+    damping = DEFAULT_DAMPING,
     columns = DEFAULT_COLUMNS,
     blur = DEFAULT_BLUR,
     glow = DEFAULT_GLOW,
+    flip = false,
+    rotate = 0,
     label = "Stretchy overflow",
     demoId,
   }: Props = $props()
 
   let mounted = $state(false)
-  let reduceMotion = $state(false)
-  let demoPlaying = $state(false)
-  let progress = $state(0)
-  let fieldOpacity = $state(0)
-  let pageY = $state(0)
-  let internalEl: HTMLDivElement | undefined = $state()
-
-  let pull = 0
-  let demoPlayingRef = false
-  let spring: Spring | null = null
-  let rolledEl: HTMLElement | null = null
-  let touchStartY = 0
-  let touchStretch0 = 0
-  let wheelTimer: ReturnType<typeof setTimeout> | null = null
-  let demoTimer: ReturnType<typeof setTimeout> | null = null
-
-  const reduce = $derived(mounted && reduceMotion && !demoPlaying)
-  const blurPx = $derived(Math.max(0, blur))
-  const glowAlpha = $derived(Math.min(1, Math.max(0, glow)))
-
-  const bars = $derived.by(() => {
-    const count = Math.max(8, Math.min(96, Math.floor(columns)))
-    return Array.from({ length: count }, (_, i) => {
-      const color = colors[i % colors.length]!
-      const heightPct = Math.max(28, columnScale(i, count) * 100).toFixed(2)
-      return {
-        key: i,
-        height: `${heightPct}%`,
-        backgroundImage: `linear-gradient(to top, ${hexToRgba(color, 1)} 0%, ${hexToRgba(color, 0.6)} 45%, rgba(0, 0, 0, 0) 100%)`,
-      }
-    })
-  })
-
-  function applyVisuals(v: number) {
-    const p =
-      maxStretch <= 0 ? 0 : Math.min(1, Math.max(0, v / maxStretch))
-    progress = p
-    pageY = -v
-    fieldOpacity = p <= 0 ? 0 : p >= 0.08 ? 1 : p / 0.08
-
-    if (reduceMotion && !demoPlayingRef) return
-    if (!windowScroll && !scrollEl) return
-
-    if (!rolledEl?.isConnected) {
-      rolledEl = document.querySelector(contentSelector)
-    }
-    const el = rolledEl
-    if (!el) return
-
-    const y = -Math.max(0, v)
-    el.style.transformOrigin = "50% 100%"
-    el.style.willChange = "transform"
-    el.style.transform = `translate3d(0, ${y}px, 0)`
-
-    if (v < 0.2) {
-      el.style.transform = "translate3d(0, 0, 0)"
-      el.style.willChange = ""
-    }
-  }
-
-  function pullTo(next: number) {
-    pull = next
-    spring?.set(next)
-  }
+  let canvas: HTMLCanvasElement | undefined = $state()
+  let scroller: HTMLDivElement | undefined = $state()
+  let content: HTMLDivElement | undefined = $state()
+  let instance: StretchyFooterInstance | null = null
 
   onMount(() => {
     mounted = true
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
-    const applyReduce = () => {
-      reduceMotion = mq.matches
-    }
-    applyReduce()
-    mq.addEventListener("change", applyReduce)
+  })
+
+  // Remount only when the wiring changes; options stream in below.
+  $effect(() => {
+    const target = windowScroll ? window : (scrollEl ?? scroller)
+    if (!canvas || !target) return
+    const lifted = windowScroll || scrollEl ? contentSelector : content
+    const next = createStretchyFooter(
+      { canvas, scroller: target, content: lifted },
+      untrack(() => ({
+        maxStretch,
+        colors,
+        stiffness,
+        damping,
+        columns,
+        blur,
+        glow,
+        flip,
+        rotate,
+        demoId,
+      }))
+    )
+    instance = next
     return () => {
-      mq.removeEventListener("change", applyReduce)
-      if (rolledEl) {
-        rolledEl.style.transform = ""
-        rolledEl.style.transformOrigin = ""
-        rolledEl.style.willChange = ""
-      }
+      next?.destroy()
+      if (instance === next) instance = null
     }
+  })
+
+  $effect(() => {
+    instance?.setOptions({
+      maxStretch,
+      colors,
+      stiffness,
+      damping,
+      columns,
+      blur,
+      glow,
+      flip,
+      rotate,
+      demoId,
+    })
   })
 
   function portalToBody(node: HTMLElement) {
@@ -180,214 +126,6 @@
       },
     }
   }
-
-  $effect(() => {
-    const s = createSpring({
-      stiffness,
-      damping,
-      mass: 0.35,
-      initial: pull,
-    })
-    spring = s
-    const unsub = s.onChange((v) => {
-      applyVisuals(v)
-    })
-    return () => {
-      unsub()
-      s.destroy()
-      if (spring === s) spring = null
-    }
-  })
-
-  $effect(() => {
-    const clearDemoTimer = () => {
-      if (demoTimer) {
-        clearTimeout(demoTimer)
-        demoTimer = null
-      }
-    }
-
-    const onPlay = (event: Event) => {
-      const detail =
-        (event as CustomEvent<StretchyFooterPlayDetail>).detail ?? {}
-      if (detail.target != null && detail.target !== demoId) return
-      if (detail.target == null && demoId != null) return
-
-      const amount = detail.amount ?? 0.82
-      const holdMs = detail.holdMs ?? 700
-
-      if (wheelTimer) {
-        clearTimeout(wheelTimer)
-        wheelTimer = null
-      }
-      clearDemoTimer()
-      demoPlayingRef = true
-      demoPlaying = true
-      pullTo(Math.min(maxStretch, Math.max(0, maxStretch * amount)))
-      demoTimer = setTimeout(() => {
-        demoTimer = null
-        pullTo(0)
-        window.setTimeout(() => {
-          demoPlayingRef = false
-          demoPlaying = false
-        }, 500)
-      }, holdMs)
-    }
-
-    window.addEventListener(STRETCHY_FOOTER_PLAY, onPlay)
-    return () => {
-      clearDemoTimer()
-      window.removeEventListener(STRETCHY_FOOTER_PLAY, onPlay)
-    }
-  })
-
-  $effect(() => {
-    if (reduceMotion) return
-
-    let target: { kind: "window" } | { kind: "element"; el: HTMLElement } | null =
-      null
-    if (windowScroll) {
-      target = { kind: "window" }
-    } else {
-      const el = scrollEl ?? internalEl
-      if (el) target = { kind: "element", el }
-    }
-    if (!target) return
-
-    const prevOverscroll =
-      target.kind === "window"
-        ? document.documentElement.style.overscrollBehaviorY
-        : target.el.style.overscrollBehaviorY
-    if (target.kind === "window") {
-      document.documentElement.style.overscrollBehaviorY = "none"
-    } else {
-      target.el.style.overscrollBehaviorY = "none"
-    }
-
-    const isAtBottom = () =>
-      target.kind === "window" ? windowAtBottom() : elementAtBottom(target.el)
-
-    const clearWheelTimer = () => {
-      if (wheelTimer) {
-        clearTimeout(wheelTimer)
-        wheelTimer = null
-      }
-    }
-
-    const snapBack = () => {
-      clearWheelTimer()
-      pullTo(0)
-    }
-
-    const onWheel = (event: WheelEvent) => {
-      if (demoTimer) {
-        clearTimeout(demoTimer)
-        demoTimer = null
-        demoPlaying = false
-        demoPlayingRef = false
-      }
-      const current = pull
-      const scrollingDown = event.deltaY > 0
-      const scrollingUp = event.deltaY < 0
-      const stretchNow = spring?.get() ?? 0
-
-      if (current > 0.5 || stretchNow > 0.5) {
-        event.preventDefault()
-        if (scrollingUp) {
-          const next = Math.max(0, current + event.deltaY * PULL_GAIN)
-          if (next <= 0.5) {
-            snapBack()
-            return
-          }
-          pullTo(next)
-        } else if (scrollingDown) {
-          pullTo(applyResistance(current, event.deltaY, maxStretch))
-        }
-        clearWheelTimer()
-        wheelTimer = setTimeout(snapBack, WHEEL_IDLE_MS)
-        return
-      }
-
-      if (scrollingDown && isAtBottom()) {
-        event.preventDefault()
-        pullTo(applyResistance(0, event.deltaY, maxStretch))
-        clearWheelTimer()
-        wheelTimer = setTimeout(snapBack, WHEEL_IDLE_MS)
-      }
-    }
-
-    const onTouchStart = (event: TouchEvent) => {
-      const t = event.touches[0]
-      if (!t) return
-      if (demoTimer) {
-        clearTimeout(demoTimer)
-        demoTimer = null
-        demoPlaying = false
-        demoPlayingRef = false
-      }
-      touchStartY = t.clientY
-      touchStretch0 = pull
-    }
-
-    const onTouchMove = (event: TouchEvent) => {
-      const t = event.touches[0]
-      if (!t) return
-      const dy = touchStartY - t.clientY
-      const current = pull
-      const stretchNow = spring?.get() ?? 0
-
-      if (current > 0.5 || stretchNow > 0.5 || (dy > 0 && isAtBottom())) {
-        if (event.cancelable) event.preventDefault()
-        const boost = current < 40 ? POP_BOOST : 1
-        const fromRest = touchStretch0 + dy * PULL_GAIN * boost
-        pullTo(Math.min(maxStretch, Math.max(0, fromRest)))
-      }
-    }
-
-    const onTouchEnd = () => {
-      const stretchNow = spring?.get() ?? 0
-      if (pull > 0.5 || stretchNow > 0.5) snapBack()
-    }
-
-    const optsWheel = { passive: false }
-    const optsTouchStart = { passive: true }
-    const optsTouchMove = { passive: false }
-
-    if (target.kind === "window") {
-      window.addEventListener("wheel", onWheel, optsWheel)
-      window.addEventListener("touchstart", onTouchStart, optsTouchStart)
-      window.addEventListener("touchmove", onTouchMove, optsTouchMove)
-      window.addEventListener("touchend", onTouchEnd)
-      window.addEventListener("touchcancel", onTouchEnd)
-    } else {
-      const el = target.el
-      el.addEventListener("wheel", onWheel, optsWheel)
-      el.addEventListener("touchstart", onTouchStart, optsTouchStart)
-      el.addEventListener("touchmove", onTouchMove, optsTouchMove)
-      el.addEventListener("touchend", onTouchEnd)
-      el.addEventListener("touchcancel", onTouchEnd)
-    }
-
-    return () => {
-      clearWheelTimer()
-      if (target.kind === "window") {
-        document.documentElement.style.overscrollBehaviorY = prevOverscroll
-        window.removeEventListener("wheel", onWheel)
-        window.removeEventListener("touchstart", onTouchStart)
-        window.removeEventListener("touchmove", onTouchMove)
-        window.removeEventListener("touchend", onTouchEnd)
-        window.removeEventListener("touchcancel", onTouchEnd)
-      } else {
-        target.el.style.overscrollBehaviorY = prevOverscroll
-        const el = target.el
-        el.removeEventListener("wheel", onWheel)
-        el.removeEventListener("touchstart", onTouchStart)
-        el.removeEventListener("touchmove", onTouchMove)
-        el.removeEventListener("touchend", onTouchEnd)
-        el.removeEventListener("touchcancel", onTouchEnd)
-      }
-    }
-  })
 </script>
 
 {#snippet aurora()}
@@ -396,42 +134,18 @@
     class="pointer-events-none absolute inset-x-0 bottom-0 z-20 overflow-hidden"
     style="height: {maxStretch}px;"
   >
-    <div
-      class="absolute inset-x-0 bottom-0 h-full w-full origin-bottom will-change-transform"
-      style="transform: scaleY({reduce ? 0 : progress}); opacity: {reduce
-        ? 0
-        : fieldOpacity};"
-    >
-      <div
-        class="absolute inset-0 flex items-end justify-stretch"
-        style="filter: blur({blurPx}px); transform: scaleY(1.08);"
-      >
-        {#each bars as bar (bar.key)}
-          <div
-            class="min-w-0 flex-1"
-            style="height: {bar.height}; background-image: {bar.backgroundImage};"
-          ></div>
-        {/each}
-      </div>
-
-      <div
-        class="absolute inset-x-0 bottom-0 h-1/2"
-        style="background-image: radial-gradient(ellipse 70% 100% at 50% 100%, rgba(255,255,255,{glowAlpha}), rgba(0, 0, 0, 0) 70%);"
-      ></div>
-    </div>
+    <canvas bind:this={canvas} class="invisible absolute"></canvas>
   </div>
 {/snippet}
 
 {#if windowScroll}
   {#if mounted}
+    <!-- Portal so `fixed` stays on the viewport — the lifted page is
+         transformed and would otherwise pin it to the content. -->
     <div
       use:portalToBody
       data-slot="stretchy-footer"
-      aria-label={label}
-      class={cn(
-        "pointer-events-none fixed inset-x-0 bottom-0 z-50",
-        className
-      )}
+      class={cn("pointer-events-none fixed inset-x-0 bottom-0 z-50", className)}
       style="height: {maxStretch}px;"
     >
       {@render aurora()}
@@ -440,27 +154,27 @@
 {:else if scrollEl}
   <div
     data-slot="stretchy-footer"
-    aria-label={label}
     class={cn("pointer-events-none absolute inset-x-0 bottom-0", className)}
     style="height: {maxStretch}px;"
   >
     {@render aurora()}
   </div>
 {:else}
+  <!-- The aurora sits beside the scroller, not in it, so it stays on the
+       viewport floor instead of scrolling away with the content. -->
   <div
-    bind:this={internalEl}
     data-slot="stretchy-footer"
-    aria-label={label}
-    class={cn(
-      "relative isolate overflow-y-auto overflow-x-hidden overscroll-none",
-      className
-    )}
+    class={cn("relative isolate overflow-hidden", className)}
   >
     <div
-      class="relative z-10 min-h-full will-change-transform"
-      style="transform: translateY({pageY}px);"
+      bind:this={scroller}
+      role="region"
+      aria-label={label}
+      class="h-full overflow-x-hidden overflow-y-auto"
     >
-      {@render children?.()}
+      <div bind:this={content} class="relative z-10 min-h-full">
+        {@render children?.()}
+      </div>
     </div>
     {@render aurora()}
   </div>

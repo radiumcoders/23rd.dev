@@ -3,9 +3,7 @@
 import {
   useCallback,
   useId,
-  useLayoutEffect,
   useMemo,
-  useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
@@ -95,20 +93,23 @@ export function formatComponentSnippet(
 
 export type ComponentControlsProps = {
   children: ReactNode
-  /** Label in the figcaption — matches CliCommand / ComponentPreview */
+  /** Heading for the props strip */
   title?: string
   hasChanges?: boolean
   onReset?: () => void
   className?: string
-  /** Component tag for the copy snippet, e.g. `"ShaderFire"` */
+  /** Component tag for the copy snippet, e.g. `"ShaderAnimeFire"` */
   component?: string
   /** Props included in the copied JSX. `undefined` values are omitted. */
   snippetProps?: Record<string, unknown>
 }
 
+/** Row chrome shared by every control, and applied to custom rows demos pass in. */
+const rowClassName = "rounded-lg border bg-background"
+
 /**
- * Docs section for live prop controls — same chrome as CliCommand, tables,
- * and ComponentPreview (`rounded-2xl bg-muted/50` figure + ringed stage).
+ * Live prop controls. Directly after ComponentPreview it joins the preview's
+ * frame, so the props read as the screen's control strip.
  */
 export function ComponentControls({
   children,
@@ -127,27 +128,15 @@ export function ComponentControls({
     <figure
       data-slot="component-controls"
       className={cn(
-        "not-prose my-6 w-full overflow-hidden rounded-2xl bg-muted/50",
+        "not-prose my-8 rounded-2xl border bg-card",
+        "[[data-slot=component-preview]+&]:mt-0 [[data-slot=component-preview]+&]:rounded-t-none [[data-slot=component-preview]+&]:border-t-0",
         className
       )}
     >
-      <figcaption className="flex h-9 items-center justify-between gap-3 px-3.5">
-        <span className="text-sm font-medium text-foreground/90">{title}</span>
+      <figcaption className="flex h-12 items-center justify-between gap-3 px-4">
+        <span className="text-[13px] text-muted-foreground">{title}</span>
         {snippet || onReset ? (
-          <div className="flex items-center">
-            {snippet ? (
-              <CopyButton
-                size="xs"
-                text={snippet}
-                label="Copy"
-                onCopied={() =>
-                  trackEvent("code_copied", {
-                    source: "component_snippet",
-                    ...(component ? { component } : {}),
-                  })
-                }
-              />
-            ) : null}
+          <div className="-me-2 flex items-center">
             {onReset ? (
               <Button
                 type="button"
@@ -156,20 +145,37 @@ export function ComponentControls({
                 onClick={onReset}
                 disabled={!hasChanges}
                 aria-label="Reset props"
-                className="text-muted-foreground"
+                className="rounded-md text-muted-foreground"
               >
                 <RiRefreshLine data-icon="inline-start" />
                 Reset
               </Button>
             ) : null}
+            {snippet ? (
+              <CopyButton
+                size="xs"
+                text={snippet}
+                label="Copy JSX"
+                className="rounded-md"
+                onCopied={() =>
+                  trackEvent("code_copied", {
+                    source: "component_snippet",
+                    ...(component ? { component } : {}),
+                  })
+                }
+              />
+            ) : null}
           </div>
         ) : null}
       </figcaption>
 
-      <div className="p-1 pt-0">
-        <div className="flex flex-col gap-4 rounded-[calc(var(--radius-2xl)-2px)] bg-background px-3.5 py-3.5 ring-1 ring-border/80 sm:px-4">
-          {children}
-        </div>
+      <div
+        className={cn(
+          "flex flex-col gap-2 px-3 pb-3",
+          "[&>:not([data-control])]:rounded-lg [&>:not([data-control])]:border [&>:not([data-control])]:bg-background [&>:not([data-control])]:px-3 [&>:not([data-control])]:py-2"
+        )}
+      >
+        {children}
       </div>
     </figure>
   )
@@ -180,13 +186,6 @@ function formatValue(value: number) {
   const abs = Math.abs(value)
   if (abs >= 10) return value.toFixed(1)
   return value.toFixed(2)
-}
-
-function tickCount(min: number, max: number, step: number) {
-  if (step <= 0 || max <= min) return 9
-  const steps = Math.round((max - min) / step)
-  if (steps <= 12) return steps + 1
-  return 9
 }
 
 export type ControlSliderProps = {
@@ -206,8 +205,7 @@ function snapToStep(raw: number, min: number, max: number, step: number) {
   return Number(Math.min(max, Math.max(min, snapped)).toFixed(precision))
 }
 
-const THUMB_WIDTH = 4
-
+/** A whole-row slider: drag anywhere on the row; the fill is the value. */
 export function ControlSlider({
   label,
   value,
@@ -219,41 +217,13 @@ export function ControlSlider({
   className,
 }: ControlSliderProps) {
   const id = useId()
-  const pillRef = useRef<HTMLDivElement>(null)
-  const trackRef = useRef<HTMLDivElement>(null)
-  const [fillWidth, setFillWidth] = useState(0)
-
   const progress = max === min ? 0 : (value - min) / (max - min)
-  const ticks = tickCount(min, max, step)
-
-  const syncMetrics = useCallback(() => {
-    const pill = pillRef.current
-    const track = trackRef.current
-    if (!pill || !track) return
-    const pillBox = pill.getBoundingClientRect()
-    const trackBox = track.getBoundingClientRect()
-    const travel = Math.max(0, trackBox.width - THUMB_WIDTH)
-    const offset = progress * travel
-    setFillWidth(trackBox.left - pillBox.left + offset + THUMB_WIDTH)
-  }, [progress])
-
-  useLayoutEffect(() => {
-    syncMetrics()
-    const pill = pillRef.current
-    if (!pill || typeof ResizeObserver === "undefined") return
-    const observer = new ResizeObserver(syncMetrics)
-    observer.observe(pill)
-    return () => observer.disconnect()
-  }, [syncMetrics])
 
   const commitFromClientX = useCallback(
-    (clientX: number) => {
-      const track = trackRef.current
-      if (!track) return
-      const { left, width } = track.getBoundingClientRect()
-      const travel = Math.max(0, width - THUMB_WIDTH)
-      if (travel <= 0) return
-      const ratio = Math.min(1, Math.max(0, (clientX - left - THUMB_WIDTH / 2) / travel))
+    (element: HTMLElement, clientX: number) => {
+      const { left, width } = element.getBoundingClientRect()
+      if (width <= 0) return
+      const ratio = Math.min(1, Math.max(0, (clientX - left) / width))
       onChange(snapToStep(min + ratio * (max - min), min, max, step))
     },
     [max, min, onChange, step]
@@ -262,61 +232,49 @@ export function ControlSlider({
   function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     if (event.button !== 0) return
     event.currentTarget.setPointerCapture(event.pointerId)
-    commitFromClientX(event.clientX)
+    commitFromClientX(event.currentTarget, event.clientX)
   }
 
   function onPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
     if (!event.currentTarget.hasPointerCapture(event.pointerId)) return
-    commitFromClientX(event.clientX)
+    commitFromClientX(event.currentTarget, event.clientX)
   }
 
   return (
-    <div className={cn("flex items-center gap-2.5", className)}>
+    <div
+      data-control="slider"
+      className={cn(
+        rowClassName,
+        "relative flex h-10 cursor-ew-resize touch-none items-center overflow-hidden select-none focus-within:ring-2 focus-within:ring-ring/40",
+        className
+      )}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+    >
       <div
-        ref={pillRef}
-        className="relative flex h-9 min-w-0 flex-1 cursor-ew-resize select-none items-center overflow-hidden rounded-xl bg-muted focus-within:ring-2 focus-within:ring-ring/30"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 left-0 border-e border-foreground/25 bg-foreground/[0.07]"
+        style={{ width: `${progress * 100}%` }}
+      />
+      <label
+        htmlFor={id}
+        className="pointer-events-none relative truncate ps-3 text-sm text-foreground/85"
       >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-0 flex items-center justify-end rounded-xl bg-foreground/10 pe-0.5"
-          style={{ width: Math.max(fillWidth, 18) }}
-        >
-          <span className="h-3.5 w-1 rounded-sm bg-foreground/45" />
-        </div>
-
-        <span className="pointer-events-none relative w-[4.75rem] shrink-0 truncate ps-3 text-sm text-muted-foreground">
-          {label}
-        </span>
-
-        <div ref={trackRef} className="relative mx-2 h-full min-w-0 flex-1 pe-2">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-between"
-          >
-            {Array.from({ length: ticks }, (_, i) => (
-              <span key={i} className="h-2 w-px bg-foreground/20" />
-            ))}
-          </div>
-        </div>
-
-        <input
-          id={id}
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          aria-label={label}
-          onChange={(event) => onChange(Number(event.target.value))}
-          className="sr-only"
-        />
-      </div>
-
-      <span className="w-8 shrink-0 text-right text-sm text-foreground tabular-nums">
+        {label}
+      </label>
+      <span className="pointer-events-none relative ms-auto ps-3 pe-3 font-mono text-[12.5px] text-foreground tabular-nums">
         {format(value)}
       </span>
+      <input
+        id={id}
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="sr-only"
+      />
     </div>
   )
 }
@@ -339,9 +297,16 @@ export function ControlSwitch({
   const id = useId()
 
   return (
-    <div className={cn("flex items-center justify-between gap-4", className)}>
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <label htmlFor={id} className="text-sm font-medium text-foreground/90">
+    <div
+      data-control="switch"
+      className={cn(
+        rowClassName,
+        "flex min-h-10 items-center justify-between gap-4 px-3 py-2",
+        className
+      )}
+    >
+      <div className="flex min-w-0 flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+        <label htmlFor={id} className="text-sm text-foreground/85">
           {label}
         </label>
         {description ? (
@@ -375,12 +340,22 @@ export function ControlColor({
   const hex = toHex6(value)
 
   return (
-    <div className={cn("flex items-center justify-between gap-4", className)}>
-      <label htmlFor={id} className="text-sm font-medium text-foreground/90">
+    <div
+      data-control="color"
+      className={cn(
+        rowClassName,
+        "flex h-10 items-center justify-between gap-4 ps-3 pe-2",
+        className
+      )}
+    >
+      <label htmlFor={id} className="text-sm text-foreground/85">
         {label}
       </label>
-      <div className="flex items-center gap-2">
-        <label className="relative size-8 shrink-0 cursor-pointer overflow-hidden rounded-2xl ring-1 ring-border/80 transition-[box-shadow] hover:ring-ring/40 focus-within:ring-3 focus-within:ring-ring/30">
+      <div className="flex items-center gap-2.5">
+        <span className="font-mono text-[12.5px] text-foreground tabular-nums">
+          {hex.toLowerCase()}
+        </span>
+        <span className="relative size-6 shrink-0 cursor-pointer overflow-hidden rounded-md ring-1 ring-border transition-[box-shadow] focus-within:ring-2 focus-within:ring-ring hover:ring-foreground/30">
           <span
             aria-hidden
             className="absolute inset-0"
@@ -393,9 +368,6 @@ export function ControlColor({
             onChange={(e) => onChange(e.target.value.toUpperCase())}
             className="absolute inset-0 size-full cursor-pointer opacity-0"
           />
-        </label>
-        <span className="font-mono text-xs text-muted-foreground uppercase tabular-nums">
-          {hex}
         </span>
       </div>
     </div>
@@ -426,59 +398,65 @@ export function ControlColors({
   const [customOpen, setCustomOpen] = useState(activeIndex === -1)
 
   return (
-    <div className={cn("flex flex-col gap-2.5", className)}>
-      <span className="text-sm font-medium text-foreground/90">{label}</span>
-      <div className="flex flex-wrap items-center gap-2">
-        {fitted.map((palette, index) => {
-          const selected = index === activeIndex && !customOpen
-          return (
-            <button
-              key={palette.join("-")}
-              type="button"
-              aria-label={`${label} palette ${index + 1}`}
-              aria-pressed={selected}
-              onClick={() => {
-                setCustomOpen(false)
-                onChange(palette)
-              }}
-              className={cn(
-                "flex h-9 overflow-hidden rounded-2xl ring-1 transition-[box-shadow]",
-                selected
-                  ? "ring-2 ring-ring"
-                  : "ring-border/80 hover:ring-ring/40"
-              )}
-            >
-              {palette.map((color, colorIndex) => (
-                <span
-                  key={`${color}-${colorIndex}`}
-                  className="h-full w-3.5"
-                  style={{ backgroundColor: color }}
-                />
-              ))}
-            </button>
-          )
-        })}
+    <div
+      data-control="colors"
+      className={cn(rowClassName, "flex flex-col gap-2.5 px-3 py-2", className)}
+    >
+      <div className="flex min-h-6 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <span className="text-sm text-foreground/85">{label}</span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {fitted.map((palette, index) => {
+            const selected = index === activeIndex && !customOpen
+            return (
+              <button
+                key={palette.join("-")}
+                type="button"
+                aria-label={`${label} palette ${index + 1}`}
+                aria-pressed={selected}
+                onClick={() => {
+                  setCustomOpen(false)
+                  onChange(palette)
+                }}
+                className={cn(
+                  "flex h-6 overflow-hidden rounded-md ring-1 transition-[box-shadow] outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  selected
+                    ? "ring-2 ring-foreground ring-offset-1 ring-offset-background"
+                    : "ring-border hover:ring-foreground/30"
+                )}
+              >
+                {palette.map((color, colorIndex) => (
+                  <span
+                    key={`${color}-${colorIndex}`}
+                    className="h-full w-3"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </button>
+            )
+          })}
 
-        <Button
-          type="button"
-          variant={customOpen ? "secondary" : "outline"}
-          size="xs"
-          aria-pressed={customOpen}
-          onClick={() => setCustomOpen((open) => !open)}
-        >
-          <RiAddLine data-icon="inline-start" />
-          Custom
-        </Button>
+          <Button
+            type="button"
+            variant={customOpen ? "secondary" : "ghost"}
+            size="xs"
+            aria-pressed={customOpen}
+            onClick={() => setCustomOpen((open) => !open)}
+            className="rounded-md"
+          >
+            <RiAddLine data-icon="inline-start" />
+            Custom
+          </Button>
+        </div>
       </div>
 
       {customOpen ? (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap justify-end gap-1.5">
           {colors.map((color, index) => {
             const hex = toHex6(color)
             return (
               <label
                 key={index}
-                className="relative size-9 cursor-pointer overflow-hidden rounded-2xl ring-1 ring-border/80 transition-[box-shadow] hover:ring-ring/40 focus-within:ring-3 focus-within:ring-ring/30"
+                className="relative size-7 cursor-pointer overflow-hidden rounded-md ring-1 ring-border transition-[box-shadow] focus-within:ring-2 focus-within:ring-ring hover:ring-foreground/30"
               >
                 <span
                   aria-hidden

@@ -7,27 +7,58 @@ import {
   ComponentControls,
   ControlColors,
   ControlSlider,
+  ControlSwitch,
 } from "@/components/component-controls"
 import { ComponentPreview } from "@/components/component-preview"
 import { Button } from "@/components/ui/button"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
-  playStretchyFooterDemo,
-  StretchyFooter,
-} from "@/registry/stretchy-footer/stretchy-footer"
-import {
   DEFAULT_BLUR,
   DEFAULT_COLORS,
   DEFAULT_COLUMNS,
   DEFAULT_GLOW,
-} from "@/registry/stretchy-footer/stretchy-footer-vanilla"
+  DEFAULT_MAX_STRETCH,
+  DEFAULT_STIFFNESS,
+  playStretchyFooterDemo,
+  StretchyFooter,
+} from "@/registry/stretchy-footer/stretchy-footer"
 
 const PREVIEW_DEMO_ID = "stretchy-footer-preview"
 
-const SPECTRUM = ["#FF3B30", "#FFCC00", "#34C759", "#007AFF", "#AF52DE"]
-const SUNSET = ["#FF4D00", "#FF8A5B", "#FFC857", "#E63946", "#9B2226"]
-const OCEAN = ["#012A4A", "#01497C", "#2A9D8F", "#48CAE4", "#90E0EF"]
-const NEON = ["#F72585", "#B5179E", "#7209B7", "#4361EE", "#4CC9F0"]
+// Gradient stops, top of each column to the floor — nine, like the default.
+const SUNSET = [
+  "#FFE8A3",
+  "#FFD166",
+  "#FFA94D",
+  "#FF7B3D",
+  "#FF3D6E",
+  "#D6246E",
+  "#B5179E",
+  "#3A0CA3",
+  "#10002B",
+]
+const OCEAN = [
+  "#F1FCFD",
+  "#CAF0F8",
+  "#90E0EF",
+  "#48CAE4",
+  "#00B4D8",
+  "#0096C7",
+  "#0077B6",
+  "#023E8A",
+  "#03045E",
+]
+const NEON = [
+  "#B8F2FF",
+  "#4CC9F0",
+  "#4895EF",
+  "#4361EE",
+  "#7209B7",
+  "#B5179E",
+  "#F72585",
+  "#FF9E00",
+  "#1A0B2E",
+]
 
 function norm(hex: string) {
   return hex.trim().toUpperCase()
@@ -46,12 +77,14 @@ export function StretchyFooterDemo() {
 
   const defaults = useMemo(
     () => ({
-      colors: SPECTRUM,
+      colors: DEFAULT_COLORS,
       maxStretch: 220,
       columns: DEFAULT_COLUMNS,
-      stiffness: 380,
+      stiffness: DEFAULT_STIFFNESS,
       blur: DEFAULT_BLUR,
       glow: DEFAULT_GLOW,
+      flip: false,
+      rotated: false,
     }),
     []
   )
@@ -82,7 +115,6 @@ export function StretchyFooterDemo() {
       >
         <div className="relative h-[56svh] w-full overflow-hidden rounded-[inherit] bg-background">
           <StretchyFooter
-            key={props.stiffness}
             demoId={PREVIEW_DEMO_ID}
             scrollRef={scrollerRef}
             contentSelector="[data-stretchy-preview]"
@@ -92,12 +124,14 @@ export function StretchyFooterDemo() {
             stiffness={props.stiffness}
             blur={props.blur}
             glow={props.glow}
+            flip={props.flip}
+            rotate={props.rotated ? 180 : 0}
             className="z-20"
           />
 
           <div
             ref={scrollerRef}
-            className="no-scrollbar relative z-10 h-full overflow-y-auto overscroll-contain"
+            className="relative z-10 no-scrollbar h-full overflow-y-auto overscroll-contain"
           >
             <div
               data-stretchy-preview
@@ -132,18 +166,24 @@ export function StretchyFooterDemo() {
           colors: colorsEqual(props.colors, DEFAULT_COLORS)
             ? undefined
             : props.colors,
-          maxStretch: props.maxStretch === 280 ? undefined : props.maxStretch,
+          maxStretch:
+            props.maxStretch === DEFAULT_MAX_STRETCH
+              ? undefined
+              : props.maxStretch,
           columns:
             props.columns === DEFAULT_COLUMNS ? undefined : props.columns,
-          stiffness: props.stiffness === 380 ? undefined : props.stiffness,
+          stiffness:
+            props.stiffness === DEFAULT_STIFFNESS ? undefined : props.stiffness,
           blur: props.blur === DEFAULT_BLUR ? undefined : props.blur,
           glow: props.glow === DEFAULT_GLOW ? undefined : props.glow,
+          flip: props.flip ? true : undefined,
+          rotate: props.rotated ? 180 : undefined,
         }}
       >
         <ControlColors
           label="Palette"
           colors={props.colors}
-          palettes={[SPECTRUM, SUNSET, OCEAN, NEON]}
+          palettes={[DEFAULT_COLORS, SUNSET, OCEAN, NEON]}
           onChange={(colors) => updateProp("colors", colors)}
         />
         <ControlSlider
@@ -157,9 +197,9 @@ export function StretchyFooterDemo() {
         <ControlSlider
           label="Columns"
           value={props.columns}
-          min={12}
-          max={80}
-          step={4}
+          min={3}
+          max={25}
+          step={2}
           onChange={(v) => updateProp("columns", v)}
         />
         <ControlSlider
@@ -185,6 +225,18 @@ export function StretchyFooterDemo() {
           max={620}
           step={20}
           onChange={(v) => updateProp("stiffness", v)}
+        />
+        <ControlSwitch
+          label="Flip"
+          description="Tall edges, dipped middle"
+          checked={props.flip}
+          onChange={(v) => updateProp("flip", v)}
+        />
+        <ControlSwitch
+          label="Rotate 180°"
+          description="Aurora hangs from the page"
+          checked={props.rotated}
+          onChange={(v) => updateProp("rotated", v)}
         />
       </ComponentControls>
     </>

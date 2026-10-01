@@ -38,6 +38,10 @@ const buttonVariants = cva(
   }
 )
 
+// Firefox restores a toggled `disabled` on reload, which breaks hydration.
+// Base UI's types omit `autoComplete`, so it goes in through a spread.
+const noFormStateRestore = { autoComplete: "off" }
+
 function Button({
   className,
   variant = "default",
@@ -47,6 +51,7 @@ function Button({
   return (
     <ButtonPrimitive
       data-slot="button"
+      {...noFormStateRestore}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />

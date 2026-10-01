@@ -32,8 +32,9 @@ Swap the component, keep the shell:
 
 | Brief | Component | Extra props |
 | --- | --- | --- |
-| Fire along the floor | `ShaderFire` | `height={0.45}` |
-| Pixel fire | `ShaderFire` | `dither pixelSize={1}` |
+| Fire along the floor | `ShaderAnimeFire` | `height={0.45}` |
+| Pixel fire | `ShaderAnimeFire` | `dither pixelSize={3}` |
+| Soft heat wash | `ShaderFire` | defaults |
 | Blue sky | `ShaderSky` | leave `colors` unset |
 | Rain / dusk sky | `ShaderSky` | `theme="dark"` or `html.dark` |
 | Window glass | `ShaderSky` | `glass glassSize={7}` |
@@ -76,7 +77,7 @@ Svelte: `bind:this={scroller}` and `container={scroller}`.
 
 ## 404
 
-Use `dithered-404` on the not-found route. Do not also mount `shader-fire`.
+Use `dithered-404` on the not-found route. Do not also mount `shader-anime-fire`.
 
 ```tsx
 "use client"
@@ -97,32 +98,7 @@ export function NotFound() {
 }
 ```
 
-`dither={false}` keeps the 404 glyph and switches to soft fire. It does not turn the page into `shader-fire`.
-
-## Ribbon footer
-
-`tangle-footer` after the page, not inside the hero.
-
-```tsx
-"use client"
-
-import { TangleFooter } from "@/components/ui/tangle-footer"
-
-export function Footer() {
-  return (
-    <TangleFooter
-      seed={23}
-      lines={[
-        "Ship something opinionated.",
-        "Less boilerplate, clearer decisions.",
-        "Install what you need and move.",
-      ]}
-    />
-  )
-}
-```
-
-On a colored parent, set `background="transparent"` so the cream/near-black field does not paint a second plate.
+`dither={false}` keeps the 404 glyph and switches to soft fire. It does not turn the page into `shader-anime-fire`.
 
 ## Rubber overscroll
 
@@ -183,7 +159,7 @@ export function Essay() {
 }
 ```
 
-If the effect is too subtle, say so. Do not invent a `tilt` prop. Issue #29 tracks the Mac trackpad case. `playFolioDemo({ target, holdMs })` only runs the preview on a matching `demoId`.
+If the effect is too subtle, say so. Do not invent a `tilt` prop. `playFolioDemo({ target, holdMs })` only runs the preview on a matching `demoId`.
 
 Window mode:
 
@@ -245,13 +221,26 @@ export function Brand() {
 
 `text` longer than 5 characters is truncated.
 
+Letter that types itself:
+
+```tsx
+"use client"
+import { Typewriter } from "@/components/ui/typewriter"
+
+export function Note() {
+  return (
+    <div className="h-96 overflow-hidden rounded-xl border">
+      <Typewriter text={"Dear reader,\nwe shipped it."} loop={false} />
+    </div>
+  )
+}
+```
+
 ## Anti-patterns
 
 - `ShaderGradient` as a color control, or `GooeyColorPicker` as a page background.
-- `TangleFooter` inside a hero to “add motion.” It is a footer with a fixed semicircle height.
 - `StretchyFooter` and `Folio` both wrapping the same scroll. Pick one owner of the scroll.
-- Two of `ShaderGradient`, `ShaderFire`, `ShaderSky`, `AsciiFluid` in the same viewport.
+- Two of `ShaderGradient`, `ShaderAnimeFire`, `ShaderSky`, `AsciiFluid` in the same viewport.
 - Content as a sibling with no `z-10`, so the canvas eats clicks. Set `pointer-events-none` on the canvas wrapper when the field is decorative (`LogoBurst` click-to-replay is the exception).
-- `PhosphorScore` on a light card in dark mode without clipping. The canvas fills `#050505`.
 - Assuming `theme="auto"` recolors a shader after you passed `colors`. It will not.
 - Adding `variant` to anything but `LiveOrb`.

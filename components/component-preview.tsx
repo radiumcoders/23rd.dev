@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { CSSProperties, ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -7,7 +7,7 @@ interface ComponentPreviewProps {
   className?: string
   /** Classes applied to the inner demo stage */
   stageClassName?: string
-  /** Optional label shown above the stage */
+  /** Accessible name for the preview */
   title?: string
   /** Fallback label when title is omitted */
   name?: string
@@ -15,6 +15,13 @@ interface ComponentPreviewProps {
   align?: "center" | "start" | "end"
 }
 
+/** Inside the stage, `bg-background` is the screen, not the sheet. */
+const screenTokens = { "--background": "var(--screen)" } as CSSProperties
+
+/**
+ * The live stage: a screen set in a frame. When ComponentControls follows,
+ * the two share one frame, with the props underneath the screen.
+ */
 export function ComponentPreview({
   children,
   className,
@@ -28,28 +35,28 @@ export function ComponentPreview({
   return (
     <figure
       data-slot="component-preview"
+      aria-label={label}
       className={cn(
-        "not-prose my-6 w-full rounded-2xl bg-muted/50",
+        "not-prose my-8 rounded-2xl border bg-card p-1",
+        "[&:has(+[data-slot=component-controls])]:mb-0 [&:has(+[data-slot=component-controls])]:rounded-b-none [&:has(+[data-slot=component-controls])]:border-b-0 [&:has(+[data-slot=component-controls])]:pb-0",
         className
       )}
     >
-      {label ? (
-        <figcaption className="flex h-9 items-center px-3.5">
-          <span className="text-sm font-medium text-foreground/90">{label}</span>
-        </figcaption>
-      ) : null}
-
-      <div className={cn("p-1", label && "pt-0")}>
-        <div
-          className={cn(
-            "relative flex min-h-[36svh] w-full items-center justify-center overflow-hidden rounded-[calc(var(--radius-2xl)-2px)] bg-background p-8 ring-1 ring-border/80",
-            align === "start" && "items-start justify-start",
-            align === "end" && "items-end justify-end",
-            stageClassName
-          )}
-        >
-          {children}
-        </div>
+      <div
+        style={screenTokens}
+        className={cn(
+          "relative isolate flex min-h-[36svh] w-full items-center justify-center overflow-hidden rounded-xl bg-background p-8 text-foreground",
+          // WebGL canvases and backdrop blurs sit on their own compositor
+          // layers, which a rounded overflow clip can miss; a clip-path
+          // rounds them too. It would clip an outer ring, so the edge is an
+          // inset ring drawn over everything instead.
+          "[clip-path:inset(0_round_var(--radius-xl))] after:pointer-events-none after:absolute after:inset-0 after:z-50 after:rounded-[inherit] after:ring-1 after:ring-border after:ring-inset",
+          align === "start" && "items-start justify-start",
+          align === "end" && "items-end justify-end",
+          stageClassName
+        )}
+      >
+        {children}
       </div>
     </figure>
   )

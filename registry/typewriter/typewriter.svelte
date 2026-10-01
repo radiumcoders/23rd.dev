@@ -1,0 +1,96 @@
+<script module lang="ts">
+</script>
+
+<script lang="ts">
+  import { onMount } from "svelte"
+  import {
+    createTypewriter,
+    DEFAULT_COLOR,
+    DEFAULT_COLUMNS,
+    DEFAULT_HOLD,
+    DEFAULT_JITTER,
+    DEFAULT_SPEED,
+    DEFAULT_START_DELAY,
+    DEFAULT_TEXT,
+    type TypewriterInstance,
+    type TypewriterOptions,
+  } from "./typewriter-vanilla"
+
+  function cn(...parts: Array<string | false | null | undefined>) {
+    return parts.filter(Boolean).join(" ")
+  }
+
+  interface Props extends TypewriterOptions {
+    class?: string
+  }
+
+  let {
+    class: className = "",
+    text = DEFAULT_TEXT,
+    speed = DEFAULT_SPEED,
+    humanize = true,
+    loop = true,
+    hold = DEFAULT_HOLD,
+    startDelay = DEFAULT_START_DELAY,
+    color = DEFAULT_COLOR,
+    columns = DEFAULT_COLUMNS,
+    jitter = DEFAULT_JITTER,
+    sound = false,
+    interactive = true,
+    label,
+    onDone,
+  }: Props = $props()
+
+  let root: HTMLDivElement | undefined = $state()
+  let instance: TypewriterInstance | null = null
+
+  onMount(() => {
+    if (!root) return
+    instance = createTypewriter(root, {
+      text,
+      speed,
+      humanize,
+      loop,
+      hold,
+      startDelay,
+      color,
+      columns,
+      jitter,
+      sound,
+      interactive,
+      label,
+      onDone,
+    })
+    return () => {
+      instance?.destroy()
+      instance = null
+    }
+  })
+
+  $effect(() => {
+    instance?.setOptions({
+      text,
+      speed,
+      humanize,
+      loop,
+      hold,
+      startDelay,
+      color,
+      columns,
+      jitter,
+      sound,
+      interactive,
+      label,
+      onDone,
+    })
+  })
+</script>
+
+<div
+  bind:this={root}
+  data-slot="typewriter"
+  class={cn(
+    "relative size-full overflow-hidden bg-background font-mono text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset",
+    className
+  )}
+></div>

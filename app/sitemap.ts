@@ -18,7 +18,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entries.push({ url, changeFrequency, priority })
   }
 
-  add("/docs", 1)
   add("/sponsors", 0.6, "monthly")
   add("/terms", 0.2, "yearly")
   add("/privacy", 0.2, "yearly")
@@ -26,10 +25,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (const param of source.generateParams()) {
     const page = source.getPage(param.slug)
     const path = page?.url || docsPath(param.slug)
-    const isIndex = !param.slug?.length
     const isComponent = param.slug?.[0] === "components"
 
-    add(path, isIndex ? 1 : isComponent ? 0.8 : 0.7)
+    add(path, isComponent ? 0.8 : 0.7)
   }
 
   return entries
