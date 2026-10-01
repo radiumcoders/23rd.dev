@@ -246,7 +246,7 @@ test("built registry.json lists exactly the source items", () => {
   )
 })
 
-for (const { dir, item } of items) {
+for (const { item } of items) {
   test(`built ${item.name}.json matches its source`, () => {
     const builtPath = join(BUILD_DIR, `${item.name}.json`)
     assert.ok(existsSync(builtPath), `public/r/${item.name}.json missing`)
