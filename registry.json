@@ -16,6 +16,7 @@
     "registry/shader-fire/registry.json",
     "registry/shader-gradient/registry.json",
     "registry/shader-sky/registry.json",
-    "registry/stretchy-footer/registry.json"
+    "registry/stretchy-footer/registry.json",
+    "registry/typewriter/registry.json"
   ]
 }

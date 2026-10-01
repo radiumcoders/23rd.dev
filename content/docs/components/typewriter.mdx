@@ -1,0 +1,92 @@
+---
+title: Typewriter
+description: Text typed onto the page by a typeball on a rail — it spins each letter to the front and strikes, steps right, and at the margin whirls home and drops a line.
+---
+
+import { TypewriterDemo } from "@/registry/typewriter/typewriter-demo"
+
+A typewriter, not a blinking caret. A rail spans the frame with a scale of ticks and two margin stops, and a typeball rides it — a sphere wearing the keyboard in three rows, clamped to the rail. For every keystroke the ball spins and tilts until that letter faces the paper, strikes, and steps one cell right. At the end of a line it whirls home along the rail and drops to the next; when the page is full the paper feeds up. Between pages the ball turns slowly on its own. With `loop` on, the finished sheet is pulled out and typed again. Everything is ink in `currentColor`, so it follows the theme.
+
+## Preview
+
+<TypewriterDemo />
+
+## Installation
+
+<CliCommand item="typewriter" />
+
+Or install straight from the public GitHub source registry:
+
+<CliCommand item="typewriter" github />
+
+## Usage
+
+Give the parent a size. The typewriter fills it, sets its text in your mono font, and inherits the font size.
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+"use client"
+
+import { Typewriter } from "@/components/ui/typewriter"
+
+export function Letter() {
+  return (
+    <div className="h-80 w-full overflow-hidden rounded-xl border">
+      <Typewriter text={"Dear reader,\nthe ribbon is fresh."} />
+    </div>
+  )
+}
+```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import Typewriter from "$lib/components/ui/typewriter.svelte"
+</script>
+
+<div class="h-80 w-full overflow-hidden rounded-xl border">
+  <Typewriter text={"Dear reader,\nthe ribbon is fresh."} />
+</div>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+`\n` starts a new line; everything else wraps at words to fit the frame, or at `columns` characters when you set it. Type once and stop, or slow it down and switch the clicks on.
+
+<FrameworkCode>
+  <FrameworkReact>
+    ```tsx
+    <Typewriter loop={false} onDone={() => console.log("typed")} />
+    <Typewriter speed={8} columns={40} sound />
+    ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+    ```svelte
+    <Typewriter loop={false} onDone={() => console.log("typed")} />
+    <Typewriter speed={8} columns={40} sound />
+    ```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+`sound` synthesizes the key clicks, the margin bell, and the carriage return with Web Audio; browsers only let it play after the visitor has clicked or pressed a key on the page. Screen readers get the whole text at once. `prefers-reduced-motion: reduce` prints the finished page with no animation, and typing pauses while the typewriter is off-screen or the tab is hidden.
+
+## Props
+
+| Prop         | Type         | Default                                              |
+| ------------ | ------------ | ---------------------------------------------------- |
+| `text`       | `string`     | a short letter — `\n` breaks a line                  |
+| `speed`      | `number`     | `14` — characters per second                         |
+| `humanize`   | `boolean`    | `true` — uneven keys, rests after punctuation        |
+| `jitter`     | `number`     | `0.3` — 0–1, per-letter baseline, tilt, and ink      |
+| `columns`    | `number`     | `0` — wrap width in characters, `0` fits the frame   |
+| `ticks`      | `boolean`    | `true` — scale marks along the rail                  |
+| `loop`       | `boolean`    | `true` — feed the page out and type it again         |
+| `hold`       | `number`     | `2600` — ms on the finished page before looping      |
+| `startDelay` | `number`     | `600` — ms before the first keystroke                |
+| `sound`      | `boolean`    | `false` — synthesized clicks, bell, and return       |
+| `onDone`     | `() => void` | called each time the last character lands            |
+| `className`  | `string`     | React only                                           |
+| `class`      | `string`     | Svelte only                                          |
+
+Color it with a text color on the component or its parent (`className="text-sky-700"`); the rail, carriage, and letters all use `currentColor`. The root has `p-6` padding, and the text margin moves in further when the carriage needs room to stay inside the frame.

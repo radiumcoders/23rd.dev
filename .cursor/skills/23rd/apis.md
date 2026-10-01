@@ -362,6 +362,29 @@ type FolioPlayDetail = {
 
 React exports `playFolioDemo`, `FOLIO_PLAY` (`"folio:play"`), `applyFolioFrame`. The Svelte component listens for that window event. Reduced motion: no tilt, no blur.
 
+## typewriter
+
+```ts
+type TypewriterProps = {
+  text?: string // DEFAULT_TEXT; "\n" breaks a line
+  speed?: number // 14 characters per second, clamped 1–120
+  humanize?: boolean // true
+  loop?: boolean // true
+  hold?: number // 2600 ms on the finished page before looping
+  startDelay?: number // 600 ms before the first keystroke
+  columns?: number // 0 = fit the frame; never wider than the frame
+  ticks?: boolean // true
+  jitter?: number // 0.3, 0–1
+  sound?: boolean // false
+  onDone?: () => void // each time the last character lands
+  className?: string
+}
+```
+
+Also exported: `DEFAULT_TEXT`, `DEFAULT_SPEED`, `DEFAULT_HOLD`, `DEFAULT_START_DELAY`, `DEFAULT_JITTER`, `layoutTypewriter(text, columns)`, types `TypewriterStroke`, `TypewriterOptions`, `TypewriterInstance`.
+
+Vanilla `TypewriterInstance`: `{ setOptions, restart, destroy }`. Not returned to app code by the React component; remount with a `key` to type again.
+
 ## Events that are not props
 
 | Name | Constant | Who listens |

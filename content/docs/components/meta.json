@@ -21,6 +21,7 @@
     "---Sections---",
     "folio",
     "---Components---",
-    "gooey-color-picker"
+    "gooey-color-picker",
+    "typewriter"
   ]
 }

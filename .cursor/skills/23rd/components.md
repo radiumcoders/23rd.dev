@@ -385,3 +385,29 @@ Controlled when `value` is not `undefined`. Otherwise uncontrolled, seeded from 
 `GooeyColor` is `{ h: 0–360, s: 0–100, l: 0–100, a: 0–1 }`. Strings accept hex (`#RGB`, `#RGBA`, `#RRGGBB`, `#RRGGBBAA`) and `hsl` / `hsla`. `onChange` second arg is `hsla(...)` from `toCss`. EyeDropper appears only when `window.EyeDropper` exists; it is not a prop.
 
 Pitfalls: the panel overflows the trigger. Do not put it in `overflow-hidden`. React also exports `parseColor`. No `className` on Svelte — use `class`.
+
+## typewriter
+
+Component. Text typed onto the page by a typeball that rides a full-width rail. For each letter the ball spins that glyph to the front, strikes, and steps one cell right; at the margin it whirls home and drops a line. The paper feeds up when the page fills. With `loop`, the finished sheet is pulled out and typed again.
+
+Best fit: a letter, a manifesto, or a hero line that should arrive one keystroke at a time.
+
+Not this: a wordmark (`ascii-logo`), a blinking input caret, or a background behind other copy.
+
+Deps: none. Props: `text` (`DEFAULT_TEXT`), `speed` (14 chars/s), `humanize` (true), `jitter` (0.3), `columns` (0 = fit), `ticks` (true), `loop` (true), `hold` (2600 ms), `startDelay` (600 ms), `sound` (false), `onDone`.
+
+```tsx
+"use client"
+import { Typewriter } from "@/components/ui/typewriter"
+
+export function Letter() {
+  return (
+    <div className="h-80 w-full overflow-hidden rounded-xl border">
+      <Typewriter text={"Dear reader,\nthe ribbon is fresh."} />
+    </div>
+  )
+}
+```
+
+Pitfalls: `\n` is the only way to force a line break; everything else wraps at words. The font is the project's `font-mono` at the inherited size; set a size with `className="text-lg"`. Ink, rail, and carriage use `currentColor`, so color it with a text class. `sound` is Web Audio and stays silent until the visitor has interacted with the page. Reduced motion prints the whole page at once. Changing `text` starts over; other props apply live.
+

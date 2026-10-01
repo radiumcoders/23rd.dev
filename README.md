@@ -98,6 +98,7 @@ npx skills add radiumcoders/23rd.dev --skill 23rd -g
 | [Shader Gradient](https://23rd.dev/docs/components/shader-gradient)       | `@23rd/shader-gradient`    | Quiet WebGL wash behind landing heroes, empty states, and marketing sections       |
 | [Shader Sky](https://23rd.dev/docs/components/shader-sky)                 | `@23rd/shader-sky`         | Clear blue or rain behind a hero — drifting clouds, optional window-glass film     |
 | [Stretchy Footer](https://23rd.dev/docs/components/stretchy-footer)       | `@23rd/stretchy-footer`    | Dia-style rubber overscroll; aurora stretches past the bottom, then snaps back     |
+| [Typewriter](https://23rd.dev/docs/components/typewriter)                 | `@23rd/typewriter`         | A typeball on a rail spins each letter to the front, strikes, and drops a line at the margin |
 
 ```tsx
 import { GooeyColorPicker } from "@/components/ui/gooey-color-picker"

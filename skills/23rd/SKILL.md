@@ -3,8 +3,8 @@ name: 23rd
 description: >
   Install, choose, and compose 23rd shadcn/ui registry components for React and
   Svelte 5. Use when the user wants a UI component, background, shader, WebGL
-  wash, hero atmosphere, footer, 404, color picker, ASCII effect, starfield,
-  orb, or page-tilt from the 23rd registry (@23rd, 23rd.dev, radiumcoders/23rd.dev),
+  wash, hero atmosphere, footer, 404, color picker, typewriter text, ASCII effect,
+  starfield, orb, or page-tilt from the 23rd registry (@23rd, 23rd.dev, radiumcoders/23rd.dev),
   or when adding a new component to this registry. Covers install commands,
   import paths, props, theming, and when not to use each item.
 metadata:
@@ -91,6 +91,7 @@ flowchart TD
   pick -->|Full page 404| d404[dithered-404]
   pick -->|Scroll makes the page lean| folio[folio]
   pick -->|Character or wordmark| mark{Which}
+  pick -->|Type text out letter by letter| tw[typewriter]
   atmo -->|Quiet wash| sg[shader-gradient]
   atmo -->|Cel-shaded fire from the bottom| saf[shader-anime-fire]
   atmo -->|Soft fire wash from the bottom| sf[shader-fire]
@@ -120,6 +121,7 @@ Disambiguation that agents get wrong:
 | ASCII letters that shove, scatter, and fall | `ascii-logo` | `ascii-fluid` (trails, not a wordmark) |
 | CRT notation, phosphor, staves | `phosphor-score` | `shader-sky` |
 | A face / orb / mascot | `live-orb` | `logo-burst` |
+| Typing effect, typewriter, text that types itself | `typewriter` | `ascii-logo` (a wordmark, not prose) |
 
 There is one variant enum in the whole registry: `LiveOrb` `variant` is `"white" | "black" | "webgl" | "custom"`. Nothing else has `variant`.
 
@@ -139,6 +141,8 @@ Same shell for `ShaderAnimeFire`, `ShaderFire`, `ShaderSky`, `AsciiFluid`, `Logo
 `RadiantLines` is transparent and warps with scroll. Inside an overflow div, pass the scroller (`containerRef` in React, `container` in Svelte) and make the canvas `sticky top-0 h-svh`. Omit the scroller to use the window.
 
 `Folio` and `StretchyFooter` are the scroller by default. Put the page in `children`. For a real document, set `windowScroll` and mark the tilting or lifting element (`data-folio-page` or `data-stretchy-page`).
+
+`Typewriter` fills its parent like a background but is content: it types `text` in the mono font, inherits the font size, and inks in `currentColor`. Give the parent a height; the paper feeds up when the page fills.
 
 `GooeyColorPicker` is an inline control. It opens upward from the trigger. Give it room (`overflow-visible`); do not clip it in `overflow-hidden`.
 
@@ -182,6 +186,7 @@ Categories match `content/docs/components/meta.json`.
 | `dithered-404` | Pages | Bayer 404 burned by a fireball cursor, then reforms | React + Svelte |
 | `folio` | Sections | Page leans on scroll, then springs flat | React + Svelte |
 | `gooey-color-picker` | Components | Swatch opens into hue, alpha, and hex under an SVG goo filter | React + Svelte |
+| `typewriter` | Components | A typeball on a rail types text letter by letter, returns at the margin | React + Svelte |
 
 ## Minimal installs that must be right
 

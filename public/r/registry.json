@@ -374,6 +374,32 @@
         }
       ],
       "type": "registry:ui"
+    },
+    {
+      "name": "typewriter",
+      "title": "Typewriter",
+      "description": "Text typed onto the page by a typeball riding a rail — it spins each letter to the front, strikes, steps right, and at the margin whirls home and drops a line.",
+      "files": [
+        {
+          "path": "registry/typewriter/typewriter.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/typewriter.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
+      "name": "typewriter-svelte",
+      "title": "Typewriter",
+      "description": "Text typed onto the page by a typeball riding a rail — it spins each letter to the front, strikes, steps right, and at the margin whirls home and drops a line.",
+      "files": [
+        {
+          "path": "registry/typewriter/typewriter.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/typewriter.svelte"
+        }
+      ],
+      "type": "registry:ui"
     }
   ]
 }

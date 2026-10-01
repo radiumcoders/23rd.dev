@@ -221,6 +221,21 @@ export function Brand() {
 
 `text` longer than 5 characters is truncated.
 
+Letter that types itself:
+
+```tsx
+"use client"
+import { Typewriter } from "@/components/ui/typewriter"
+
+export function Note() {
+  return (
+    <div className="h-72 overflow-hidden rounded-xl border text-lg">
+      <Typewriter text={"Dear reader,\nwe shipped it."} loop={false} />
+    </div>
+  )
+}
+```
+
 ## Anti-patterns
 
 - `ShaderGradient` as a color control, or `GooeyColorPicker` as a page background.
