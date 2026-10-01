@@ -36,6 +36,8 @@
     columns = DEFAULT_COLUMNS,
     jitter = DEFAULT_JITTER,
     sound = false,
+    interactive = true,
+    label,
     onDone,
   }: Props = $props()
 
@@ -55,6 +57,8 @@
       columns,
       jitter,
       sound,
+      interactive,
+      label,
       onDone,
     })
     return () => {
@@ -75,6 +79,8 @@
       columns,
       jitter,
       sound,
+      interactive,
+      label,
       onDone,
     })
   })
@@ -84,7 +90,7 @@
   bind:this={root}
   data-slot="typewriter"
   class={cn(
-    "relative size-full overflow-hidden bg-background font-mono text-foreground",
+    "relative size-full overflow-hidden bg-background font-mono text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset",
     className
   )}
 ></div>

@@ -56,6 +56,8 @@ export function Typewriter({
   columns = DEFAULT_COLUMNS,
   jitter = DEFAULT_JITTER,
   sound = false,
+  interactive = true,
+  label,
   onDone,
 }: TypewriterProps) {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -80,6 +82,8 @@ export function Typewriter({
       columns,
       jitter,
       sound,
+      interactive,
+      label,
       onDone: () => onDoneRef.current?.(),
     })
     return () => {
@@ -102,6 +106,8 @@ export function Typewriter({
       columns,
       jitter,
       sound,
+      interactive,
+      label,
     })
   }, [
     text,
@@ -114,6 +120,8 @@ export function Typewriter({
     columns,
     jitter,
     sound,
+    interactive,
+    label,
   ])
 
   return (
@@ -121,7 +129,7 @@ export function Typewriter({
       ref={rootRef}
       data-slot="typewriter"
       className={cn(
-        "relative size-full overflow-hidden bg-background font-mono text-foreground",
+        "relative size-full overflow-hidden bg-background font-mono text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset",
         className
       )}
     />

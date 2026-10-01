@@ -376,6 +376,8 @@ type TypewriterProps = {
   columns?: number // 32 characters per line, clamped 16–60
   jitter?: number // 0.3, 0–1
   sound?: boolean // false
+  interactive?: boolean // true: focusable; type on it or click its keys
+  label?: string // nameplate text on the front; omit for none
   onDone?: () => void // each time the last character lands
   className?: string
 }

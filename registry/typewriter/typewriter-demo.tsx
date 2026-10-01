@@ -38,6 +38,7 @@ const DEFAULTS = {
   humanize: true,
   loop: true,
   sound: false,
+  interactive: true,
 }
 
 export function TypewriterDemo() {
@@ -50,7 +51,7 @@ export function TypewriterDemo() {
   return (
     <>
       <ComponentPreview title="Typewriter" stageClassName="min-h-0 p-0">
-        <div className="aspect-[16/9] max-h-[70svh] w-full px-4 pt-2 pb-4">
+        <div className="relative aspect-[16/9] max-h-[70svh] w-full px-4 pt-2 pb-4">
           <Typewriter
             key={take}
             color={props.color}
@@ -61,7 +62,14 @@ export function TypewriterDemo() {
             humanize={props.humanize}
             loop={props.loop}
             sound={props.sound}
+            interactive={props.interactive}
+            label="23rd"
           />
+          {props.interactive ? (
+            <p className="pointer-events-none absolute bottom-3 left-4 text-xs text-muted-foreground">
+              Click it and type
+            </p>
+          ) : null}
         </div>
       </ComponentPreview>
 
@@ -79,6 +87,8 @@ export function TypewriterDemo() {
           humanize: props.humanize ? undefined : false,
           loop: props.loop ? undefined : false,
           sound: props.sound ? true : undefined,
+          interactive: props.interactive ? undefined : false,
+          label: "23rd",
         }}
       >
         <div className="flex flex-col gap-1.5">
@@ -187,6 +197,12 @@ export function TypewriterDemo() {
           description="Pull the sheet out and type it again"
           checked={props.loop}
           onChange={(v) => updateProp("loop", v)}
+        />
+        <ControlSwitch
+          label="Interactive"
+          description="Type on it, or click its keys"
+          checked={props.interactive}
+          onChange={(v) => updateProp("interactive", v)}
         />
         <ControlSwitch
           label="Sound"

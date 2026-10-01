@@ -38,6 +38,14 @@ export type TypewriterOptions = {
   jitter?: number
   /** Synthesized key clicks, bell, and return. Default `false`. */
   sound?: boolean
+  /**
+   * Click the machine and type on it: your keyboard, or its keys, space
+   * bar, shift lock, and return lever. Taking over stops the script.
+   * Default `true`.
+   */
+  interactive?: boolean
+  /** Text on a chrome nameplate on the front. Omit for none. */
+  label?: string
   /** Called each time the last character lands. */
   onDone?: () => void
 }
@@ -313,6 +321,14 @@ const KEY_R = 12.5
 const KEY_TILT = 0.64
 /** How far a key travels when pressed. */
 const KEY_TRAVEL = 4
+/** Paper lean per unit/s of carriage speed, in degrees, and its limit. */
+const FLEX_GAIN = 0.0042
+const FLEX_MAX = 5
+/** Spring the paper wobbles back on. */
+const FLEX_K = 170
+const FLEX_C = 9
+/** Platen line: where the sheet bends from. */
+const FLEX_ANCHOR = 40
 /** Shifted characters, and the key that types them. */
 const SHIFTED: Record<string, string> = {
   "!": "1",
@@ -411,6 +427,10 @@ type Key = { cap: SVGGElement; bar: Bar | null; v: number }
 
 type Machine = {
   columns: number
+  /** Everything but the ground shadow — it shudders on each strike. */
+  rig: SVGGElement
+  /** Under-inked fills, for letters the ribbon didn't fully cover. */
+  inkFills: string[]
   carriage: SVGGElement
   paper: SVGGElement
   sheet: SVGRectElement
@@ -439,7 +459,8 @@ function drawMachine(
   svg: SVGSVGElement,
   id: string,
   columns: number,
-  color: string
+  color: string,
+  label?: string
 ): Machine {
   const span = columns * CW
   const platenL = -PAD - 22
@@ -607,7 +628,36 @@ function drawMachine(
         [1, "#3A2E1C", 0.34],
       ]
     ),
+    contact: gradient("contact", "linearGradient", down, [
+      [0, "#000", 0.3],
+      [1, "#000", 0],
+    ]),
   }
+  const inkFills = (
+    [
+      [down, 0, 0.36],
+      [down, 1, 0.4],
+      [across, 0, 0.42],
+      [across, 1, 0.42],
+    ] as const
+  ).map(([dir, faintEnd, alpha], i) =>
+    gradient(
+      `ink-${i}`,
+      "linearGradient",
+      dir,
+      faintEnd === 0
+        ? [
+            [0, INK, alpha],
+            [0.55, INK, 1],
+            [1, INK, 1],
+          ]
+        : [
+            [0, INK, 1],
+            [0.45, INK, 1],
+            [1, INK, alpha],
+          ]
+    )
+  )
 
   // The sheet fades out at the top of the frame and tucks behind the
   // platen at the bottom.
@@ -641,7 +691,8 @@ function drawMachine(
 
   /* ---------------- Carriage ---------------- */
 
-  const carriage = draw("g", {}, svg)
+  const rig = draw("g", {}, svg)
+  const carriage = draw("g", {}, rig)
   // Rail it rides on.
   draw(
     "rect",
@@ -746,7 +797,7 @@ function drawMachine(
     return { x, lines }
   })
   // Carriage return lever: chrome arm, bakelite grip.
-  const lever = draw("g", {}, carriage)
+  const lever = draw("g", { "data-key": "return" }, carriage)
   const leverPivot: [number, number] = [leverX, 30]
   draw(
     "rect",
@@ -883,11 +934,16 @@ function drawMachine(
 
   /* ---------------- Body ---------------- */
 
-  const body = draw("g", {}, svg)
+  const body = draw("g", {}, rig)
   const shell =
     "M-192 42Q-214 42 -219 62C-228 120 -240 190 -247 246Q-249 262 -232 264H232Q249 262 247 246C240 190 228 120 219 62Q214 42 192 42Z"
   draw("path", { d: shell, fill: fills.body }, body)
   draw("path", { d: shell, fill: fills.sides }, body)
+  draw(
+    "rect",
+    { x: -206, y: 42.5, width: 412, height: 15, fill: fills.contact },
+    body
+  )
   // Front face, below the top surfaces, with a chrome trim.
   draw(
     "path",
@@ -919,6 +975,43 @@ function drawMachine(
     },
     body
   )
+  if (label) {
+    const w = Math.max(36, label.length * 7.4 + 18)
+    draw(
+      "rect",
+      {
+        x: -w / 2,
+        y: 268.5,
+        width: w,
+        height: 14,
+        rx: 3,
+        fill: fills.chrome,
+        stroke: CHROME_EDGE,
+        "stroke-width": 0.8,
+      },
+      body
+    )
+    for (const [dy, fill] of [
+      [0.6, "#fff"],
+      [0, "#30353A"],
+    ] as const) {
+      const plate = draw(
+        "text",
+        {
+          x: 0,
+          y: 276 + dy,
+          "text-anchor": "middle",
+          "dominant-baseline": "central",
+          "font-size": 8.4,
+          "font-weight": 700,
+          "letter-spacing": 1.6,
+          fill,
+        },
+        body
+      )
+      plate.textContent = label
+    }
+  }
   for (const x of [-228, 188]) {
     draw(
       "rect",
@@ -1126,7 +1219,7 @@ function drawMachine(
   const ry = KEY_R * KEY_TILT
   const height = 4.5
   /** A round key on its stem, seen from above: rim, cap, legend, shadow. */
-  const keyAt = (x: number, y: number, label: string) => {
+  const keyAt = (x: number, y: number, label: string, ch: string) => {
     draw(
       "ellipse",
       {
@@ -1198,6 +1291,19 @@ function drawMachine(
       cap
     )
     text.textContent = label
+    draw(
+      "path",
+      {
+        d: `M${x - KEY_R + 3.6} ${y - 0.4}A${KEY_R - 3.6} ${ry - 2.3} 0 0 1 ${x + KEY_R - 3.6} ${y - 0.4}`,
+        fill: "none",
+        stroke: "#fff",
+        "stroke-width": 0.9,
+        "stroke-opacity": 0.32,
+        "stroke-linecap": "round",
+      },
+      cap
+    )
+    cap.setAttribute("data-key", ch)
     return cap
   }
 
@@ -1207,7 +1313,7 @@ function drawMachine(
     Array.from(row).forEach((ch, i) => {
       const x = -157.5 + (r - 1.5) * 9 + i * KEY_PITCH
       const key: Key = {
-        cap: keyAt(x, KEY_Y[r]!, ch.toUpperCase()),
+        cap: keyAt(x, KEY_Y[r]!, ch.toUpperCase(), ch),
         bar: null,
         v: 0,
       }
@@ -1290,7 +1396,9 @@ function drawMachine(
   const shifts = [-1, 1].map((side) => {
     const x = side * 201
     const arrow = `M${x} ${y3 - 3.6}L${x + 4} ${y3 + 0.6}H${x + 1.6}V${y3 + 3.4}H${x - 1.6}V${y3 + 0.6}H${x - 4}Z`
-    return { cap: pill(x, y3, 30, arrow), bar: null, v: 0 } satisfies Key
+    const cap = pill(x, y3, 30, arrow)
+    cap.setAttribute("data-key", "shift")
+    return { cap, bar: null, v: 0 } satisfies Key
   })
 
   // Space bar: a chrome bar on two arms.
@@ -1307,7 +1415,7 @@ function drawMachine(
       body
     )
   }
-  const spaceCap = draw("g", {}, body)
+  const spaceCap = draw("g", { "data-key": " " }, body)
   draw(
     "rect",
     {
@@ -1335,7 +1443,7 @@ function drawMachine(
   const space: Key = { cap: spaceCap, bar: null, v: 0 }
 
   // One typebar per key, fanned left to right in key order.
-  const overlay = draw("g", {}, svg)
+  const overlay = draw("g", {}, rig)
   placed.sort((a, b) => a.x - b.x)
   const bars = placed.map(({ key }, i) => {
     const angle = -SPREAD + (2 * SPREAD * i) / (placed.length - 1)
@@ -1386,6 +1494,8 @@ function drawMachine(
 
   return {
     columns,
+    rig,
+    inkFills,
     carriage,
     paper,
     sheet,
@@ -1470,7 +1580,14 @@ export function createTypewriter(
   /* ---------------------------------------------------------------- */
 
   const build = () => {
-    M = drawMachine(svg, id, columnsOf(), options.color ?? DEFAULT_COLOR)
+    M = drawMachine(
+      svg,
+      id,
+      columnsOf(),
+      options.color ?? DEFAULT_COLOR,
+      options.label
+    )
+    setInteractive()
   }
 
   /* ---------------------------------------------------------------- */
@@ -1493,9 +1610,21 @@ export function createTypewriter(
     pose.carriage = x
     M.carriage.setAttribute("transform", `translate(${x.toFixed(2)} 0)`)
   }
+  /** Sheet lean, a spring driven by how fast the carriage moves. */
+  const flex = { angle: 0, vel: 0, x: 0, t: 0 }
+  const placePaper = () => {
+    const y = pose.paper
+    const a = flex.angle
+    M.paper.setAttribute(
+      "transform",
+      Math.abs(a) < 0.01
+        ? `translate(0 ${y.toFixed(2)})`
+        : `translate(0 ${FLEX_ANCHOR}) skewX(${a.toFixed(3)}) translate(0 ${(y - FLEX_ANCHOR).toFixed(2)})`
+    )
+  }
   const setPaper = (y: number) => {
     pose.paper = y
-    M.paper.setAttribute("transform", `translate(0 ${y.toFixed(2)})`)
+    placePaper()
   }
   /** Knurling on the platen knobs, scrolling as the platen turns. */
   const setKnob = (phase: number) => {
@@ -1593,8 +1722,11 @@ export function createTypewriter(
     setKnob(pose.knob)
     setSpool(pose.spool)
     setLever(0)
-    setShift(0)
+    setShift(capsLock ? 1 : 0)
     setRibbon(0)
+    flex.angle = 0
+    flex.vel = 0
+    placePaper()
     for (const key of M.keys.values()) setKey(key, 0)
     setKey(M.space, 0)
     for (const bar of M.bars) setBar(bar, 0)
@@ -1621,7 +1753,23 @@ export function createTypewriter(
       motion.run(motion.ease(t))
       if (t >= 1) running.delete(key)
     }
-    if (queued.length || running.size) raf = requestAnimationFrame(frame)
+    // The sheet leans against the carriage's motion, then wobbles upright.
+    const dt = flex.t ? Math.min(0.05, (now - flex.t) / 1000) : 0
+    flex.t = now
+    if (dt > 0) {
+      const speed = (pose.carriage - flex.x) / dt
+      const target = clamp(speed * FLEX_GAIN, -FLEX_MAX, FLEX_MAX)
+      flex.vel += (-FLEX_K * (flex.angle - target) - FLEX_C * flex.vel) * dt
+      flex.angle += flex.vel * dt
+      placePaper()
+    }
+    flex.x = pose.carriage
+    const settling = Math.abs(flex.angle) > 0.02 || Math.abs(flex.vel) > 0.05
+    if (queued.length || running.size || settling) {
+      raf = requestAnimationFrame(frame)
+    } else {
+      flex.t = 0
+    }
   }
   const wake = () => {
     if (!raf) raf = requestAnimationFrame(frame)
@@ -1694,7 +1842,11 @@ export function createTypewriter(
   let pos = 0
   let cursor = { line: 0, col: 0 }
   let sheetH = 600
-  let phase: "waiting" | "typing" | "done" | "feeding" = "waiting"
+  let phase: "waiting" | "typing" | "done" | "feeding" | "manual" = "waiting"
+  /** Shift lock, from the machine's own shift keys. */
+  let capsLock = false
+  /** Next `src` for strokes typed by hand. */
+  let nextSrc = 0
   let rang = false
   let destroyed = false
   let reduce = false
@@ -1752,26 +1904,49 @@ export function createTypewriter(
       : { line: stroke.line, col: 0 }
   }
 
+  /**
+   * A letter as it lands: a little off its cell, sometimes under-inked
+   * where the ribbon missed, now and then struck twice.
+   */
   const letter = (stroke: Extract<TypewriterStroke, { kind: "char" }>) => {
     const jitter = jitterOf()
-    const n = Math.floor(stroke.src) * 4
+    const n = Math.floor(stroke.src) * 8
     const x = stroke.col * CW + CW / 2
     const y = stroke.line * LH
-    const el = draw("text", { x, y }, M.ink)
-    el.textContent = stroke.ch
-    let ink = 1
-    if (jitter > 0) {
-      const dx = (hash(n) - 0.5) * jitter * 1.1
-      const dy = (hash(n + 1) - 0.5) * jitter * 1.6
-      const tilt = (hash(n + 2) - 0.5) * jitter * 3.2
-      el.setAttribute(
-        "transform",
-        `translate(${dx.toFixed(2)} ${dy.toFixed(2)}) rotate(${tilt.toFixed(2)} ${x} ${y})`
-      )
-      ink = 1 - hash(n + 3) * jitter * 0.42
+    const group = draw("g", {}, M.ink)
+    const glyph = (attrs: Record<string, string | number>) => {
+      const el = draw("text", { x, y, ...attrs }, group)
+      el.textContent = stroke.ch
+      return el
     }
-    el.setAttribute("fill-opacity", ink.toFixed(3))
-    return { el, ink }
+    if (jitter <= 0) {
+      glyph({})
+      return group
+    }
+    const dx = (hash(n) - 0.5) * jitter * 1.1
+    const dy = (hash(n + 1) - 0.5) * jitter * 1.6
+    const tilt = (hash(n + 2) - 0.5) * jitter * 3.2
+    group.setAttribute(
+      "transform",
+      `translate(${dx.toFixed(2)} ${dy.toFixed(2)}) rotate(${tilt.toFixed(2)} ${x} ${y})`
+    )
+    const ink = 1 - hash(n + 3) * jitter * 0.38
+    const worn = hash(n + 4) < jitter * 0.6
+    glyph({
+      "fill-opacity": ink.toFixed(3),
+      ...(worn
+        ? {
+            fill: M.inkFills[Math.floor(hash(n + 5) * M.inkFills.length)]!,
+          }
+        : {}),
+    })
+    if (hash(n + 6) < jitter * 0.14) {
+      glyph({
+        "fill-opacity": (ink * 0.42).toFixed(3),
+        transform: `translate(${(0.45 + hash(n + 7) * 0.3).toFixed(2)} 0.3)`,
+      })
+    }
+    return group
   }
 
   const sizeSheet = () => {
@@ -1791,7 +1966,7 @@ export function createTypewriter(
       const stroke = strokes[i]!
       if (stroke.kind === "char" && stroke.ch !== " ") letter(stroke)
     }
-    cursor = after(strokes[pos - 1])
+    if (phase !== "manual") cursor = after(strokes[pos - 1])
     rang = cursor.col >= M.columns - BELL_CELLS
     restPose()
   }
@@ -1822,9 +1997,12 @@ export function createTypewriter(
   }
 
   /** Press the key, swing its bar into the ribbon, step the carriage. */
-  const strike = (stroke: Extract<TypewriterStroke, { kind: "char" }>) => {
+  const strike = (
+    stroke: Extract<TypewriterStroke, { kind: "char" }>,
+    fixed?: number
+  ) => {
     const base = 1000 / speedOf()
-    const ms = clamp(base * 1.7, 90, 170)
+    const ms = fixed ?? clamp(base * 1.7, 90, 170)
     const audio = soundOn()
     const step = carriageAt(stroke.col + 1)
     cursor = { line: stroke.line, col: stroke.col + 1 }
@@ -1840,7 +2018,7 @@ export function createTypewriter(
       const { key, shift } = keyFor(stroke.ch)
       const lead = shift ? ms * 0.25 : 0
       const impact = lead + ms * 0.42
-      if (shift) {
+      if (shift && !capsLock) {
         let from = 0
         play("shift", ms * 1.6, (t) => setShift(pulse(t, from, 0.16, 0.5)), {
           begin: () => {
@@ -1877,13 +2055,24 @@ export function createTypewriter(
           lifted = pose.ribbon
         },
       })
-      const { el, ink } = letter(stroke)
-      el.setAttribute("fill-opacity", "0")
+      const mark = letter(stroke)
+      mark.setAttribute("opacity", "0")
       play(
         `ink-${stroke.src}`,
         60,
+        (v) => mark.setAttribute("opacity", v.toFixed(3)),
+        { delay: impact }
+      )
+      // The whole machine takes the blow.
+      play(
+        "shudder",
+        110,
         (v) => {
-          el.setAttribute("fill-opacity", (v * ink).toFixed(3))
+          const y = Math.sin(v * Math.PI) * (1 - v) * 1.6
+          M.rig.setAttribute(
+            "transform",
+            y > 0.01 ? `translate(0 ${y.toFixed(2)})` : ""
+          )
         },
         { delay: impact }
       )
@@ -1994,6 +2183,7 @@ export function createTypewriter(
   const start = () => {
     cancel()
     stopMotion()
+    capsLock = false
     strokes = layoutTypewriter(textOf(), M.columns)
     spoken.textContent = textOf()
     sizeSheet()
@@ -2014,6 +2204,11 @@ export function createTypewriter(
     const at = strokes[pos - 1]?.src ?? -1
     stopMotion()
     build()
+    if (phase === "manual") {
+      sizeSheet()
+      paint()
+      return
+    }
     strokes = layoutTypewriter(textOf(), M.columns)
     if (phase === "done") pos = strokes.length
     else {
@@ -2027,6 +2222,156 @@ export function createTypewriter(
       schedule(step, 200)
     } else if (phase === "waiting") schedule(step, startOf())
   }
+
+  /* ---------------------------------------------------------------- */
+  /* Typing by hand                                                    */
+  /* ---------------------------------------------------------------- */
+
+  const interactiveOf = () => options.interactive ?? true
+
+  /** The first key from a person stops the script; the page stays. */
+  const takeOver = () => {
+    if (phase === "manual") return
+    cancel()
+    if (phase === "feeding" || phase === "waiting") {
+      stopMotion()
+      strokes = phase === "feeding" ? [] : strokes.slice(0, pos)
+    } else {
+      strokes = strokes.slice(0, pos)
+    }
+    pos = strokes.length
+    cursor = after(strokes[pos - 1])
+    nextSrc = Math.floor(strokes.at(-1)?.src ?? -1) + 1
+    setPhase("manual")
+    sizeSheet()
+    if (!running.size) paint()
+  }
+
+  const typeReturn = () => {
+    takeOver()
+    const stroke: TypewriterStroke = {
+      kind: "return",
+      line: cursor.line + 1,
+      from: cursor.col,
+      src: nextSrc++,
+    }
+    strokes.push(stroke)
+    pos = strokes.length
+    sizeSheet()
+    if (reduce) {
+      cursor = after(stroke)
+      setPaper(-cursor.line * LH)
+      setCarriage(carriageAt(0))
+      return
+    }
+    carriageReturn(stroke)
+  }
+
+  const typeKey = (ch: string) => {
+    takeOver()
+    // No margin release: at the margin the carriage returns on its own.
+    if (cursor.col >= M.columns) typeReturn()
+    const stroke: Extract<TypewriterStroke, { kind: "char" }> = {
+      kind: "char",
+      ch,
+      line: cursor.line,
+      col: cursor.col,
+      src: nextSrc++,
+    }
+    strokes.push(stroke)
+    pos = strokes.length
+    if (reduce) {
+      if (ch !== " ") letter(stroke)
+      cursor = after(stroke)
+      setCarriage(carriageAt(cursor.col))
+      return
+    }
+    strike(stroke, 120)
+  }
+
+  /** Backspace moves the carriage back a space; the next letter overstrikes. */
+  const typeBack = () => {
+    takeOver()
+    if (cursor.col === 0) return
+    cursor = { line: cursor.line, col: cursor.col - 1 }
+    if (reduce) {
+      setCarriage(carriageAt(cursor.col))
+      return
+    }
+    tween(
+      "carriage",
+      () => pose.carriage,
+      setCarriage,
+      carriageAt(cursor.col),
+      90,
+      {
+        ease: easeOut,
+      }
+    )
+    soundOn()?.key(true)
+  }
+
+  const setShiftLock = (on: boolean) => {
+    capsLock = on
+    if (reduce) setShift(on ? 1 : 0)
+    else
+      tween("shift", () => pose.shift, setShift, on ? 1 : 0, 130, {
+        ease: easeOut,
+      })
+  }
+
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (!interactiveOf() || event.ctrlKey || event.metaKey || event.altKey) {
+      return
+    }
+    const { key } = event
+    if (key === "Enter") {
+      if (!event.repeat) typeReturn()
+    } else if (key === "Backspace") {
+      typeBack()
+    } else if (key.length === 1) {
+      // A real machine doesn't auto-repeat.
+      if (!event.repeat) typeKey(key)
+    } else {
+      return
+    }
+    event.preventDefault()
+  }
+
+  const onPointerDown = (event: PointerEvent) => {
+    if (!interactiveOf() || event.button !== 0) return
+    root.focus({ preventScroll: true })
+    const hit = (event.target as Element | null)?.closest?.("[data-key]")
+    const key = hit?.getAttribute("data-key")
+    if (key == null) return
+    event.preventDefault()
+    if (key === "shift") setShiftLock(!capsLock)
+    else if (key === "return") typeReturn()
+    else typeKey(capsLock ? key.toUpperCase() : key)
+  }
+
+  /** Focus, keyboard, and clickable parts follow `interactive`. */
+  function setInteractive() {
+    const on = interactiveOf()
+    if (on) {
+      root.tabIndex = 0
+      root.setAttribute("role", "group")
+      root.setAttribute(
+        "aria-label",
+        "Typewriter. Focus it and type, or click its keys."
+      )
+    } else {
+      root.removeAttribute("tabindex")
+      root.removeAttribute("role")
+      root.removeAttribute("aria-label")
+    }
+    for (const el of svg.querySelectorAll<SVGElement>("[data-key]")) {
+      el.style.cursor = on ? "pointer" : ""
+    }
+  }
+
+  root.addEventListener("keydown", onKeyDown)
+  svg.addEventListener("pointerdown", onPointerDown)
 
   /* ---------------------------------------------------------------- */
   /* Theme                                                             */
@@ -2086,7 +2431,14 @@ export function createTypewriter(
         start()
         return
       }
-      if (columnsOf() !== M.columns || options.color !== prev.color) rebuild()
+      if (
+        columnsOf() !== M.columns ||
+        options.color !== prev.color ||
+        options.label !== prev.label
+      ) {
+        rebuild()
+      }
+      if (options.interactive !== prev.interactive) setInteractive()
       else if (options.jitter !== prev.jitter) {
         for (const motion of running.values()) motion.run(1)
         stopMotion()
@@ -2108,6 +2460,11 @@ export function createTypewriter(
       io.disconnect()
       mqReduce.removeEventListener("change", onReduce)
       document.removeEventListener("visibilitychange", onVisibility)
+      root.removeEventListener("keydown", onKeyDown)
+      svg.removeEventListener("pointerdown", onPointerDown)
+      for (const name of ["tabindex", "role", "aria-label"]) {
+        root.removeAttribute(name)
+      }
       sound?.close()
       root.style.removeProperty("--typewriter-sheet")
       spoken.remove()

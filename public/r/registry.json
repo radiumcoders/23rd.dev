@@ -378,7 +378,7 @@
     {
       "name": "typewriter",
       "title": "Typewriter",
-      "description": "A real typewriter in SVG — each key presses down, its typebar swings up to strike the ribbon, and the carriage steps along as the letter lands on the sheet.",
+      "description": "A real, playable typewriter in SVG — each key presses down, its typebar swings up to strike the ribbon, and the carriage steps along. Click it and type.",
       "files": [
         {
           "path": "registry/typewriter/typewriter.tsx",
@@ -391,7 +391,7 @@
     {
       "name": "typewriter-svelte",
       "title": "Typewriter",
-      "description": "A real typewriter in SVG — each key presses down, its typebar swings up to strike the ribbon, and the carriage steps along as the letter lands on the sheet.",
+      "description": "A real, playable typewriter in SVG — each key presses down, its typebar swings up to strike the ribbon, and the carriage steps along. Click it and type.",
       "files": [
         {
           "path": "registry/typewriter/typewriter.svelte",

@@ -142,7 +142,7 @@ Same shell for `ShaderAnimeFire`, `ShaderFire`, `ShaderSky`, `AsciiFluid`, `Logo
 
 `Folio` and `StretchyFooter` are the scroller by default. Put the page in `children`. For a real document, set `windowScroll` and mark the tilting or lifting element (`data-folio-page` or `data-stretchy-page`).
 
-`Typewriter` is a whole machine drawn in SVG that scales to fit its parent, centered, with the sheet growing above it as lines feed. Give the parent a height (roughly 2:1 wide). `color` sets the body enamel (default mint `#8EC3B5`); everything else is fixed chrome, rubber, and an ivory sheet.
+`Typewriter` is a whole machine drawn in SVG that scales to fit its parent, centered, with the sheet growing above it as lines feed. Give the parent a height (roughly 2:1 wide). `color` sets the body enamel (default mint `#8EC3B5`); everything else is fixed chrome, rubber, and an ivory sheet. With `interactive` (default on) visitors can click it and type, which stops the script.
 
 `GooeyColorPicker` is an inline control. It opens upward from the trigger. Give it room (`overflow-visible`); do not clip it in `overflow-hidden`.
 
