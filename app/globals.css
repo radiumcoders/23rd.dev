@@ -163,7 +163,8 @@
 /*
  * v2 tokens — "monitor bench".
  * The chrome is a quiet, achromatic bench; the only colour on the page comes
- * from the components running on their screens.
+ * from the components running on their screens. Dark mode is carbon: a deep,
+ * faintly warm black rather than blue-grey slate.
  *
  *   bench     page ground: sidebar, table of contents
  *   sheet     the inset panel the page content sits on
@@ -196,14 +197,14 @@
 
 .dark {
     color-scheme: dark;
-    --bench: #1a1b1e;
-    --sheet: #131416;
-    --plate: #1c1e21;
-    --screen: #0e0f10;
-    --ink: #ecedee;
-    --graphite: #9da1a8;
-    --wash: #2b2d32;
-    --rule: #323439;
+    --bench: #0f0f0e;
+    --sheet: #090908;
+    --plate: #161614;
+    --screen: #060605;
+    --ink: #edece8;
+    --graphite: #9b9994;
+    --wash: #1f1e1c;
+    --rule: #272624;
 }
 
 /* Before `html.dark` exists, :root is light. Keep system-dark users on dark
@@ -211,14 +212,14 @@
 @media (prefers-color-scheme: dark) {
     :root:not(.light) {
         color-scheme: dark;
-        --bench: #1a1b1e;
-        --sheet: #131416;
-        --plate: #1c1e21;
-        --screen: #0e0f10;
-        --ink: #ecedee;
-        --graphite: #9da1a8;
-        --wash: #2b2d32;
-        --rule: #323439;
+        --bench: #0f0f0e;
+        --sheet: #090908;
+        --plate: #161614;
+        --screen: #060605;
+        --ink: #edece8;
+        --graphite: #9b9994;
+        --wash: #1f1e1c;
+        --rule: #272624;
     }
 }
 
