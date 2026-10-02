@@ -1,32 +1,21 @@
-import type { SVGProps } from "react"
+import type { ComponentProps } from "react"
 
 import { cn } from "@/lib/utils"
 
-type LogoProps = SVGProps<SVGSVGElement> & {
-  cornerRadius?: number
-}
+type LogoProps = Omit<ComponentProps<"img">, "src" | "alt">
 
-export function Logo({ cornerRadius = 11, className, ...props }: LogoProps) {
+export function Logo({ className, ...props }: LogoProps) {
   return (
-    <svg
-      width="200"
-      height="200"
-      viewBox="0 0 200 200"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label="23rd logo"
-      className={cn("dark:invert", className)}
+    // eslint-disable-next-line @next/next/no-img-element -- tiny static asset; no optimizer on Workers
+    <img
+      src="/logo.webp"
+      alt="23rd logo"
+      width={256}
+      height={256}
+      decoding="async"
+      draggable={false}
+      className={cn("select-none", className)}
       {...props}
-    >
-      <rect width="200" height="200" rx={cornerRadius} fill="white" />
-      <path
-        d="M21.5 30H163.5L21.5 128.5L177.5 96.5V136.5V186H21.5"
-        stroke="black"
-        strokeWidth="8"
-      />
-      <path d="M70 7H90V192H70V7Z" fill="black" />
-      <path d="M110 7H130V192H110V7Z" fill="black" />
-    </svg>
+    />
   )
 }

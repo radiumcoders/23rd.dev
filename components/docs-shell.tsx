@@ -49,7 +49,7 @@ function Wordmark() {
       href="/docs"
       className="flex min-w-0 items-center gap-2.5 rounded-md text-[15px] font-semibold tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <Logo className="size-6 shrink-0" cornerRadius={5} />
+      <Logo className="size-6 shrink-0" />
       <span className="truncate">23rd</span>
     </Link>
   )

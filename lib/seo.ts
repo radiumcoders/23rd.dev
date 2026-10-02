@@ -122,7 +122,7 @@ export function organizationJsonLd() {
     url: SITE_URL,
     logo: {
       "@type": "ImageObject",
-      url: absoluteUrl("/logo.svg"),
+      url: absoluteUrl("/logo.png"),
     },
     sameAs: [getGithubRepoUrl(), "https://github.com/radiumcoders"],
   }

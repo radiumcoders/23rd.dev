@@ -24,7 +24,7 @@ export default async function SponsorThanksPage({
     <main className="relative flex flex-1 items-center justify-center px-4 py-16">
       <ThanksConfetti />
       <div className="relative z-10 flex max-w-md flex-col items-center gap-4 text-center">
-        <Logo className="size-16" cornerRadius={8} />
+        <Logo className="size-16" />
         <h1 className="text-3xl font-semibold tracking-tight">Thank you</h1>
         <p className="text-balance text-muted-foreground">
           Your Partner Plan helps keep 23rd independent and shipping. We will
