@@ -23,7 +23,7 @@ export function SiteHeader({ githubStars }: { githubStars?: number | null }) {
         href="/docs"
         className="flex min-w-0 items-center gap-2 text-sm font-medium"
       >
-        <Logo className="size-6 shrink-0" cornerRadius={4} />
+        <Logo className="size-6 shrink-0" />
         <span className="hidden truncate sm:inline">23rd</span>
       </Link>
       <nav

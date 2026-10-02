@@ -102,7 +102,7 @@ export function AsciiLogoDemo() {
           <AsciiLogo
             className="absolute inset-0"
             text={props.text}
-            src={source === "mark" ? "/logo.svg" : undefined}
+            src={source === "mark" ? "/logo-mark.png" : undefined}
             cellSize={props.cellSize}
             hoverPush={props.hoverPush}
             gravity={props.gravity}
@@ -129,7 +129,7 @@ export function AsciiLogoDemo() {
         snippetProps={{
           text:
             source === "text" && props.text !== "23rd" ? props.text : undefined,
-          src: source === "mark" ? "/logo.svg" : undefined,
+          src: source === "mark" ? "/logo-mark.png" : undefined,
           cellSize: props.cellSize,
           hoverPush: props.hoverPush,
           gravity: props.gravity,

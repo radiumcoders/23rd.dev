@@ -94,6 +94,11 @@ export async function loadOgLogoSrc(root = process.cwd()) {
   return `data:image/png;base64,${logo.toString("base64")}`
 }
 
+export async function loadOgWordmarkSrc(root = process.cwd()) {
+  const wordmark = await readFile(join(root, "scripts/assets/og-wordmark.png"))
+  return `data:image/png;base64,${wordmark.toString("base64")}`
+}
+
 function flex(style, children) {
   return h("div", { style: { display: "flex", ...style } }, children)
 }
@@ -191,26 +196,71 @@ export function renderDocsOgImage({ title, description, logoSrc }) {
   )
 }
 
-export async function renderDocsOgPng(page, logoSrc) {
-  const response = renderDocsOgImage({
-    title: page.title,
-    description: page.description,
-    logoSrc,
-  })
+/** Site-wide default card: the 23.dev wordmark centered, tagline beneath. */
+export function renderIndexOgImage({ description, wordmarkSrc }) {
+  return new ImageResponse(
+    flex(
+      {
+        width: "100%",
+        height: "100%",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#0a0a0a",
+        backgroundImage:
+          "radial-gradient(ellipse 60% 55% at 50% 46%, #1a1a1a 0%, #0a0a0a 100%)",
+        color: "#fafafa",
+      },
+      [
+        h("img", {
+          src: wordmarkSrc,
+          width: 600,
+          height: 213,
+          alt: "",
+        }),
+        text(
+          { marginTop: 48, fontSize: 28, color: "#a3a3a3" },
+          description
+        ),
+      ]
+    ),
+    { ...OG_IMAGE_SIZE }
+  )
+}
+
+export async function renderDocsOgPng(page, { logoSrc, wordmarkSrc }) {
+  const response =
+    page.slug.length === 0
+      ? renderIndexOgImage({ description: page.description, wordmarkSrc })
+      : renderDocsOgImage({
+          title: page.title,
+          description: page.description,
+          logoSrc,
+        })
   return Buffer.from(await response.arrayBuffer())
 }
 
 export async function buildOgImages(root = process.cwd()) {
   const pages = await listDocsOgPages(root)
-  const logoSrc = await loadOgLogoSrc(root)
+  const assets = {
+    logoSrc: await loadOgLogoSrc(root),
+    wordmarkSrc: await loadOgWordmarkSrc(root),
+  }
   const written = []
 
   for (const page of pages) {
-    const png = await renderDocsOgPng(page, logoSrc)
+    const png = await renderDocsOgPng(page, assets)
     const out = docsOgPublicFile(page.slug, root)
     await mkdir(dirname(out), { recursive: true })
     await writeFile(out, png)
     written.push({ file: out, path: docsOgImagePath(page.slug), page })
+
+    // Keep the file-convention root card in step with the site-wide default.
+    if (page.slug.length === 0) {
+      const appOg = join(root, "app/opengraph-image.png")
+      await writeFile(appOg, png)
+      written.push({ file: appOg, path: "/opengraph-image.png", page })
+    }
   }
 
   return written
