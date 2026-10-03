@@ -94,6 +94,9 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
   },
+  other: {
+    "toolfolio-verify": "G1J4N_vjo7lx7MnYEONVjuEUMgk65m0j",
+  },
 }
 
 export const viewport: Viewport = {
