@@ -97,6 +97,7 @@ npx skills add radiumcoders/23rd.dev --skill 23rd -g
 | [Shader Fire](https://23rd.dev/docs/components/shader-fire)               | `@23rd/shader-fire`        | Sparse 2D fire wash — tongues rise from the bottom behind a landing hero           |
 | [Shader Gradient](https://23rd.dev/docs/components/shader-gradient)       | `@23rd/shader-gradient`    | Quiet WebGL wash behind landing heroes, empty states, and marketing sections       |
 | [Shader Sky](https://23rd.dev/docs/components/shader-sky)                 | `@23rd/shader-sky`         | Clear blue or rain behind a hero — drifting clouds, optional window-glass film     |
+| [Shader Metal](https://23rd.dev/docs/components/shader-metal)             | `@23rd/shader-metal`       | Liquid chrome, gold, or copper ribbons; the key light follows the pointer          |
 | [Stretchy Footer](https://23rd.dev/docs/components/stretchy-footer)       | `@23rd/stretchy-footer`    | Dia-style rubber overscroll; aurora stretches past the bottom, then snaps back     |
 | [Typewriter](https://23rd.dev/docs/components/typewriter)                 | `@23rd/typewriter`         | A playable typewriter in SVG — keys press, typebars strike, the carriage steps |
 

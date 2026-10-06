@@ -1,0 +1,98 @@
+---
+title: Shader Metal
+description: "Liquid metal ribbons for landing heroes: chrome, gold, copper, or graphite strips twisting through a studio light rig, with a key light that follows the pointer."
+---
+
+import { ShaderMetalDemo } from "@/registry/shader-metal/shader-metal-demo"
+
+Polished metal ribbons that twist and flow across a hero. Each ribbon is a curved, brushed strip that reflects a whole studio (an overhead softbox, warm and cool strip lights, and a crisp horizon), so it reads as real metal, not a gradient. Light mode lights it like a bright product shoot; dark mode puts it on a black stage where only the highlights catch. Move the pointer and the key light follows it while the ribbons lean in. Pick **chrome**, **gold**, **copper**, or **graphite**, or tint your own with `color`; `iridescence` adds a thin-film sheen on the turns. The canvas is transparent, so the ribbons and their soft shadows sit on whatever background you give them.
+
+## Preview
+
+<ShaderMetalDemo />
+
+## Installation
+
+<CliCommand item="shader-metal" />
+
+Or install straight from the public GitHub source registry:
+
+<CliCommand item="shader-metal" github />
+
+## Usage
+
+Pin it behind a relatively positioned section. Keep content in a later stacking context (`relative z-10`). The ribbons sweep corner to corner through the middle, so copy sits best top-left. Default `theme="auto"` follows shadcn / next-themes (`class` on `<html>`).
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+"use client"
+
+import { ShaderMetal } from "@/components/ui/shader-metal"
+
+export function Hero() {
+  return (
+    <section className="relative isolate min-h-svh overflow-hidden bg-background">
+      <ShaderMetal metal="gold" />
+      <div className="relative z-10 mx-auto max-w-5xl px-6 pt-24">
+        <h1 className="max-w-md text-4xl font-medium tracking-tight">
+          Polished until it reflects the room
+        </h1>
+        <p className="mt-3 max-w-sm text-muted-foreground">
+          The ribbons stay in the back. The key light follows the pointer.
+        </p>
+      </div>
+    </section>
+  )
+}
+```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import ShaderMetal from "$lib/components/ui/shader-metal.svelte"
+</script>
+
+<section class="relative isolate min-h-svh overflow-hidden bg-background">
+  <ShaderMetal metal="gold" />
+  <div class="relative z-10 mx-auto max-w-5xl px-6 pt-24">
+    <h1 class="max-w-md text-4xl font-medium tracking-tight">
+      Polished until it reflects the room
+    </h1>
+    <p class="mt-3 max-w-sm text-muted-foreground">
+      The ribbons stay in the back. The key light follows the pointer.
+    </p>
+  </div>
+</section>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+A custom metal, with more sheen:
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+<ShaderMetal color="#9FB7FF" iridescence={0.6} ribbons={4} />
+```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<ShaderMetal color="#9FB7FF" iridescence={0.6} ribbons={4} />
+```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+## Props
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `metal` | `"chrome" \| "gold" \| "copper" \| "graphite"` | `chrome` |
+| `color` | `string` | hex tint; wins over `metal` |
+| `ribbons` | `number` | `3`, 1–5 |
+| `speed` | `number` | `0.3` |
+| `iridescence` | `number` | `0.2`, 0–1 thin-film sheen, `0` for bare metal |
+| `interactive` | `boolean` | `true`, key light follows the pointer, ribbons lean in |
+| `theme` | `"light" \| "dark" \| "auto"` | `auto` |
+| `className` | `string` | React only |
+| `class` | `string` | Svelte only |

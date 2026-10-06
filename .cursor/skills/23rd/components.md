@@ -221,6 +221,32 @@ export function Sky() {
 
 Pitfalls: `interactive` defaults false (unlike gradient and fire). Custom `colors` stay put. Light `#2478C8 #8ECBF2 #F7FBFF #C5D8EC`. Dark `#9AA3AD #C8CED4 #5C6570 #3F4750`.
 
+## shader-metal
+
+Shader. Polished metal ribbons that twist through a studio light rig: a softbox, strip lights, and a crisp horizon reflect in each brushed strip. Bright product-shoot lighting in light mode, a black stage in dark. The key light follows the pointer and the ribbons lean toward it.
+
+Best fit: a premium or hardware hero, a launch page, a pricing header.
+
+Not this: `shader-gradient` for a soft color wash; this is a material.
+
+Deps: none. Key props: `metal` (`chrome`), `color`, `ribbons` (3), `speed` (0.3), `iridescence` (0.2), `interactive` (true), `theme`.
+
+```tsx
+"use client"
+import { ShaderMetal } from "@/components/ui/shader-metal"
+
+export function Launch() {
+  return (
+    <section className="relative isolate min-h-svh overflow-hidden bg-background">
+      <ShaderMetal metal="gold" />
+      <div className="relative z-10 p-10">Your content</div>
+    </section>
+  )
+}
+```
+
+Pitfalls: the canvas is transparent; the parent needs a background. The ribbons run corner to corner through the middle, so centered copy collides with them. `color` overrides `metal`.
+
 ## stretchy-footer
 
 Footer behavior. Overscroll past the bottom stretches an aurora and lifts the page, then snaps back.

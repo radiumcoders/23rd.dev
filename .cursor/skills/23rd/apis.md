@@ -216,6 +216,25 @@ type ShaderSkyProps = {
 
 `skyFallback(colors, dark)` builds the CSS fallback. Custom `colors` do not swap.
 
+## shader-metal
+
+```ts
+type ShaderMetalProps = {
+  metal?: "chrome" | "gold" | "copper" | "graphite" // "chrome"
+  color?: string // hex tint, wins over metal
+  ribbons?: number // 3, 1–5
+  speed?: number // 0.3
+  iridescence?: number // 0.2, 0–1
+  interactive?: boolean // true
+  theme?: "light" | "dark" | "auto"
+  className?: string
+}
+```
+
+`METALS`: chrome `#F2F3F5`, gold `#FFD38A`, copper `#F7AE92`, graphite `#8E9096`. Also exported: `DEFAULT_METAL`, `DEFAULT_RIBBONS`, `DEFAULT_SPEED`, `DEFAULT_IRIDESCENCE`.
+
+Transparent canvas, no CSS fallback: without WebGL the parent's background shows. Theme changes the studio lighting, not the metal.
+
 ## stretchy-footer
 
 ```ts
