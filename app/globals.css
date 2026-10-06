@@ -354,6 +354,12 @@
   letter-spacing: -0.035em;
 }
 
+/* The landing page's headline face (Geist, loaded by the home layout). */
+@utility font-landing {
+  font-family: var(--font-landing), var(--font-sans), sans-serif;
+  letter-spacing: -0.035em;
+}
+
 /* Reading column. Fumadocs' typography plugin uses :where(), so these win. */
 .prose {
   --tw-prose-body: color-mix(in oklab, var(--ink) 86%, var(--bench));

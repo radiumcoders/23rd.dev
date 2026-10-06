@@ -20,7 +20,7 @@ export function SiteHeader({ githubStars }: { githubStars?: number | null }) {
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
       <Link
-        href="/docs"
+        href="/"
         className="flex min-w-0 items-center gap-2 text-sm font-medium"
       >
         <Logo className="size-6 shrink-0" />
