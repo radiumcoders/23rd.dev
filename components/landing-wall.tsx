@@ -14,7 +14,6 @@ import { RiArrowRightUpLine } from "@remixicon/react"
 
 import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { cn } from "@/lib/utils"
-import { AsciiFluid } from "@/registry/ascii-fluid/ascii-fluid"
 import { LiveOrb } from "@/registry/live-orb/live-orb"
 import { LogoBurst } from "@/registry/logo-burst/logo-burst"
 import { PhosphorScore } from "@/registry/phosphor-score/phosphor-score"
@@ -82,10 +81,6 @@ const PREVIEWS: Record<string, { render: () => ReactNode; tint: string }> = {
   "radiant-lines": {
     render: () => <RadiantLines starCount={260} />,
     tint: "radial-gradient(60% 50% at 50% 50%, rgb(96 165 250 / 0.22), transparent 70%)",
-  },
-  "ascii-fluid": {
-    render: () => <AsciiFluid className="absolute inset-0" cellSize={10} />,
-    tint: "radial-gradient(70% 60% at 50% 55%, rgb(128 128 128 / 0.2), transparent 70%)",
   },
   "live-orb": {
     render: () => <OrbPreview />,

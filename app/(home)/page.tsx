@@ -20,7 +20,6 @@ const FEATURED = [
   "shader-anime-fire",
   "live-orb",
   "shader-sky",
-  "ascii-fluid",
   "phosphor-score",
   "shader-fire",
 ]
