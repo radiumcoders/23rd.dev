@@ -21,7 +21,7 @@ Or install straight from the public GitHub source registry:
 
 ## Usage
 
-Use it as the scroll viewport. Children are the page. Wheel, touch, or trackpad tilts the sheet with the scroll — down one way, up the other. Idle returns it. Honors `prefers-reduced-motion` (no tilt, no blur).
+Use it as the scroll viewport. Children are the page. Wheel, touch, or trackpad tilts the sheet with the scroll: down one way, up the other. Idle returns it. Honors `prefers-reduced-motion` (no tilt, no blur).
 
 <FrameworkCode>
   <FrameworkReact>
@@ -101,10 +101,10 @@ export function App() {
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `children` | `ReactNode` / snippet | — |
-| `blur` | `number` | `4` — peak blur on the traveling edge |
-| `perspective` | `number` | `1000` — floor `1000` |
-| `returnMs` | `number` | `520` — time for the lean to come back after the bottom |
+| `children` | `ReactNode` / snippet | none |
+| `blur` | `number` | `4`, peak blur on the traveling edge |
+| `perspective` | `number` | `1000`, floor `1000` |
+| `returnMs` | `number` | `520`, time for the lean to come back after the bottom |
 | `windowScroll` | `boolean` | `false` |
 | `contentSelector` | `string` | `[data-folio-page]` |
 | `label` | `string` | `Tilting page` |

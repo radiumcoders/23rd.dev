@@ -1,11 +1,11 @@
 ---
 title: Shader Gradient
-description: A grainy liquid gradient for landing heroes, empty states, and marketing sections — the palette flows under a film grain, follows the theme, and swirls around the pointer.
+description: A grainy liquid gradient for landing heroes, empty states, and marketing sections. The palette flows under a film grain, follows the theme, and swirls around the pointer.
 ---
 
 import { ShaderGradientDemo } from "@/registry/shader-gradient/shader-gradient-demo"
 
-Atmosphere behind a hero, wait screen, or empty state. Four colors flow through slow, warped noise — liquid bands that never read as a loop — and blend in OKLab, so neighbours stay clean instead of going muddy. A film grain sits on top (`grain`, 0–1), re-rolled at 24 fps like film. Some paper or ink breathes through so it never turns into wall-to-wall color. Peach, butter, sky and lilac on paper in light mode; blue, violet, magenta and coral on ink in dark. Press `d` to toggle.
+Atmosphere behind a hero, wait screen, or empty state. Four colors flow through slow, warped noise (liquid bands that never read as a loop) and blend in OKLab, so neighbours stay clean instead of going muddy. A film grain sits on top (`grain`, 0–1), re-rolled at 24 fps like film. Some paper or ink breathes through so it never turns into wall-to-wall color. Peach, butter, sky and lilac on paper in light mode; blue, violet, magenta and coral on ink in dark. Press `d` to toggle.
 
 ## Preview
 
@@ -97,12 +97,12 @@ Force a palette if the parent theme should not drive it:
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `colors` | `string[]` | theme palette — up to 4, cycled in order |
+| `colors` | `string[]` | theme palette, up to 4, cycled in order |
 | `speed` | `number` | `0.14` |
-| `blur` | `number` | `0.7` — 0–1, broader and calmer bands |
-| `intensity` | `number` | `0.95` — 0–1, lower shows more paper / ink |
-| `grain` | `number` | `0.35` — 0–1 film grain, `0` for none |
-| `interactive` | `boolean` | `true` — the flow swirls around the pointer |
+| `blur` | `number` | `0.7`, 0–1, broader and calmer bands |
+| `intensity` | `number` | `0.95`, 0–1, lower shows more paper / ink |
+| `grain` | `number` | `0.35`, 0–1 film grain, `0` for none |
+| `interactive` | `boolean` | `true`, the flow swirls around the pointer |
 | `theme` | `"light" \| "dark" \| "auto"` | `auto` |
 | `className` | `string` | React only |
 | `class` | `string` | Svelte only |

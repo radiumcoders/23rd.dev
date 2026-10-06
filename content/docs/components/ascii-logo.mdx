@@ -1,6 +1,6 @@
 ---
 title: ASCII Logo
-description: An interactive ASCII wordmark — glyphs shove away from the cursor, then scatter, fall, and gather back on click.
+description: "An interactive ASCII wordmark: glyphs shove away from the cursor, then scatter, fall, and gather back on click."
 ---
 
 import { AsciiLogoDemo } from "@/registry/ascii-logo/ascii-logo-demo"
@@ -54,7 +54,7 @@ export function FooterMark() {
 
 `text` is limited to 5 letters. Extra characters are dropped.
 
-Pass `src` to sample an image instead of text — any raster, or a same-origin SVG.
+Pass `src` to sample an image instead of text: any raster, or a same-origin SVG.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -76,7 +76,7 @@ Clicks cycle `logo → scattered → fallen → returning → logo`. Hover repul
 | Prop              | Type                          | Default                         |
 | ----------------- | ----------------------------- | ------------------------------- |
 | `text`            | `string`                      | `"23rd"` (max 5 letters)        |
-| `src`             | `string`                      | —                               |
+| `src`             | `string`                      | none                               |
 | `fit`             | `number`                      | `0.82`                          |
 | `cellSize`        | `number`                      | `11`                            |
 | `cellGap`         | `number`                      | `2`                             |
@@ -97,6 +97,6 @@ Clicks cycle `logo → scattered → fallen → returning → logo`. Hover repul
 | `interactive`     | `boolean`                     | `true`                          |
 | `theme`           | `"light" \| "dark" \| "auto"` | `auto`                          |
 | `label`           | `string`                      | `text` or `"ASCII logo"`        |
-| `onPhaseChange`   | `(phase) => void`             | —                               |
+| `onPhaseChange`   | `(phase) => void`             | none                               |
 | `className`       | `string`                      | React only                      |
 | `class`           | `string`                      | Svelte only                     |

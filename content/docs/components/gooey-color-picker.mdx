@@ -5,7 +5,7 @@ description: A floating color picker that expands from a swatch into hue and alp
 
 import { GooeyColorPicker } from "@/registry/gooey-color-picker/gooey-color-picker"
 
-A compact swatch that opens into a panel — circular color wheel, alpha slider, and editable hex field. The same button becomes the close control when open.
+A compact swatch that opens into a panel: circular color wheel, alpha slider, and editable hex field. The same button becomes the close control when open.
 
 ## Preview
 
@@ -60,9 +60,9 @@ export function Example() {
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `value` | `GooeyColor \| string` | — |
+| `value` | `GooeyColor \| string` | none |
 | `defaultValue` | `GooeyColor \| string` | `{ h: 210, s: 90, l: 55, a: 1 }` |
-| `onChange` | `(color: GooeyColor, css: string) => void` | — |
+| `onChange` | `(color: GooeyColor, css: string) => void` | none |
 | `label` | `string` | `"Color picker"` |
 | `className` | `string` | React only |
 | `class` | `string` | Svelte only |

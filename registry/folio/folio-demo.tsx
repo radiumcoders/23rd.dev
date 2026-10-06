@@ -36,7 +36,7 @@ function FolioPage() {
           A long sheet, on purpose
         </h4>
         <p className="mt-4 text-sm leading-relaxed text-foreground/70">
-          Folio is not a card trick. It is the whole page as a plane — the
+          Folio is not a card trick. It is the whole page as a plane: the
           same surface you would set type on, tilted by the speed of your
           hand. The copy below is here so the lean has miles of paper to
           work against.
@@ -85,7 +85,7 @@ function FolioPage() {
           <h4 className="text-sm font-medium tracking-tight">Up</h4>
           <p className="mt-3 text-sm leading-relaxed text-foreground/65">
             Reverse the stroke. The lean inverts. Same spring home when
-            you let go — the page does not care which way you came from.
+            you let go. The page does not care which way you came from.
           </p>
         </div>
       </section>
@@ -142,7 +142,7 @@ function FolioPage() {
         <h4 className="text-sm font-medium tracking-tight">Still going</h4>
         <p className="mt-4 text-sm leading-relaxed text-foreground/65">
           Another screen of travel. The lean should not get tired. If it
-          does, the mapping is wrong — we keyed it to speed so the bottom
+          does, the mapping is wrong; we keyed it to speed so the bottom
           of the essay can still surprise you.
         </p>
         <p className="mt-4 text-sm leading-relaxed text-foreground/55">
@@ -160,7 +160,7 @@ function FolioPage() {
           floor. Then it lets go, and the sheet is just a sheet again.
         </p>
         <p className="mt-4 text-sm leading-relaxed text-foreground/60">
-          Scroll back up from here and the other tilt arrives — hinge
+          Scroll back up from here and the other tilt arrives: hinge
           flipped, blur on the foot of the page, same spring when you
           stop.
         </p>
