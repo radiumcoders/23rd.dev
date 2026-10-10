@@ -82,23 +82,31 @@ function startDrag(
 ) {
   event.preventDefault()
   const target = event.currentTarget
-  target.setPointerCapture(event.pointerId)
+  const pointerId = event.pointerId
+  target.setPointerCapture(pointerId)
   onMove(event.clientX, event.clientY)
 
   function move(e: PointerEvent) {
-    onMove(e.clientX, e.clientY)
+    if (e.pointerId === pointerId) onMove(e.clientX, e.clientY)
   }
-  function up(e: PointerEvent) {
+  // A drag ends on release, on a cancelled touch, or when capture is lost,
+  // which is also what happens if the picker unmounts mid-drag.
+  function end(e: PointerEvent) {
+    if (e.pointerId !== pointerId) return
     window.removeEventListener("pointermove", move)
-    window.removeEventListener("pointerup", up)
+    window.removeEventListener("pointerup", end)
+    window.removeEventListener("pointercancel", end)
+    document.removeEventListener("lostpointercapture", end, true)
     try {
-      target.releasePointerCapture(e.pointerId)
+      target.releasePointerCapture(pointerId)
     } catch {
       // ignore
     }
   }
   window.addEventListener("pointermove", move)
-  window.addEventListener("pointerup", up)
+  window.addEventListener("pointerup", end)
+  window.addEventListener("pointercancel", end)
+  document.addEventListener("lostpointercapture", end, true)
 }
 
 const noopSubscribe = () => () => {}
