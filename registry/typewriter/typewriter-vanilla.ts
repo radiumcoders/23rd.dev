@@ -164,8 +164,11 @@ function createSound(): Sound | null {
   let audio: AudioContext | null = null
   let out: GainNode | null = null
   let noise: AudioBuffer | null = null
+  // Closing is final, so a key-up timed before close can't open a new context.
+  let closed = false
 
   const ready = () => {
+    if (closed) return null
     if (!audio) {
       audio = new Ctx()
       out = audio.createGain()
@@ -276,6 +279,7 @@ function createSound(): Sound | null {
       thump(a, at + seconds, 120, 0.28)
     },
     close() {
+      closed = true
       void audio?.close().catch(() => {})
       audio = null
     },
@@ -2437,6 +2441,11 @@ export function createTypewriter(
         options.label !== prev.label
       ) {
         rebuild()
+      }
+      if (!options.sound && sound) {
+        // Sound switched off: release the audio context, not just mute it.
+        sound.close()
+        sound = null
       }
       if (options.interactive !== prev.interactive) setInteractive()
       else if (options.jitter !== prev.jitter) {

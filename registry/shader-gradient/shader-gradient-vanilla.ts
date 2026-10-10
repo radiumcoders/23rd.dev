@@ -409,6 +409,7 @@ export function createShaderGradient(
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
   let onScreen = true
   let raf = 0
+  let destroyed = false
   let last = 0
   let clock = 0
 
@@ -416,7 +417,8 @@ export function createShaderGradient(
     onScreen && !mqReduce.matches && document.visibilityState !== "hidden"
 
   function wake() {
-    if (raf) return
+    // An observer callback can still arrive after destroy.
+    if (raf || destroyed) return
     last = performance.now()
     raf = requestAnimationFrame(tick)
   }
@@ -505,6 +507,7 @@ export function createShaderGradient(
       wake()
     },
     destroy() {
+      destroyed = true
       cancelAnimationFrame(raf)
       raf = 0
       ro.disconnect()

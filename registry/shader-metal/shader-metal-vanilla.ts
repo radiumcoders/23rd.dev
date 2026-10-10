@@ -447,13 +447,15 @@ export function createShaderMetal(
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
   let onScreen = true
   let raf = 0
+  let destroyed = false
   let last = 0
   let clock = 0
 
   const visible = () => onScreen && document.visibilityState !== "hidden"
 
   function wake() {
-    if (raf) return
+    // An observer callback can still arrive after destroy.
+    if (raf || destroyed) return
     last = performance.now()
     raf = requestAnimationFrame(tick)
   }
@@ -571,6 +573,7 @@ export function createShaderMetal(
       wake()
     },
     destroy() {
+      destroyed = true
       cancelAnimationFrame(raf)
       raf = 0
       ro.disconnect()
