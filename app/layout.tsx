@@ -112,11 +112,15 @@ const fontMono = Martian_Mono({
   axes: ["wdth"],
 })
 
-/** Display face for component names. */
+/**
+ * Display face for component names. Only component pages use it, so it is
+ * not preloaded on every route (it is the largest of the font files).
+ */
 const fontDisplay = Bricolage_Grotesque({
   subsets: ["latin"],
   variable: "--font-display",
   axes: ["opsz"],
+  preload: false,
 })
 
 export default function RootLayout({
