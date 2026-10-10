@@ -395,9 +395,10 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
 }
 
 /**
- * WebGL sky for heroes — volumetric clouds drifting across clear blue in
+ * WebGL sky for heroes: volumetric clouds drifting across clear blue in
  * light, storm gray in dark, with optional lightning. Optional
- * window-glass film.
+ * window-glass film. Pauses off screen and in hidden tabs, and holds a still
+ * frame under reduced motion.
  */
 export function createShaderSky(
   canvas: HTMLCanvasElement,
@@ -530,9 +531,12 @@ export function createShaderSky(
   const uFlashPos = gl.getUniformLocation(program, "u_flashPos")
 
   let raf = 0
-  let running = true
-  const start = performance.now()
-  let frozenTime = 0
+  let destroyed = false
+  let onScreen = true
+  let last = 0
+  // Seconds of motion so far; it only advances while the sky is moving, so it
+  // resumes where it left off.
+  let clock = 0
 
   // One strike = a bright flicker and a softer echo, then 4–10s of quiet.
   const strike = { at: 0, next: 0, x: 0, y: 0 }
@@ -554,6 +558,15 @@ export function createShaderSky(
     return Math.min(1, pulse(s) + 0.65 * pulse(s - 0.16))
   }
 
+  const shown = () => onScreen && document.visibilityState !== "hidden"
+  const moving = () => shown() && !reduce
+
+  function wake() {
+    if (raf || destroyed) return
+    last = performance.now()
+    raf = requestAnimationFrame(tick)
+  }
+
   // Device pixels per CSS pixel actually rendered (after the pixel cap).
   let pixelScale = 1
   const resize = () => {
@@ -569,17 +582,14 @@ export function createShaderSky(
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
     gl.viewport(0, 0, canvas.width, canvas.height)
+    wake()
   }
-
-  resize()
-  const ro = new ResizeObserver(resize)
-  if (canvas.parentElement) ro.observe(canvas.parentElement)
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
   const onReduce = () => {
     reduce = mqReduce.matches
+    wake()
   }
-  onReduce()
   mqReduce.addEventListener("change", onReduce)
 
   const syncTheme = () => {
@@ -587,6 +597,7 @@ export function createShaderSky(
     if (next === dark) return
     dark = next
     options.onThemeChange?.(dark)
+    wake()
   }
   const mo = new MutationObserver(syncTheme)
   mo.observe(document.documentElement, {
@@ -604,19 +615,21 @@ export function createShaderSky(
     if (rect.width <= 0 || rect.height <= 0) return
     targetMouse.x = (e.clientX - rect.left) / rect.width
     targetMouse.y = 1 - (e.clientY - rect.top) / rect.height
+    if (shown()) wake()
   }
   window.addEventListener("pointermove", onMove, { passive: true })
 
   const tick = (now: number) => {
-    if (!running) return
+    raf = 0
+    if (destroyed) return
+    // Capped so a frame queued before the tab was hidden doesn't jump ahead,
+    // but loose enough that slow devices still keep real time.
+    const dt = Math.min(0.25, Math.max(0, (now - last) / 1000))
+    last = now
+    const live = moving()
+    if (live) clock += dt
 
-    if (reduce) {
-      if (frozenTime === 0) frozenTime = (now - start) / 1000
-    } else {
-      frozenTime = 0
-    }
-
-    const time = reduce ? frozenTime : (now - start) / 1000
+    const time = clock
     const paletteSrc = options.colors ?? (dark ? DARK_COLORS : LIGHT_COLORS)
     const palette = [0, 1, 2, 3].map((i) =>
       hexToRgb(paletteSrc[i % paletteSrc.length] ?? LIGHT_COLORS[i]!)
@@ -624,6 +637,11 @@ export function createShaderSky(
 
     mouse.x += (targetMouse.x - mouse.x) * 0.03
     mouse.y += (targetMouse.y - mouse.y) * 0.03
+    // The pointer shifts the clouds, so a still frame keeps easing toward it.
+    const easing =
+      options.interactive &&
+      Math.abs(targetMouse.x - mouse.x) + Math.abs(targetMouse.y - mouse.y) >
+        0.001
 
     const glassPx = Math.max(2, options.glassSize ?? 7) * pixelScale
 
@@ -647,25 +665,42 @@ export function createShaderSky(
       options.interactive ? mouse.y : 0.5
     )
 
-    gl.uniform1f(uFlash, flashAt(now))
+    gl.uniform1f(uFlash, flashAt(clock * 1000))
     gl.uniform2f(uFlashPos, strike.x, strike.y)
 
     gl.drawArrays(gl.TRIANGLES, 0, 6)
-    raf = requestAnimationFrame(tick)
+    if (live || (easing && shown())) raf = requestAnimationFrame(tick)
   }
 
-  raf = requestAnimationFrame(tick)
+  // Run after `tick` exists, since both can wake the loop.
+  resize()
+  const ro = new ResizeObserver(resize)
+  if (canvas.parentElement) ro.observe(canvas.parentElement)
+  onReduce()
+  const io = new IntersectionObserver(([entry]) => {
+    onScreen = entry?.isIntersecting ?? true
+    wake()
+  })
+  io.observe(canvas)
+  const onVisibility = () => wake()
+  document.addEventListener("visibilitychange", onVisibility)
+
+  wake()
 
   return {
     setOptions(next) {
       options = { ...options, ...next }
       syncTheme()
+      wake()
     },
     destroy() {
-      running = false
+      destroyed = true
       cancelAnimationFrame(raf)
+      raf = 0
       ro.disconnect()
+      io.disconnect()
       mo.disconnect()
+      document.removeEventListener("visibilitychange", onVisibility)
       mqReduce.removeEventListener("change", onReduce)
       mqDark.removeEventListener("change", syncTheme)
       window.removeEventListener("pointermove", onMove)
