@@ -11,22 +11,33 @@ export function formatStarCount(count: number) {
   }).format(count)
 }
 
-/** Cached star count for the docs header. Revalidates every 10 minutes. */
+/**
+ * Star count for the site headers, fetched once at build so pages stay
+ * static (it refreshes on each deploy). Uses GITHUB_TOKEN when set, since
+ * CI runners share the unauthenticated rate limit.
+ */
 export async function getGithubStars(): Promise<number | null> {
+  const token = process.env.GITHUB_TOKEN
   try {
     const res = await fetch(`https://api.github.com/repos/${REPO}`, {
       headers: {
         Accept: "application/vnd.github+json",
         "User-Agent": "23rd.dev",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      next: { revalidate: 600 },
+      cache: "force-cache",
+      signal: AbortSignal.timeout(5000),
     })
-    if (!res.ok) return null
+    if (!res.ok) {
+      console.warn(`GitHub stars: ${res.status} ${res.statusText}`)
+      return null
+    }
     const data = (await res.json()) as { stargazers_count?: number }
     return typeof data.stargazers_count === "number"
       ? data.stargazers_count
       : null
-  } catch {
+  } catch (error) {
+    console.warn("GitHub stars: request failed", error)
     return null
   }
 }

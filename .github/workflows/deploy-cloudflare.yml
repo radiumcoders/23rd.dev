@@ -64,6 +64,7 @@ jobs:
       - name: Build and deploy
         run: pnpm cf:deploy
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
@@ -93,6 +94,8 @@ jobs:
       # OpenNext runs `pnpm build`, which builds the registry and OG cards.
       - name: Build OpenNext Worker
         run: pnpm exec opennextjs-cloudflare build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload preview version
         id: upload
