@@ -2,7 +2,7 @@
 </script>
 
 <script lang="ts">
-  import { onMount } from "svelte"
+  import { untrack } from "svelte"
   import { createFolio, type FolioInstance } from "./folio-vanilla"
 
   function cn(...parts: Array<string | false | null | undefined>) {
@@ -57,25 +57,26 @@
   let planeEl: HTMLDivElement | undefined = $state()
   let instance: FolioInstance | null = null
 
-  onMount(() => {
+  // Remount when the wiring changes (scroller mode, target, demo id), as the
+  // React wrapper does; the lean options stream in below.
+  $effect(() => {
     const scroller = windowScroll ? window : scrollerEl
     const plane = windowScroll
       ? document.querySelector<HTMLElement>(contentSelector)
       : planeEl
     if (!scroller || !plane) return
 
-    instance = createFolio({
+    const next = createFolio({
       plane,
       scroller,
       demoId,
-      blur,
-      perspective,
-      returnMs,
+      ...untrack(() => ({ blur, perspective, returnMs })),
     })
+    instance = next
 
     return () => {
-      instance?.destroy()
-      instance = null
+      next.destroy()
+      if (instance === next) instance = null
     }
   })
 
