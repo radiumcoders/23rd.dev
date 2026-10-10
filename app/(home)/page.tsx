@@ -22,6 +22,7 @@ const FEATURED = [
   "shader-sky",
   "phosphor-score",
   "shader-fire",
+  "typewriter",
 ]
 
 export default async function HomePage() {
