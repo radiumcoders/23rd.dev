@@ -103,7 +103,7 @@ export function Landing({
     <div className="h-svh min-h-[36rem] p-2 sm:p-3">
       <main
         data-landing-frame
-        className="relative isolate flex h-full flex-col overflow-hidden rounded-[1.75rem] border bg-sheet [--card-h:calc(var(--card-w)*1.08)] [--card-w:clamp(13.5rem,21vw,23rem)] [--gap:clamp(0.75rem,1.4vw,1.25rem)] [--step:calc(var(--card-h)+var(--gap))] sm:rounded-[2rem]"
+        className="relative isolate flex h-full flex-col overflow-hidden rounded-[1.75rem] border bg-sheet [--card-h:calc(var(--card-w)*1.08)] [--card-w:max(clamp(13.5rem,21vw,23rem),17vw)] [--gap:clamp(0.75rem,1.4vw,1.25rem)] [--step:calc(var(--card-h)+var(--gap))] sm:rounded-[2rem]"
       >
         <LandingNav githubStars={githubStars} />
         <LandingWall items={items} layer="edges" />
