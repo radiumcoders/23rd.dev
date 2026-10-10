@@ -30,8 +30,11 @@ export type WallItem = { slug: string; title: string; url: string }
 /** How long one shift to the next card takes. */
 const SHIFT_MS = 1400
 
-/** An orb centred in its card. The stock one is white on dark, black on light. */
-function OrbPreview(props: Omit<LiveOrbProps, "size" | "interactive">) {
+/**
+ * An orb centred in its card, watching the pointer and looking around when it
+ * rests. The stock one is white on dark, black on light.
+ */
+function OrbPreview(props: Omit<LiveOrbProps, "size">) {
   const theme = useHydratedTheme()
   return (
     <div className="absolute inset-0 flex items-center justify-center">
@@ -39,7 +42,6 @@ function OrbPreview(props: Omit<LiveOrbProps, "size" | "interactive">) {
         size={150}
         variant={theme === "dark" ? "white" : "black"}
         {...props}
-        interactive={false}
       />
     </div>
   )
