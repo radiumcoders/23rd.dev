@@ -66,6 +66,10 @@ export const RadiantLinesDemo = lazyDemo(() =>
   )
 )
 
+export const RingTowerDemo = lazyDemo(() =>
+  import("@/registry/ring-tower/ring-tower-demo").then((m) => m.RingTowerDemo)
+)
+
 export const ShaderAnimeFireDemo = lazyDemo(() =>
   import("@/registry/shader-anime-fire/shader-anime-fire-demo").then(
     (m) => m.ShaderAnimeFireDemo
