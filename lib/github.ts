@@ -1,12 +1,7 @@
 const REPO = "radiumcoders/23rd.dev"
-const OWNER = REPO.split("/")[0]
 
 export function getGithubRepoUrl() {
   return `https://github.com/${REPO}`
-}
-
-export function getGithubSponsorUrl() {
-  return `https://github.com/sponsors/${OWNER}`
 }
 
 export function formatStarCount(count: number) {
