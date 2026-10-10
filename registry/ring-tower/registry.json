@@ -1,0 +1,35 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "items": [
+    {
+      "name": "ring-tower",
+      "type": "registry:ui",
+      "title": "Ring Tower",
+      "description": "A tower of tilted bands wrapped in your images. They crawl around, drag to spin, and neighbors counter-turn with the pointer.",
+      "dependencies": ["three"],
+      "devDependencies": ["@types/three"],
+      "files": [
+        {
+          "path": "ring-tower.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/ring-tower.tsx"
+        }
+      ]
+    },
+    {
+      "name": "ring-tower-svelte",
+      "type": "registry:ui",
+      "title": "Ring Tower",
+      "description": "A tower of tilted bands wrapped in your images. They crawl around, drag to spin, and neighbors counter-turn with the pointer.",
+      "dependencies": ["three"],
+      "devDependencies": ["@types/three"],
+      "files": [
+        {
+          "path": "ring-tower.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/ring-tower.svelte"
+        }
+      ]
+    }
+  ]
+}
