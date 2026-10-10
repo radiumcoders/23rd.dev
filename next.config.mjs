@@ -6,9 +6,6 @@ const withMDX = createMDX()
 /** @type {import('next').NextConfig} */
 const config = {
   reactStrictMode: true,
-  experimental: {
-    viewTransition: true,
-  },
   async redirects() {
     return [
       {
