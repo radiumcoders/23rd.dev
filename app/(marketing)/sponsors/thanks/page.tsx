@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 
 import { Logo } from "@/components/logo"
@@ -6,19 +7,28 @@ import { buttonVariants } from "@/components/ui/button"
 import { buildPageMetadata } from "@/lib/seo"
 import { cn } from "@/lib/utils"
 
-export const metadata = buildPageMetadata({
-  title: "Thank you",
-  description:
-    "Your 23rd Partner Plan is confirmed. Thank you for supporting the registry.",
-  path: "/sponsors/thanks",
-})
+export const metadata: Metadata = {
+  ...buildPageMetadata({
+    title: "Thank you",
+    description:
+      "Your 23rd Partner Plan is confirmed. Thank you for supporting the registry.",
+    path: "/sponsors/thanks",
+  }),
+  // Anyone can open this URL, so keep it out of search results.
+  robots: { index: false, follow: false },
+}
+
+// Creem checkout IDs; anything else in the query string is not echoed.
+const CHECKOUT_ID = /^[A-Za-z0-9_-]{1,64}$/
 
 export default async function SponsorThanksPage({
   searchParams,
 }: {
   searchParams: Promise<{ checkout_id?: string }>
 }) {
-  const { checkout_id: checkoutId } = await searchParams
+  const { checkout_id: rawCheckoutId } = await searchParams
+  const checkoutId =
+    rawCheckoutId && CHECKOUT_ID.test(rawCheckoutId) ? rawCheckoutId : null
 
   return (
     <main className="relative flex flex-1 items-center justify-center px-4 py-16">
