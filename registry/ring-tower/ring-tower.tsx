@@ -20,7 +20,11 @@ export {
   DEFAULT_RINGS,
   DEFAULT_SPEED,
 } from "./ring-tower-vanilla"
-export type { RingTowerInstance, RingTowerOptions } from "./ring-tower-vanilla"
+export type {
+  RingTowerInstance,
+  RingTowerOptions,
+  RingTowerTheme,
+} from "./ring-tower-vanilla"
 
 export type RingTowerProps = RingTowerOptions & {
   className?: string
@@ -30,6 +34,7 @@ export type RingTowerProps = RingTowerOptions & {
  * A tower of tilted bands wrapped in your images. The images crawl around
  * the bands, dragging spins the tower, and the pointer turns neighboring
  * bands opposite ways. Transparent; the parent paints the background.
+ * Theme-aware.
  */
 export function RingTower({
   className,
@@ -39,6 +44,7 @@ export function RingTower({
   draggable = true,
   parallax = DEFAULT_PARALLAX,
   backface = DEFAULT_BACKFACE,
+  theme = "auto",
 }: RingTowerProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const instanceRef = useRef<RingTowerInstance | null>(null)
@@ -53,6 +59,7 @@ export function RingTower({
       draggable,
       parallax,
       backface,
+      theme,
     })
     return () => {
       instanceRef.current?.destroy()
@@ -70,8 +77,9 @@ export function RingTower({
       draggable,
       parallax,
       backface,
+      theme,
     })
-  }, [images, rings, speed, draggable, parallax, backface])
+  }, [images, rings, speed, draggable, parallax, backface, theme])
 
   return (
     <div

@@ -90,6 +90,7 @@ Vanilla:
 
 - No React, no Svelte, no `@/` imports.
 - Export an options type, an instance type `{ setOptions, destroy }`, and `create<Name>(canvas | root, options)`.
+- Every component works in light and dark mode. Expose `theme?: "light" | "dark" | "auto"` (default `"auto"`) and give anything theme-sensitive (ink, fades, backfaces, glows) a light and a dark value. Watch `html` attributes and `prefers-color-scheme` so `auto` follows the page live.
 - Theme helper: `html.dark` / `html.light`, then `data-theme`, then `prefers-color-scheme`. Copy `isDarkTheme` from `logo-burst-vanilla.ts` rather than inventing a new contract.
 - Honor `prefers-reduced-motion: reduce`.
 - Custom `colors` or `color`, when set, win over the theme palette.
@@ -97,6 +98,7 @@ Vanilla:
 Demos:
 
 - `*-demo.tsx` is for the docs site only. It is not a registry file.
+- Demo stages and docs examples use theme tokens (`bg-background`, `from-background`, `text-foreground`), never a hard-coded black or white stage. Check the demo in both themes before shipping.
 - Use `ComponentPreview`, `ComponentControls`, and `usePreviewProps` the way `shader-gradient-demo.tsx` does.
 - `gooey-color-picker` has no demo file; the MDX renders `<GooeyColorPicker />` inside `ComponentPreview`. Either pattern is acceptable. Do not publish the demo.
 
@@ -171,6 +173,7 @@ pnpm typecheck
 ## Do not
 
 - Publish a React-only item. Tests require a Svelte port.
+- Ship a component that only looks right in one theme.
 - Import `./<name>-vanilla` from a file that is not the wrapper the build inlines.
 - Put site chrome (`components/docs-shell.tsx`, `components/ui/button.tsx`) into the registry. `components/ui/*` in this repo is the docs site’s shadcn kit, not the published set.
 - Add a `variant` prop unless the design really has discrete materials. Only `live-orb` has one.

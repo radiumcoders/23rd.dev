@@ -21,7 +21,7 @@ Installs `three` alongside the component.
 
 ## Usage
 
-Pin it inside a relatively positioned section with a height. The canvas is transparent, so give the section a background. Each band leans a quarter turn from the last, so the stack zig-zags past the edges of the frame.
+Pin it inside a relatively positioned section with a height. The canvas is transparent, so give the section a background. The inside of the bands fades toward black in dark mode and white in light mode, following the page unless you set `theme`. Each band leans a quarter turn from the last, so the stack zig-zags past the edges of the frame.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -34,9 +34,9 @@ const bands = ["/bands/0.jpg", "/bands/1.jpg", "/bands/2.jpg"]
 
 export function Hero() {
   return (
-    <section className="relative isolate h-svh overflow-hidden bg-black">
+    <section className="relative isolate h-svh overflow-hidden bg-background">
       <RingTower images={bands} />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-background to-transparent" />
     </section>
   )
 }
@@ -50,9 +50,9 @@ export function Hero() {
   const bands = ["/bands/0.jpg", "/bands/1.jpg", "/bands/2.jpg"]
 </script>
 
-<section class="relative isolate h-svh overflow-hidden bg-black">
+<section class="relative isolate h-svh overflow-hidden bg-background">
   <RingTower images={bands} />
-  <div class="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black to-transparent"></div>
+  <div class="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-background to-transparent"></div>
 </section>
 ```
   </FrameworkSvelte>
@@ -84,6 +84,7 @@ Every band in step, like the original:
 | `speed` | `number` | `1`, 0–4 crawl speed |
 | `draggable` | `boolean` | `true` |
 | `parallax` | `number` | `24`, degrees, 0–90 |
-| `backface` | `number` | `0.86`, inside darkness, 0–1 |
+| `backface` | `number` | `0.86`, inside fade, 0–1 |
+| `theme` | `"light" \| "dark" \| "auto"` | `auto` |
 | `className` | `string` | React only |
 | `class` | `string` | Svelte only |
