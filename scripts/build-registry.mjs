@@ -81,9 +81,13 @@ if (includes.length === 0) {
 
 writeStandaloneTree(includes)
 
-run("pnpm dlx shadcn@latest registry validate ./registry.json", STANDALONE_DIR)
+// The locked shadcn from node_modules, not @latest, so a new CLI release
+// can't change what /r/*.json serves without a lockfile change.
+const SHADCN = `"${join(ROOT, "node_modules", ".bin", "shadcn")}"`
+
+run(`${SHADCN} registry validate ./registry.json`, STANDALONE_DIR)
 run(
-  `pnpm dlx shadcn@latest build ./registry.json --output "${join(ROOT, "public", "r")}"`,
+  `${SHADCN} build ./registry.json --output "${join(ROOT, "public", "r")}"`,
   STANDALONE_DIR
 )
 
