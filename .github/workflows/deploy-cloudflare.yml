@@ -90,10 +90,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # OpenNext runs `pnpm build`, which builds the registry and OG cards.
       - name: Build OpenNext Worker
-        run: |
-          pnpm og:build
-          pnpm exec opennextjs-cloudflare build
+        run: pnpm exec opennextjs-cloudflare build
 
       - name: Upload preview version
         id: upload
