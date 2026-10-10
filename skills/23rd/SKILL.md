@@ -94,7 +94,6 @@ flowchart TD
   pick -->|Type text out letter by letter| tw[typewriter]
   atmo -->|Quiet wash| sg[shader-gradient]
   atmo -->|Cel-shaded fire from the bottom| saf[shader-anime-fire]
-  atmo -->|Soft fire wash from the bottom| sf[shader-fire]
   atmo -->|Sky or rain, optional glass| ss[shader-sky]
   atmo -->|Chrome or gold ribbons| sm[shader-metal]
   atmo -->|ASCII mouse trails| af[ascii-fluid]
@@ -113,7 +112,6 @@ Disambiguation that agents get wrong:
 | Color picker, swatch, hex, hue, alpha, eyedropper | `gooey-color-picker` | Any shader. Shaders are not controls. |
 | Soft gradient behind a headline | `shader-gradient` | `gooey-color-picker` |
 | Fire, heat under a hero | `shader-anime-fire` | `dithered-404` unless the page is a 404 |
-| Quiet heat wash behind copy | `shader-fire` | `shader-anime-fire` when it should be the show |
 | 404 that burns under the cursor | `dithered-404` | `shader-anime-fire` |
 | Overscroll rubber band, aurora at the bottom | `stretchy-footer` | `folio` |
 | Page leans while scrolling | `folio` | `stretchy-footer` (that one stretches, it does not tilt) |
@@ -182,7 +180,6 @@ Categories match `content/docs/components/meta.json`.
 | `ascii-fluid` | Background | Pointer trails quantized to an ASCII brightness ramp | React + Svelte |
 | `shader-gradient` | Shaders | Quiet WebGL wash behind heroes and empty states | React + Svelte |
 | `shader-anime-fire` | Shaders | Cel-shaded flames licking up from the bottom | React + Svelte |
-| `shader-fire` | Shaders | Sparse fire tongues rising from the bottom | React + Svelte |
 | `shader-sky` | Shaders | Clear sky or rain; optional dotted window glass | React + Svelte |
 | `shader-metal` | Shaders | Chrome, gold, copper, or graphite ribbons; pointer key light | React + Svelte |
 | `stretchy-footer` | Footers | Dia-style rubber overscroll with an aurora floor | React + Svelte |

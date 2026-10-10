@@ -21,7 +21,6 @@ const FEATURED = [
   "live-orb",
   "shader-sky",
   "phosphor-score",
-  "shader-fire",
   "typewriter",
 ]
 

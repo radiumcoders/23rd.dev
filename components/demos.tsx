@@ -72,12 +72,6 @@ export const ShaderAnimeFireDemo = lazyDemo(() =>
   )
 )
 
-export const ShaderFireDemo = lazyDemo(() =>
-  import("@/registry/shader-fire/shader-fire-demo").then(
-    (m) => m.ShaderFireDemo
-  )
-)
-
 export const ShaderGradientDemo = lazyDemo(() =>
   import("@/registry/shader-gradient/shader-gradient-demo").then(
     (m) => m.ShaderGradientDemo

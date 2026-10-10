@@ -20,7 +20,6 @@ import { LogoBurst } from "@/registry/logo-burst/logo-burst"
 import { PhosphorScore } from "@/registry/phosphor-score/phosphor-score"
 import { RadiantLines } from "@/registry/radiant-lines/radiant-lines"
 import { ShaderAnimeFire } from "@/registry/shader-anime-fire/shader-anime-fire"
-import { ShaderFire } from "@/registry/shader-fire/shader-fire"
 import { ShaderGradient } from "@/registry/shader-gradient/shader-gradient"
 import { ShaderMetal } from "@/registry/shader-metal/shader-metal"
 import { ShaderSky } from "@/registry/shader-sky/shader-sky"
@@ -67,14 +66,6 @@ type Variant = {
 }
 
 const fill = "absolute inset-0"
-
-/** Shader Fire's stock flames sit low; on a card they read as a strip. */
-const tallFire = {
-  className: fill,
-  height: 0.85,
-  intensity: 0.8,
-  interactive: false,
-}
 
 const VARIANTS: Variant[] = [
   {
@@ -193,31 +184,6 @@ const VARIANTS: Variant[] = [
       />
     ),
     tint: glow("255 120 40", "50% 100%"),
-  },
-  {
-    id: "shader-fire",
-    slug: "shader-fire",
-    webgl: true,
-    render: () => <ShaderFire {...tallFire} />,
-    tint: glow("255 140 60", "50% 100%"),
-  },
-  {
-    id: "shader-fire:violet",
-    slug: "shader-fire",
-    label: "Violet",
-    webgl: true,
-    render: () => (
-      <ShaderFire {...tallFire} colors={["#5B21B6", "#A855F7", "#F0ABFC"]} />
-    ),
-    tint: glow("168 85 247", "50% 100%"),
-  },
-  {
-    id: "shader-fire:pixel",
-    slug: "shader-fire",
-    label: "Pixel",
-    webgl: true,
-    render: () => <ShaderFire {...tallFire} dither pixelSize={3} />,
-    tint: glow("255 150 70", "50% 100%"),
   },
   {
     id: "shader-sky",
