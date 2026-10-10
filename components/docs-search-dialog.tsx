@@ -55,9 +55,25 @@ export function DocsSearchDialog({
           <SearchDialogClose />
         </SearchDialogHeader>
         <SearchDialogList
-          items={query.data !== "empty" ? query.data : defaultItems}
+          items={
+            query.error
+              ? []
+              : query.data !== "empty"
+                ? query.data
+                : defaultItems
+          }
+          Empty={query.error ? SearchError : undefined}
         />
       </SearchDialogContent>
     </SearchDialog>
+  )
+}
+
+/** Shown when /api/search fails, so an outage doesn't read as "no results". */
+function SearchError() {
+  return (
+    <div className="py-12 text-center text-sm text-fd-muted-foreground">
+      Search is unavailable right now. Try again in a moment.
+    </div>
   )
 }
