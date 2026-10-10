@@ -89,7 +89,7 @@ export function ShaderMetalDemo() {
               >
                 <span
                   aria-hidden
-                  className="size-2.5 rounded-full ring-1 ring-foreground/20"
+                  className="size-2.5 rounded-full ring-1 ring-current/30"
                   style={{ backgroundColor: METALS[item.id] }}
                 />
                 {item.label}
