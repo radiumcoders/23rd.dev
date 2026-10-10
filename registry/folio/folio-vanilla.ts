@@ -6,7 +6,7 @@ export type FolioPlayDetail = {
   target?: string
   /** Nested scroller to drive. Omit for `window`. */
   scrollRoot?: HTMLElement | null
-  /** How long to hold the lean before springing back, in ms. Default `420`. */
+  /** How long to hold the lean before springing back, in ms. Default `720`. */
   holdMs?: number
 }
 
