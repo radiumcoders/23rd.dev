@@ -373,10 +373,7 @@ export function createRingTower(
     if (size.width > 0 && size.height > 0) renderer.render(scene, camera)
 
     const moving =
-      !still ||
-      dragging ||
-      velocity !== 0 ||
-      Math.abs(target - pointerX) > 1e-4
+      !still || dragging || velocity !== 0 || Math.abs(target - pointerX) > 1e-4
     if (moving) raf = requestAnimationFrame(tick)
   }
 
@@ -419,7 +416,8 @@ export function createRingTower(
   }
   const onMove = (e: PointerEvent) => {
     if (dragging) {
-      const delta = ((e.clientX - dragX) / Math.max(1, size.width)) * Math.PI * 2
+      const delta =
+        ((e.clientX - dragX) / Math.max(1, size.width)) * Math.PI * 2
       angle += delta
       velocity = delta * 60
       dragX = e.clientX
