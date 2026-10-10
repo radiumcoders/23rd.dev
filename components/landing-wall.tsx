@@ -15,7 +15,7 @@ import { RiArrowRightUpLine } from "@remixicon/react"
 
 import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { cn } from "@/lib/utils"
-import { LiveOrb } from "@/registry/live-orb/live-orb"
+import { LiveOrb, type LiveOrbProps } from "@/registry/live-orb/live-orb"
 import { LogoBurst } from "@/registry/logo-burst/logo-burst"
 import { PhosphorScore } from "@/registry/phosphor-score/phosphor-score"
 import { RadiantLines } from "@/registry/radiant-lines/radiant-lines"
@@ -24,83 +24,321 @@ import { ShaderFire } from "@/registry/shader-fire/shader-fire"
 import { ShaderGradient } from "@/registry/shader-gradient/shader-gradient"
 import { ShaderMetal } from "@/registry/shader-metal/shader-metal"
 import { ShaderSky } from "@/registry/shader-sky/shader-sky"
+import { Typewriter } from "@/registry/typewriter/typewriter"
 
 export type WallItem = { slug: string; title: string; url: string }
 
 /** How long one shift to the next card takes. */
 const SHIFT_MS = 1400
 
-/** A white orb on dark screens and a black one on light, as in the docs. */
-function OrbPreview() {
+/** An orb centred in its card. The stock one is white on dark, black on light. */
+function OrbPreview(props: Omit<LiveOrbProps, "size" | "interactive">) {
   const theme = useHydratedTheme()
   return (
     <div className="absolute inset-0 flex items-center justify-center">
       <LiveOrb
         size={150}
         variant={theme === "dark" ? "white" : "black"}
+        {...props}
         interactive={false}
       />
     </div>
   )
 }
 
+/** A wash in one colour, low and wide, as a placeholder tint. */
+const glow = (rgb: string, at = "50% 60%") =>
+  `radial-gradient(90% 70% at ${at}, rgb(${rgb} / 0.45), transparent 70%)`
+
 /**
- * Each preview, plus a tint that stands in for it until it mounts (and
- * whenever its column is off screen), so the wall never reads as empty.
+ * One way a component can look on the wall, plus a tint that stands in for
+ * it until it mounts (and whenever its column is off screen), so the wall
+ * never reads as empty. Variants of one component count as repeats of each
+ * other, just milder ones than the same variant twice.
  */
-const PREVIEWS: Record<
-  string,
-  { render: () => ReactNode; tint: string; webgl?: true }
-> = {
-  "shader-metal": {
+type Variant = {
+  id: string
+  slug: string
+  /** Shown after the component's name. The stock look has none. */
+  label?: string
+  render: () => ReactNode
+  tint: string
+  webgl?: true
+}
+
+const fill = "absolute inset-0"
+
+/** Shader Fire's stock flames sit low; on a card they read as a strip. */
+const tallFire = {
+  className: fill,
+  height: 0.85,
+  intensity: 0.8,
+  interactive: false,
+}
+
+const VARIANTS: Variant[] = [
+  {
+    id: "shader-metal",
+    slug: "shader-metal",
     webgl: true,
     render: () => <ShaderMetal interactive={false} />,
-    tint: "radial-gradient(90% 70% at 65% 55%, rgb(170 176 188 / 0.4), transparent 70%)",
+    tint: glow("170 176 188", "65% 55%"),
   },
-  "shader-gradient": {
+  {
+    id: "shader-metal:gold",
+    slug: "shader-metal",
+    label: "Gold",
     webgl: true,
-    render: () => (
-      <ShaderGradient className="absolute inset-0" interactive={false} />
-    ),
+    render: () => <ShaderMetal metal="gold" interactive={false} />,
+    tint: glow("214 178 96", "65% 55%"),
+  },
+  {
+    id: "shader-metal:copper",
+    slug: "shader-metal",
+    label: "Copper",
+    webgl: true,
+    render: () => <ShaderMetal metal="copper" interactive={false} />,
+    tint: glow("201 120 82", "65% 55%"),
+  },
+  {
+    id: "shader-metal:cobalt",
+    slug: "shader-metal",
+    label: "Cobalt",
+    webgl: true,
+    render: () => <ShaderMetal color="#5B8CFF" interactive={false} />,
+    tint: glow("91 140 255", "65% 55%"),
+  },
+  {
+    id: "shader-gradient",
+    slug: "shader-gradient",
+    webgl: true,
+    render: () => <ShaderGradient className={fill} interactive={false} />,
     tint: "radial-gradient(80% 70% at 25% 30%, rgb(255 122 92 / 0.45), transparent 65%), radial-gradient(80% 70% at 80% 75%, rgb(96 120 255 / 0.4), transparent 65%)",
   },
-  "shader-anime-fire": {
+  {
+    id: "shader-gradient:lagoon",
+    slug: "shader-gradient",
+    label: "Lagoon",
     webgl: true,
     render: () => (
-      <ShaderAnimeFire className="absolute inset-0" interactive={false} />
+      <ShaderGradient
+        className={fill}
+        colors={["#0F766E", "#14B8A6", "#67E8F9", "#1E40AF"]}
+        interactive={false}
+      />
     ),
-    tint: "radial-gradient(90% 65% at 50% 100%, rgb(255 96 32 / 0.55), transparent 70%)",
+    tint: "radial-gradient(80% 70% at 25% 30%, rgb(20 184 166 / 0.45), transparent 65%), radial-gradient(80% 70% at 80% 75%, rgb(30 64 175 / 0.4), transparent 65%)",
   },
-  "shader-fire": {
+  {
+    id: "shader-gradient:citrus",
+    slug: "shader-gradient",
+    label: "Citrus",
     webgl: true,
     render: () => (
-      <ShaderFire className="absolute inset-0" interactive={false} />
+      <ShaderGradient
+        className={fill}
+        colors={["#FACC15", "#F97316", "#84CC16", "#FDE68A"]}
+        interactive={false}
+      />
     ),
-    tint: "radial-gradient(100% 70% at 50% 100%, rgb(255 140 60 / 0.45), transparent 70%)",
+    tint: "radial-gradient(80% 70% at 25% 30%, rgb(250 204 21 / 0.45), transparent 65%), radial-gradient(80% 70% at 80% 75%, rgb(249 115 22 / 0.4), transparent 65%)",
   },
-  "shader-sky": {
+  {
+    id: "shader-gradient:berry",
+    slug: "shader-gradient",
+    label: "Berry",
     webgl: true,
-    render: () => <ShaderSky className="absolute inset-0" />,
+    render: () => (
+      <ShaderGradient
+        className={fill}
+        colors={["#7C3AED", "#DB2777", "#F472B6", "#312E81"]}
+        grain={0.3}
+        interactive={false}
+      />
+    ),
+    tint: "radial-gradient(80% 70% at 25% 30%, rgb(124 58 237 / 0.45), transparent 65%), radial-gradient(80% 70% at 80% 75%, rgb(219 39 119 / 0.4), transparent 65%)",
+  },
+  {
+    id: "shader-anime-fire",
+    slug: "shader-anime-fire",
+    webgl: true,
+    render: () => <ShaderAnimeFire className={fill} interactive={false} />,
+    tint: glow("255 96 32", "50% 100%"),
+  },
+  {
+    id: "shader-anime-fire:blue",
+    slug: "shader-anime-fire",
+    label: "Blue",
+    webgl: true,
+    render: () => (
+      <ShaderAnimeFire
+        className={fill}
+        colors={["#1D4ED8", "#38BDF8", "#E0F2FE"]}
+        interactive={false}
+      />
+    ),
+    tint: glow("56 189 248", "50% 100%"),
+  },
+  {
+    id: "shader-anime-fire:pixel",
+    slug: "shader-anime-fire",
+    label: "Pixel",
+    webgl: true,
+    render: () => (
+      <ShaderAnimeFire
+        className={fill}
+        dither
+        pixelSize={4}
+        interactive={false}
+      />
+    ),
+    tint: glow("255 120 40", "50% 100%"),
+  },
+  {
+    id: "shader-fire",
+    slug: "shader-fire",
+    webgl: true,
+    render: () => <ShaderFire {...tallFire} />,
+    tint: glow("255 140 60", "50% 100%"),
+  },
+  {
+    id: "shader-fire:violet",
+    slug: "shader-fire",
+    label: "Violet",
+    webgl: true,
+    render: () => (
+      <ShaderFire {...tallFire} colors={["#5B21B6", "#A855F7", "#F0ABFC"]} />
+    ),
+    tint: glow("168 85 247", "50% 100%"),
+  },
+  {
+    id: "shader-fire:pixel",
+    slug: "shader-fire",
+    label: "Pixel",
+    webgl: true,
+    render: () => <ShaderFire {...tallFire} dither pixelSize={3} />,
+    tint: glow("255 150 70", "50% 100%"),
+  },
+  {
+    id: "shader-sky",
+    slug: "shader-sky",
+    webgl: true,
+    render: () => <ShaderSky className={fill} />,
     tint: "linear-gradient(to bottom, rgb(104 156 228 / 0.45), rgb(232 214 204 / 0.3))",
   },
-  "logo-burst": {
-    render: () => <LogoBurst replayOnClick={false} />,
-    tint: "radial-gradient(45% 40% at 50% 50%, rgb(128 128 128 / 0.3), transparent 70%)",
+  {
+    id: "shader-sky:sunset",
+    slug: "shader-sky",
+    label: "Sunset",
+    webgl: true,
+    render: () => (
+      <ShaderSky
+        className={fill}
+        colors={["#C45C26", "#F0A868", "#FFF6E8", "#E8C9A0"]}
+      />
+    ),
+    tint: "linear-gradient(to bottom, rgb(196 92 38 / 0.45), rgb(240 168 104 / 0.3))",
   },
-  "radiant-lines": {
-    render: () => <RadiantLines starCount={260} />,
-    tint: "radial-gradient(60% 50% at 50% 50%, rgb(96 165 250 / 0.22), transparent 70%)",
+  {
+    id: "shader-sky:storm",
+    slug: "shader-sky",
+    label: "Storm",
+    webgl: true,
+    render: () => (
+      <ShaderSky
+        className={fill}
+        colors={["#5C6B78", "#9AA4AB", "#D0D5DA", "#6A7380"]}
+        coverage={0.8}
+        lightning
+      />
+    ),
+    tint: "linear-gradient(to bottom, rgb(92 107 120 / 0.5), rgb(154 164 171 / 0.3))",
   },
-  "live-orb": {
+  {
+    id: "live-orb",
+    slug: "live-orb",
     webgl: true,
     render: () => <OrbPreview />,
     tint: "radial-gradient(28% 28% at 50% 50%, rgb(128 128 128 / 0.35), transparent 70%)",
   },
-  "phosphor-score": {
-    render: () => <PhosphorScore />,
-    tint: "linear-gradient(to bottom, transparent, rgb(128 128 128 / 0.18))",
+  {
+    id: "live-orb:webgl",
+    slug: "live-orb",
+    label: "WebGL",
+    webgl: true,
+    render: () => <OrbPreview variant="webgl" />,
+    tint: "radial-gradient(28% 28% at 50% 50%, rgb(124 106 247 / 0.4), transparent 70%)",
   },
-}
+  {
+    id: "live-orb:custom",
+    slug: "live-orb",
+    label: "Custom",
+    webgl: true,
+    render: () => (
+      <OrbPreview variant="custom" color="#FF6B4A" eyeColor="#FAFAFA" />
+    ),
+    tint: "radial-gradient(28% 28% at 50% 50%, rgb(255 107 74 / 0.4), transparent 70%)",
+  },
+  {
+    id: "logo-burst",
+    slug: "logo-burst",
+    render: () => <LogoBurst replayOnClick={false} />,
+    tint: "radial-gradient(45% 40% at 50% 50%, rgb(128 128 128 / 0.3), transparent 70%)",
+  },
+  {
+    id: "logo-burst:coral",
+    slug: "logo-burst",
+    label: "Coral",
+    render: () => <LogoBurst color="#FF6B4A" replayOnClick={false} />,
+    tint: "radial-gradient(45% 40% at 50% 50%, rgb(255 107 74 / 0.3), transparent 70%)",
+  },
+  {
+    id: "radiant-lines",
+    slug: "radiant-lines",
+    render: () => <RadiantLines starCount={260} />,
+    tint: "radial-gradient(60% 50% at 50% 50%, rgb(96 165 250 / 0.22), transparent 70%)",
+  },
+  {
+    id: "radiant-lines:warm",
+    slug: "radiant-lines",
+    label: "Warm",
+    render: () => (
+      <RadiantLines
+        starCount={260}
+        colors={["#FF6B4A", "#FBBF24", "#F472B6"]}
+      />
+    ),
+    tint: "radial-gradient(60% 50% at 50% 50%, rgb(255 107 74 / 0.22), transparent 70%)",
+  },
+  {
+    id: "phosphor-score",
+    slug: "phosphor-score",
+    render: () => <PhosphorScore />,
+    tint: "linear-gradient(to bottom, transparent, rgb(77 255 106 / 0.14))",
+  },
+  {
+    id: "phosphor-score:amber",
+    slug: "phosphor-score",
+    label: "Amber",
+    render: () => <PhosphorScore color="#F59E0B" seed={7} />,
+    tint: "linear-gradient(to bottom, transparent, rgb(245 158 11 / 0.16))",
+  },
+  {
+    id: "typewriter",
+    slug: "typewriter",
+    render: () => <Typewriter className={fill} interactive={false} />,
+    tint: glow("142 195 181", "50% 70%"),
+  },
+  {
+    id: "typewriter:cherry",
+    slug: "typewriter",
+    label: "Cherry",
+    render: () => (
+      <Typewriter className={fill} color="#D2463A" interactive={false} />
+    ),
+    tint: glow("210 70 58", "50% 70%"),
+  },
+]
 
 /** Inside a card, `bg-background` is the screen, not the sheet. */
 const screenTokens = { "--background": "var(--screen)" } as CSSProperties
@@ -172,20 +410,21 @@ function LivePreview({ children }: { children: ReactNode }) {
 
 function Card({
   item,
+  variant,
   live: wantsLive,
   slotId,
   rank,
   style,
 }: {
   item: WallItem
+  variant: Variant
   live: boolean
   /** Stable id for this card position, for the WebGL budget. */
   slotId: string
   rank: number
   style: CSSProperties
 }) {
-  const preview = PREVIEWS[item.slug]
-  const webgl = !!preview?.webgl
+  const webgl = !!variant.webgl
   const slot = useWebglSlot(slotId, rank, wantsLive && webgl)
   const live = wantsLive && (!webgl || slot)
 
@@ -197,17 +436,25 @@ function Card({
       className="group absolute inset-x-0 flex h-(--card-h) flex-col rounded-[1.25rem] border bg-card p-1 transition-colors hover:border-foreground/25"
     >
       <div
-        style={{ ...screenTokens, backgroundImage: preview?.tint }}
+        style={{ ...screenTokens, backgroundImage: variant.tint }}
         className="relative isolate flex-1 overflow-hidden rounded-[1rem] bg-background [clip-path:inset(0_round_1rem)] after:pointer-events-none after:absolute after:inset-0 after:z-50 after:rounded-[inherit] after:ring-1 after:ring-border after:ring-inset"
       >
-        {live && preview ? (
-          // Keyed by slug, so a card that switches component remounts its
-          // preview, and the old engine is destroyed and frees its context.
-          <LivePreview key={item.slug}>{preview.render()}</LivePreview>
+        {live ? (
+          // Keyed by variant, so a card that switches to another remounts
+          // its preview, and the old engine is destroyed and frees its
+          // context.
+          <LivePreview key={variant.id}>{variant.render()}</LivePreview>
         ) : null}
       </div>
       <div className="flex h-9 shrink-0 items-center justify-between px-2.5 text-[13px]">
-        <span className="font-medium">{item.title}</span>
+        <span className="truncate">
+          <span className="font-medium">{item.title}</span>
+          {variant.label ? (
+            <span className="ml-1.5 text-muted-foreground">
+              {variant.label}
+            </span>
+          ) : null}
+        </span>
         <RiArrowRightUpLine className="size-3.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
       </div>
     </Link>
@@ -247,7 +494,7 @@ const LIVE_BLUR_LIMIT = 6
 /** Cards each column opens with. Later ones are picked as they scroll in. */
 const OPENING_ROWS = 4
 
-type Shown = { slugs: string[]; sharp: boolean }
+type Shown = { ids: string[]; sharp: boolean }
 
 /**
  * What each column has on screen right now, so a column picking its next
@@ -255,41 +502,48 @@ type Shown = { slugs: string[]; sharp: boolean }
  */
 const onScreen = new Map<number, Shown>()
 
+/** The component a variant id belongs to. */
+const slugOf = (id: string) => id.split(":")[0]!
+
 /**
- * How badly a preview would repeat: already in this column is worst, then
+ * How badly a variant would repeat: already in this column is worst, then
  * a sharp column beside it, then anywhere sharp on screen, then the blurred
- * edges.
+ * edges. Another variant of the same component counts too, for less.
  */
 function clash(
-  slug: string,
+  id: string,
   slot: number,
   own: string[],
   shown: Map<number, Shown>
 ) {
-  let score = own.includes(slug) ? 1000 : 0
+  const slug = slugOf(id)
+  const weigh = (ids: string[]) =>
+    ids.includes(id) ? 1 : ids.some((other) => slugOf(other) === slug) ? 0.3 : 0
+  let score = weigh(own) * 1000
   for (const [other, entry] of shown) {
-    if (other === slot || !entry.slugs.includes(slug)) continue
+    if (other === slot) continue
     const beside = Math.abs(other - slot) === 1
-    score += entry.sharp ? (beside ? 200 : 100) : beside ? 20 : 10
+    score +=
+      weigh(entry.ids) * (entry.sharp ? (beside ? 200 : 100) : beside ? 20 : 10)
   }
   return score
 }
 
-/** The least repeated preview, with ties broken by a rotating `seed`. */
+/** The least repeated variant, with ties broken by a rotating `seed`. */
 function pick(
-  items: WallItem[],
+  ids: string[],
   slot: number,
   own: string[],
   shown: Map<number, Shown>,
   seed: number
 ) {
-  let best = items[0]!.slug
+  let best = ids[0]!
   let bestScore = Infinity
-  for (let k = 0; k < items.length; k++) {
-    const slug = items[(seed + k) % items.length]!.slug
-    const score = clash(slug, slot, own, shown)
+  for (let k = 0; k < ids.length; k++) {
+    const id = ids[(seed + k) % ids.length]!
+    const score = clash(id, slot, own, shown)
     if (score < bestScore) {
-      best = slug
+      best = id
       bestScore = score
     }
   }
@@ -300,21 +554,51 @@ function pick(
  * The opening wall, filled centre-out by the same rule. It is pure, so the
  * server and the client lay out the same cards.
  */
-function openingLayout(items: WallItem[]) {
+function openingLayout(ids: string[]) {
   const layout = new Map<number, Record<number, string>>()
   const shown = new Map<number, Shown>()
   for (const slot of [0, -1, 1, -2, 2, -3, 3]) {
     const cards: Record<number, string> = {}
     const own: string[] = []
     for (let s = 0; s < OPENING_ROWS; s++) {
-      const slug = pick(items, slot, own, shown, (slot + 3) * 3 + s)
-      own.push(slug)
-      cards[s] = slug
+      const id = pick(ids, slot, own, shown, (slot + 3) * 3 + s)
+      own.push(id)
+      cards[s] = id
     }
     layout.set(slot, cards)
-    shown.set(slot, { slugs: own.slice(0, 3), sharp: Math.abs(slot) <= 1 })
+    shown.set(slot, { ids: own.slice(0, 3), sharp: Math.abs(slot) <= 1 })
   }
   return layout
+}
+
+/** The variants on the wall, and the pages their cards link to. */
+type Deck = {
+  ids: string[]
+  variants: Map<string, Variant>
+  items: Map<string, WallItem>
+}
+
+/**
+ * The variants of the featured components, dealt one per component per
+ * round (every stock look, then every second look, ...), so neighbouring
+ * ids are different components and seeds spread across the wall.
+ */
+function buildDeck(featured: WallItem[]): Deck {
+  const items = new Map(featured.map((item) => [item.slug, item]))
+  const groups = featured.map((item) =>
+    VARIANTS.filter((variant) => variant.slug === item.slug)
+  )
+  const ids: string[] = []
+  for (let round = 0; groups.some((group) => group[round]); round++) {
+    for (const group of groups) {
+      if (group[round]) ids.push(group[round].id)
+    }
+  }
+  return {
+    ids,
+    variants: new Map(VARIANTS.map((variant) => [variant.id, variant])),
+    items,
+  }
 }
 
 type Fit = {
@@ -334,12 +618,12 @@ type Fit = {
  * nothing ever snaps back and a preview never restarts mid-scroll.
  */
 function Column({
-  items,
+  deck,
   slot,
   opening,
   fade,
 }: {
-  items: WallItem[]
+  deck: Deck
   slot: number
   opening: Record<number, string>
   fade: boolean
@@ -403,9 +687,10 @@ function Column({
     return () => observer.disconnect()
   }, [])
 
-  const n = items.length
-  const slugAt = (map: Record<number, string>, s: number) =>
-    map[s] ?? items[(((s + slot * 3) % n) + n) % n]!.slug
+  const { ids } = deck
+  const n = ids.length
+  const idAt = (map: Record<number, string>, s: number) =>
+    map[s] ?? ids[(((s + slot * 3) % n) + n) % n]!
   /** Whether card `s` shows more than a sliver while the column rests at `at`. */
   const inView = ({ height, pitch }: Fit, s: number, at: number) => {
     if (height === 0) return true // not measured yet, so assume it shows
@@ -420,15 +705,15 @@ function Column({
     if (!fit.onscreen || n === 0) return
     // Only where the column is headed: a card sliding out is gone in a
     // moment, and counting it starves the neighbours of choices.
-    const slugs: string[] = []
+    const shown: string[] = []
     for (let s = index; s < index + fit.rows; s++) {
-      if (inView(fit, s, index)) slugs.push(slugAt(cards, s))
+      if (inView(fit, s, index)) shown.push(idAt(cards, s))
     }
-    onScreen.set(slot, { slugs, sharp: fit.blur === 0 })
+    onScreen.set(slot, { ids: shown, sharp: fit.blur === 0 })
     return () => {
       onScreen.delete(slot)
     }
-    // slugAt only reads props and its arguments.
+    // idAt only reads props and its arguments.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cards, index, fit, slot, n])
 
@@ -455,24 +740,24 @@ function Column({
           if (s === incoming || (!inView(now, s, from) && inView(now, s, to))) {
             entering.push(s)
           } else if (inView(now, s, from) || inView(now, s, to)) {
-            own.push(slugAt(cardsRef.current, s))
+            own.push(idAt(cardsRef.current, s))
           }
         }
         const picks: Record<number, string> = {}
         for (const s of entering) {
-          picks[s] = pick(items, slot, own, onScreen, seedRef.current++)
+          picks[s] = pick(ids, slot, own, onScreen, seedRef.current++)
           own.push(picks[s])
         }
         // Publish the new view now: a column shifting in the same moment
         // would otherwise check this one before React has rendered it.
         if (now.onscreen) {
-          const slugs: string[] = []
+          const shown: string[] = []
           for (let s = to; s < to + rows; s++) {
             if (inView(now, s, to)) {
-              slugs.push(picks[s] ?? slugAt(cardsRef.current, s))
+              shown.push(picks[s] ?? idAt(cardsRef.current, s))
             }
           }
-          onScreen.set(slot, { slugs, sharp: now.blur === 0 })
+          onScreen.set(slot, { ids: shown, sharp: now.blur === 0 })
         }
         setCards((prev) => {
           const next: Record<number, string> = { ...picks }
@@ -498,17 +783,15 @@ function Column({
       window.clearTimeout(timer)
       window.clearTimeout(settle)
     }
-    // slugAt only reads props and its arguments.
+    // idAt only reads props and its arguments.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dir, hold, delay, items, slot])
+  }, [dir, hold, delay, ids, slot])
 
   // The cards in the window, plus the one leaving it during a shift.
   const first = Math.min(index, trail ?? index)
   const last = Math.max(index, trail ?? index) + fit.rows - 1
   const positions: number[] = []
   for (let s = first; s <= last; s++) positions.push(s)
-
-  const bySlug = new Map(items.map((item) => [item.slug, item]))
 
   return (
     <>
@@ -557,23 +840,27 @@ function Column({
           }}
         >
           {n > 0
-            ? positions.map((s) => (
-                <Card
-                  key={s}
-                  item={bySlug.get(slugAt(cards, s))!}
-                  // Slivers at the edges stay tints; the card leaving during
-                  // a shift keeps running until it is gone.
-                  live={
-                    fit.onscreen &&
-                    fit.blur < LIVE_BLUR_LIMIT &&
-                    (inView(fit, s, index) ||
-                      (trail !== null && inView(fit, s, trail)))
-                  }
-                  slotId={`${slot}:${s}`}
-                  rank={fit.blur * 100 + Math.abs(slot) * 10 + (s - index)}
-                  style={{ top: `calc(var(--step) * ${s})` }}
-                />
-              ))
+            ? positions.map((s) => {
+                const variant = deck.variants.get(idAt(cards, s))!
+                return (
+                  <Card
+                    key={s}
+                    item={deck.items.get(variant.slug)!}
+                    variant={variant}
+                    // Slivers at the edges stay tints; the card leaving during
+                    // a shift keeps running until it is gone.
+                    live={
+                      fit.onscreen &&
+                      fit.blur < LIVE_BLUR_LIMIT &&
+                      (inView(fit, s, index) ||
+                        (trail !== null && inView(fit, s, trail)))
+                    }
+                    slotId={`${slot}:${s}`}
+                    rank={fit.blur * 100 + Math.abs(slot) * 10 + (s - index)}
+                    style={{ top: `calc(var(--step) * ${s})` }}
+                  />
+                )
+              })
             : null}
         </div>
       </div>
@@ -592,15 +879,10 @@ export function LandingWall({
   items: WallItem[]
   layer: "edges" | "middle"
 }) {
-  // Only components with a preview here; a slug without one would be a
-  // blank card.
-  const items = useMemo(
-    () => featured.filter((item) => item.slug in PREVIEWS),
-    [featured]
-  )
+  const deck = useMemo(() => buildDeck(featured), [featured])
   const opening = useMemo(
-    () => (items.length > 0 ? openingLayout(items) : null),
-    [items]
+    () => (deck.ids.length > 0 ? openingLayout(deck.ids) : null),
+    [deck]
   )
   if (!opening) return null
 
@@ -617,7 +899,7 @@ export function LandingWall({
         return middle === (layer === "middle") ? (
           <Column
             key={slot}
-            items={items}
+            deck={deck}
             slot={slot}
             opening={opening.get(slot)!}
             fade={middle}
