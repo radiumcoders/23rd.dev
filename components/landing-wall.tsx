@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type CSSProperties,
   type ReactNode,
 } from "react"
@@ -47,30 +48,38 @@ function OrbPreview() {
  * Each preview, plus a tint that stands in for it until it mounts (and
  * whenever its column is off screen), so the wall never reads as empty.
  */
-const PREVIEWS: Record<string, { render: () => ReactNode; tint: string }> = {
+const PREVIEWS: Record<
+  string,
+  { render: () => ReactNode; tint: string; webgl?: true }
+> = {
   "shader-metal": {
+    webgl: true,
     render: () => <ShaderMetal interactive={false} />,
     tint: "radial-gradient(90% 70% at 65% 55%, rgb(170 176 188 / 0.4), transparent 70%)",
   },
   "shader-gradient": {
+    webgl: true,
     render: () => (
       <ShaderGradient className="absolute inset-0" interactive={false} />
     ),
     tint: "radial-gradient(80% 70% at 25% 30%, rgb(255 122 92 / 0.45), transparent 65%), radial-gradient(80% 70% at 80% 75%, rgb(96 120 255 / 0.4), transparent 65%)",
   },
   "shader-anime-fire": {
+    webgl: true,
     render: () => (
       <ShaderAnimeFire className="absolute inset-0" interactive={false} />
     ),
     tint: "radial-gradient(90% 65% at 50% 100%, rgb(255 96 32 / 0.55), transparent 70%)",
   },
   "shader-fire": {
+    webgl: true,
     render: () => (
       <ShaderFire className="absolute inset-0" interactive={false} />
     ),
     tint: "radial-gradient(100% 70% at 50% 100%, rgb(255 140 60 / 0.45), transparent 70%)",
   },
   "shader-sky": {
+    webgl: true,
     render: () => <ShaderSky className="absolute inset-0" />,
     tint: "linear-gradient(to bottom, rgb(104 156 228 / 0.45), rgb(232 214 204 / 0.3))",
   },
@@ -83,6 +92,7 @@ const PREVIEWS: Record<string, { render: () => ReactNode; tint: string }> = {
     tint: "radial-gradient(60% 50% at 50% 50%, rgb(96 165 250 / 0.22), transparent 70%)",
   },
   "live-orb": {
+    webgl: true,
     render: () => <OrbPreview />,
     tint: "radial-gradient(28% 28% at 50% 50%, rgb(128 128 128 / 0.35), transparent 70%)",
   },
@@ -95,6 +105,62 @@ const PREVIEWS: Record<string, { render: () => ReactNode; tint: string }> = {
 /** Inside a card, `bg-background` is the screen, not the sheet. */
 const screenTokens = { "--background": "var(--screen)" } as CSSProperties
 
+/**
+ * Browsers keep about 16 WebGL contexts per page and drop the oldest past
+ * that, visible ones included. A large screen shows more sharp shader cards
+ * than that, so they share a budget: the sharpest, most central ones run and
+ * the rest show their tint. One wall per page.
+ */
+const WEBGL_BUDGET = 10
+
+const webglBudget = (() => {
+  const wants = new Map<string, number>()
+  const listeners = new Set<() => void>()
+  let granted = new Set<string>()
+
+  const recompute = () => {
+    const next = new Set(
+      [...wants]
+        .sort(([a, x], [b, y]) => x - y || (a < b ? -1 : 1))
+        .slice(0, WEBGL_BUDGET)
+        .map(([id]) => id)
+    )
+    if (next.size === granted.size && [...next].every((id) => granted.has(id)))
+      return
+    granted = next
+    for (const listener of listeners) listener()
+  }
+
+  return {
+    want(id: string, rank: number) {
+      wants.set(id, rank)
+      recompute()
+    },
+    drop(id: string) {
+      if (wants.delete(id)) recompute()
+    },
+    has: (id: string) => granted.has(id),
+    subscribe(listener: () => void) {
+      listeners.add(listener)
+      return () => listeners.delete(listener)
+    },
+  }
+})()
+
+/** Whether a WebGL card may run, given its rank (lower runs first). */
+function useWebglSlot(id: string, rank: number, wanted: boolean) {
+  useEffect(() => {
+    if (!wanted) return
+    webglBudget.want(id, rank)
+    return () => webglBudget.drop(id)
+  }, [id, rank, wanted])
+  return useSyncExternalStore(
+    webglBudget.subscribe,
+    () => wanted && webglBudget.has(id),
+    () => false
+  )
+}
+
 /** A running preview, faded in over its tint. */
 function LivePreview({ children }: { children: ReactNode }) {
   return (
@@ -106,14 +172,22 @@ function LivePreview({ children }: { children: ReactNode }) {
 
 function Card({
   item,
-  live,
+  live: wantsLive,
+  slotId,
+  rank,
   style,
 }: {
   item: WallItem
   live: boolean
+  /** Stable id for this card position, for the WebGL budget. */
+  slotId: string
+  rank: number
   style: CSSProperties
 }) {
   const preview = PREVIEWS[item.slug]
+  const webgl = !!preview?.webgl
+  const slot = useWebglSlot(slotId, rank, wantsLive && webgl)
+  const live = wantsLive && (!webgl || slot)
 
   return (
     <Link
@@ -487,7 +561,16 @@ function Column({
                 <Card
                   key={s}
                   item={bySlug.get(slugAt(cards, s))!}
-                  live={fit.onscreen && fit.blur < LIVE_BLUR_LIMIT}
+                  // Slivers at the edges stay tints; the card leaving during
+                  // a shift keeps running until it is gone.
+                  live={
+                    fit.onscreen &&
+                    fit.blur < LIVE_BLUR_LIMIT &&
+                    (inView(fit, s, index) ||
+                      (trail !== null && inView(fit, s, trail)))
+                  }
+                  slotId={`${slot}:${s}`}
+                  rank={fit.blur * 100 + Math.abs(slot) * 10 + (s - index)}
                   style={{ top: `calc(var(--step) * ${s})` }}
                 />
               ))
