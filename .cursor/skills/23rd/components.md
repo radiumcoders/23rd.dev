@@ -99,7 +99,7 @@ Best fit: a showcase hero that puts screenshots or cards on display.
 
 Not this: `shader-metal` (ribbons of material, no images).
 
-Deps: `three`. Key props: `images`, `rings` (12), `speed` (1), `draggable` (true), `parallax` (24), `backface` (0.86).
+Deps: `three`. Key props: `images`, `rings` (12), `speed` (1), `draggable` (true), `parallax` (24), `backface` (0.86), `theme`.
 
 ```tsx
 "use client"
@@ -107,7 +107,7 @@ import { RingTower } from "@/components/ui/ring-tower"
 
 export function Showcase() {
   return (
-    <section className="relative isolate h-svh overflow-hidden bg-black">
+    <section className="relative isolate h-svh overflow-hidden bg-background">
       <RingTower images={["/bands/0.jpg", "/bands/1.jpg", "/bands/2.jpg"]} />
     </section>
   )

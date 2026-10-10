@@ -151,7 +151,7 @@ export function RingTowerDemo() {
         title="Ring Tower"
         stageClassName="min-h-0 overflow-hidden p-0"
       >
-        <div className="relative h-[64svh] w-full overflow-hidden rounded-[inherit] bg-black">
+        <div className="relative h-[64svh] w-full overflow-hidden rounded-[inherit] bg-background">
           <RingTower
             images={images}
             rings={props.rings}
@@ -162,14 +162,14 @@ export function RingTowerDemo() {
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black via-black/60 to-transparent"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-background via-background/60 to-transparent"
           />
           {props.source === "photos" ? (
             <a
               href="https://unsplash.com"
               target="_blank"
               rel="noreferrer"
-              className="absolute right-3 bottom-3 text-xs text-white/50 transition-colors hover:text-white"
+              className="absolute right-3 bottom-3 text-xs text-foreground/50 transition-colors hover:text-foreground"
             >
               Photos from Unsplash
             </a>

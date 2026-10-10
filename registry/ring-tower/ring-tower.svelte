@@ -29,6 +29,7 @@
     draggable = true,
     parallax = DEFAULT_PARALLAX,
     backface = DEFAULT_BACKFACE,
+    theme = "auto",
   }: Props = $props()
 
   let root: HTMLDivElement | undefined = $state()
@@ -43,6 +44,7 @@
       draggable,
       parallax,
       backface,
+      theme,
     })
     return () => {
       instance?.destroy()
@@ -58,6 +60,7 @@
       draggable,
       parallax,
       backface,
+      theme,
     })
   })
 </script>

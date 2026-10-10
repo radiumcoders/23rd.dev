@@ -1,6 +1,7 @@
 import {
   CanvasTexture,
   ClampToEdgeWrapping,
+  Color,
   CylinderGeometry,
   DoubleSide,
   Group,
@@ -16,6 +17,8 @@ import {
   WebGLRenderer,
   type Texture,
 } from "three"
+
+export type RingTowerTheme = "light" | "dark" | "auto"
 
 export type RingTowerOptions = {
   /**
@@ -34,8 +37,13 @@ export type RingTowerOptions = {
    * opposite way. Default `24`, 0 to 90. `0` keeps every band in step.
    */
   parallax?: number
-  /** How dark the inside of the bands is, 0 to 1. Default `0.86`. */
+  /**
+   * How far the inside of the bands fades toward the page, 0 to 1: black in
+   * dark mode, white in light mode. Default `0.86`.
+   */
   backface?: number
+  /** `"auto"` follows the page. Default `"auto"`. */
+  theme?: RingTowerTheme
 }
 
 export type RingTowerInstance = {
@@ -66,6 +74,24 @@ function clamp(value: number, min: number, max: number) {
 function numberOr(value: unknown, fallback: number, min: number, max: number) {
   if (typeof value !== "number" || !Number.isFinite(value)) return fallback
   return clamp(value, min, max)
+}
+
+/** Resolves shadcn / next-themes dark mode (`attribute="class"` → `html.dark`). */
+export function isDarkTheme(): boolean {
+  if (typeof document === "undefined") return false
+  const root = document.documentElement
+  if (root.classList.contains("dark")) return true
+  if (root.classList.contains("light")) return false
+  const dataTheme = root.getAttribute("data-theme")
+  if (dataTheme === "dark") return true
+  if (dataTheme === "light") return false
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+}
+
+export function resolveDark(theme: RingTowerTheme): boolean {
+  if (theme === "dark") return true
+  if (theme === "light") return false
+  return isDarkTheme()
 }
 
 function loadImage(url: string) {
@@ -145,7 +171,8 @@ function gridStrip(): Strip | null {
  * the vuemail.dev hero. Each band leans a quarter turn from the last, so the
  * stack zig-zags. The images crawl around the bands, dragging spins the
  * tower with inertia, and the pointer turns neighboring bands opposite ways.
- * The canvas is transparent; the parent paints the background. Pauses
+ * The canvas is transparent; the parent paints the background, and the
+ * inside of the bands fades toward black or white with the theme. Pauses
  * off-screen and in hidden tabs; holds still under `prefers-reduced-motion`.
  */
 export function createRingTower(
@@ -188,6 +215,9 @@ export function createRingTower(
     true
   )
   const backface = { value: DEFAULT_BACKFACE }
+  let dark = resolveDark(options.theme ?? "auto")
+  let darkMix = dark ? 1 : 0
+  const backColor = { value: new Color().setScalar(1 - darkMix) }
 
   type Band = { mesh: Mesh; material: MeshBasicMaterial; texture: Texture }
   let bands: Band[] = []
@@ -203,13 +233,17 @@ export function createRingTower(
     })
     material.onBeforeCompile = (shader) => {
       shader.uniforms.uBackface = backface
+      shader.uniforms.uBackColor = backColor
       shader.fragmentShader = shader.fragmentShader
-        .replace("void main() {", "uniform float uBackface;\nvoid main() {")
+        .replace(
+          "void main() {",
+          "uniform float uBackface;\nuniform vec3 uBackColor;\nvoid main() {"
+        )
         .replace(
           "#include <color_fragment>",
           `#include <color_fragment>
           if (!gl_FrontFacing) {
-            diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.0), uBackface);
+            diffuseColor.rgb = mix(diffuseColor.rgb, uBackColor, uBackface);
           }`
         )
     }
@@ -370,10 +404,18 @@ export function createRingTower(
       band.texture.offset.x = crawl + pointerX * reach * factor
     })
 
+    darkMix += ((dark ? 1 : 0) - darkMix) * (1 - Math.exp(-dt * 6))
+    if (Math.abs((dark ? 1 : 0) - darkMix) < 1e-3) darkMix = dark ? 1 : 0
+    backColor.value.setScalar(1 - darkMix)
+
     if (size.width > 0 && size.height > 0) renderer.render(scene, camera)
 
     const moving =
-      !still || dragging || velocity !== 0 || Math.abs(target - pointerX) > 1e-4
+      !still ||
+      dragging ||
+      velocity !== 0 ||
+      Math.abs(target - pointerX) > 1e-4 ||
+      darkMix !== (dark ? 1 : 0)
     if (moving) raf = requestAnimationFrame(tick)
   }
 
@@ -470,6 +512,20 @@ export function createRingTower(
   canvas.addEventListener("webglcontextlost", onLost)
   canvas.addEventListener("webglcontextrestored", onRestored)
 
+  const syncTheme = () => {
+    const next = resolveDark(options.theme ?? "auto")
+    if (next === dark) return
+    dark = next
+    wake()
+  }
+  const mo = new MutationObserver(syncTheme)
+  mo.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class", "data-theme", "style"],
+  })
+  const mqDark = window.matchMedia("(prefers-color-scheme: dark)")
+  mqDark.addEventListener("change", syncTheme)
+
   const applyBackface = () => {
     backface.value = numberOr(options.backface, DEFAULT_BACKFACE, 0, 1)
   }
@@ -490,6 +546,7 @@ export function createRingTower(
       }
       if (options.rings !== prevRings) buildBands()
       loadImages()
+      syncTheme()
       wake()
     },
     destroy() {
@@ -498,8 +555,10 @@ export function createRingTower(
       raf = 0
       ro.disconnect()
       io.disconnect()
+      mo.disconnect()
       document.removeEventListener("visibilitychange", onVisibility)
       mqReduce.removeEventListener("change", onReduce)
+      mqDark.removeEventListener("change", syncTheme)
       window.removeEventListener("pointermove", onWindowMove)
       canvas.removeEventListener("pointerdown", onDown)
       canvas.removeEventListener("pointermove", onMove)

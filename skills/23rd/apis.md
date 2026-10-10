@@ -113,12 +113,13 @@ type RingTowerProps = {
   speed?: number // DEFAULT_SPEED 1, 0-4 crawl speed
   draggable?: boolean // true
   parallax?: number // DEFAULT_PARALLAX 24, degrees, 0-90
-  backface?: number // DEFAULT_BACKFACE 0.86, inside darkness, 0-1
+  backface?: number // DEFAULT_BACKFACE 0.86, inside fade, 0-1
+  theme?: "light" | "dark" | "auto" // "auto"
   className?: string
 }
 ```
 
-No `theme`; the canvas is transparent and the images carry the color. Instance: `{ setOptions, destroy }`.
+The inside of the bands fades toward black in dark mode and white in light mode. The canvas is transparent; the images carry the color. Instance: `{ setOptions, destroy }`.
 
 ## ascii-fluid
 
