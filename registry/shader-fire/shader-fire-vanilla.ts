@@ -263,7 +263,8 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
 
 /**
  * Sparse 2D fire wash — tongues rise from the bottom behind UI.
- * Theme-aware light / dusk.
+ * Theme-aware light / dusk. Pauses while off screen or in a hidden tab, and
+ * holds a still frame under `prefers-reduced-motion`.
  */
 export function createShaderFire(
   canvas: HTMLCanvasElement,
@@ -294,7 +295,6 @@ export function createShaderFire(
 
   const mouse = { x: 0.5, y: 0.12 }
   const targetMouse = { x: 0.5, y: 0.12 }
-  let reduce = false
   let dark = resolveDark(options.theme ?? "auto")
   options.onThemeChange?.(dark)
 
@@ -363,9 +363,10 @@ export function createShaderFire(
   const uPixelSize = gl.getUniformLocation(program, "u_pixelSize")
 
   let raf = 0
-  let running = true
-  const start = performance.now()
-  let frozenTime = 0
+  let destroyed = false
+  let onScreen = true
+  let last = 0
+  let clock = 0
 
   const resize = () => {
     const parent = canvas.parentElement
@@ -379,24 +380,33 @@ export function createShaderFire(
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
     gl.viewport(0, 0, canvas.width, canvas.height)
+    wake()
   }
-
-  resize()
-  const ro = new ResizeObserver(resize)
-  if (canvas.parentElement) ro.observe(canvas.parentElement)
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
-  const onReduce = () => {
-    reduce = mqReduce.matches
-  }
-  onReduce()
+  const onReduce = () => wake()
   mqReduce.addEventListener("change", onReduce)
+
+  const moving = () =>
+    onScreen && !mqReduce.matches && document.visibilityState !== "hidden"
+  // The pointer's heat spot eases in, so a still frame redraws until it lands.
+  const settling = () =>
+    !!options.interactive &&
+    (Math.abs(targetMouse.x - mouse.x) > 0.001 ||
+      Math.abs(targetMouse.y - mouse.y) > 0.001)
+
+  function wake() {
+    if (raf || destroyed) return
+    last = performance.now()
+    raf = requestAnimationFrame(tick)
+  }
 
   const syncTheme = () => {
     const next = resolveDark(options.theme ?? "auto")
     if (next === dark) return
     dark = next
     options.onThemeChange?.(dark)
+    wake()
   }
   const mo = new MutationObserver(syncTheme)
   mo.observe(document.documentElement, {
@@ -414,19 +424,20 @@ export function createShaderFire(
     if (rect.width <= 0 || rect.height <= 0) return
     targetMouse.x = (e.clientX - rect.left) / rect.width
     targetMouse.y = 1 - (e.clientY - rect.top) / rect.height
+    if (onScreen) wake()
   }
   window.addEventListener("pointermove", onMove, { passive: true })
 
+  // An arrow, not a declaration, so TypeScript keeps `gl` narrowed inside.
   const tick = (now: number) => {
-    if (!running) return
+    raf = 0
+    if (destroyed) return
+    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000))
+    last = now
+    const live = moving()
+    // Only advances while animating, so the flame resumes where it paused.
+    if (live) clock += dt
 
-    if (reduce) {
-      if (frozenTime === 0) frozenTime = (now - start) / 1000
-    } else {
-      frozenTime = 0
-    }
-
-    const time = reduce ? frozenTime : (now - start) / 1000
     const paletteSrc = options.colors ?? (dark ? DARK_COLORS : LIGHT_COLORS)
     const palette = [0, 1, 2].map((i) =>
       hexToRgb(paletteSrc[i % paletteSrc.length] ?? LIGHT_COLORS[i]!)
@@ -439,8 +450,8 @@ export function createShaderFire(
     const px = Math.max(1, options.pixelSize ?? 1) * dpr
 
     gl.uniform2f(uResolution, canvas.width, canvas.height)
-    gl.uniform1f(uTime, time)
-    gl.uniform1f(uSpeed, reduce ? 0 : (options.speed ?? 0.55))
+    gl.uniform1f(uTime, clock)
+    gl.uniform1f(uSpeed, options.speed ?? 0.55)
     gl.uniform1f(uIntensity, Math.min(1, Math.max(0, options.intensity ?? 0.55)))
     gl.uniform1f(uHeight, Math.min(1, Math.max(0, options.height ?? 0.45)))
     gl.uniform1f(uDark, dark ? 1 : 0)
@@ -456,21 +467,36 @@ export function createShaderFire(
     )
 
     gl.drawArrays(gl.TRIANGLES, 0, 6)
-    raf = requestAnimationFrame(tick)
+    if (live || (onScreen && settling())) raf = requestAnimationFrame(tick)
   }
 
-  raf = requestAnimationFrame(tick)
+  const ro = new ResizeObserver(resize)
+  if (canvas.parentElement) ro.observe(canvas.parentElement)
+  const io = new IntersectionObserver(([entry]) => {
+    onScreen = entry?.isIntersecting ?? true
+    wake()
+  })
+  io.observe(canvas)
+  const onVisibility = () => wake()
+  document.addEventListener("visibilitychange", onVisibility)
+
+  resize()
+  wake()
 
   return {
     setOptions(next) {
       options = { ...options, ...next }
       syncTheme()
+      wake()
     },
     destroy() {
-      running = false
+      destroyed = true
       cancelAnimationFrame(raf)
+      raf = 0
       ro.disconnect()
+      io.disconnect()
       mo.disconnect()
+      document.removeEventListener("visibilitychange", onVisibility)
       mqReduce.removeEventListener("change", onReduce)
       mqDark.removeEventListener("change", syncTheme)
       window.removeEventListener("pointermove", onMove)

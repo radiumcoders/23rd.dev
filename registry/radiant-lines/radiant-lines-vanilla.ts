@@ -73,10 +73,12 @@ function createStars(count: number, colors: string[]): Star[] {
 }
 
 /**
- * Hyperspace starfield — colored streaks radiate from the center.
+ * Hyperspace starfield: colored streaks radiate from the center.
  * Transparent canvas over `bg-background` (shadcn theme). Warp speed follows
  * scroll velocity (down → inward, up → outward). `displacement` scales how
  * far each star travels (and how long the filled heads' streaks get).
+ * The loop pauses off screen and in hidden tabs. Under reduced motion it
+ * draws a still field, redrawn only when size or options change.
  */
 export function createRadiantLines(
   canvas: HTMLCanvasElement,
@@ -101,7 +103,8 @@ export function createRadiantLines(
   let dir = -1
   let reduce = false
   let raf = 0
-  let running = true
+  let destroyed = false
+  let onScreen = true
   let lastFrame = performance.now()
   let lastScrollY = 0
   let lastScrollT = performance.now()
@@ -120,11 +123,9 @@ export function createRadiantLines(
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    // Resizing clears the canvas, so a paused field needs a fresh frame.
+    wake()
   }
-
-  resize()
-  const ro = new ResizeObserver(resize)
-  if (canvas.parentElement) ro.observe(canvas.parentElement)
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
   const onReduce = () => {
@@ -133,9 +134,8 @@ export function createRadiantLines(
       speedTarget = 0.06
       dir = -1
     }
+    wake()
   }
-  onReduce()
-  mqReduce.addEventListener("change", onReduce)
 
   const readScrollY = () => {
     if (options.container) return options.container.scrollTop
@@ -184,10 +184,23 @@ export function createRadiantLines(
 
   bindScroll()
 
-  const tick = (now: number) => {
-    if (!running) return
+  const moving = () =>
+    onScreen && !reduce && document.visibilityState !== "hidden"
 
-    const dt = Math.min(0.05, Math.max(0, (now - lastFrame) / 1000))
+  function wake() {
+    if (raf || destroyed) return
+    lastFrame = performance.now()
+    raf = requestAnimationFrame(tick)
+  }
+
+  // An arrow, not a declaration, so TypeScript keeps `ctx` narrowed inside.
+  const tick = (now: number) => {
+    raf = 0
+    if (destroyed) return
+
+    const live = moving()
+    // A paused frame redraws the field in place without advancing it.
+    const dt = live ? Math.min(0.05, Math.max(0, (now - lastFrame) / 1000)) : 0
     lastFrame = now
 
     if (now - lastScrollT > 40 && !reduce) {
@@ -201,13 +214,14 @@ export function createRadiantLines(
 
     const { w, h } = size
     if (w === 0 || h === 0) {
-      raf = requestAnimationFrame(tick)
+      if (live) raf = requestAnimationFrame(tick)
       return
     }
 
     const cx = w / 2
     const cy = h / 2
-    const warp = reduce ? 0.05 : speed
+    // Reduced motion: no travel and no streaks, just still points.
+    const warp = reduce ? 0 : speed
     const focal = Math.max(w, h) * 0.5
     const colors = paletteOf(options.colors)
     const travel = warp * TRAVEL_PER_SEC * displacementOf(options.displacement)
@@ -277,10 +291,23 @@ export function createRadiantLines(
     }
 
     ctx.globalAlpha = 1
-    raf = requestAnimationFrame(tick)
+    if (live) raf = requestAnimationFrame(tick)
   }
 
-  raf = requestAnimationFrame(tick)
+  resize()
+  const ro = new ResizeObserver(resize)
+  if (canvas.parentElement) ro.observe(canvas.parentElement)
+  const io = new IntersectionObserver(([entry]) => {
+    onScreen = entry?.isIntersecting ?? true
+    wake()
+  })
+  io.observe(canvas)
+  const onVisibility = () => wake()
+  document.addEventListener("visibilitychange", onVisibility)
+  onReduce()
+  mqReduce.addEventListener("change", onReduce)
+
+  wake()
 
   return {
     setOptions(next) {
@@ -293,12 +320,16 @@ export function createRadiantLines(
         stars = createStars(nextCount, paletteOf(options.colors))
       }
       bindScroll()
+      wake()
     },
     destroy() {
-      running = false
+      destroyed = true
       cancelAnimationFrame(raf)
+      raf = 0
       ro.disconnect()
+      io.disconnect()
       unbindScroll()
+      document.removeEventListener("visibilitychange", onVisibility)
       mqReduce.removeEventListener("change", onReduce)
     },
   }

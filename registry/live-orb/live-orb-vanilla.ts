@@ -235,7 +235,9 @@ export function fallbackFaceStyle(
 
 /**
  * Evenly lit sphere with two capsule eyes that follow the pointer.
- * The orb stays put — only the gaze moves.
+ * The orb stays put; only the gaze moves. Frames are drawn only while the
+ * canvas is on screen and the tab is visible. Under reduced motion it holds a
+ * still, settled frame and redraws it when its inputs change.
  */
 export function createLiveOrb(
   canvas: HTMLCanvasElement,
@@ -253,7 +255,6 @@ export function createLiveOrb(
 
   const look = { x: 0, y: 0.08 }
   const targetLook = { x: 0, y: 0.08 }
-  let reduce = false
 
   const gl = canvas.getContext("webgl", {
     alpha: true,
@@ -313,9 +314,12 @@ export function createLiveOrb(
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
   let raf = 0
-  let running = true
-  const start = performance.now()
-  let nextBlink = start + 1800 + Math.random() * 2400
+  let destroyed = false
+  let onScreen = true
+  let last = 0
+  // Milliseconds of motion so far; only advances while the orb is moving.
+  let clock = 0
+  let nextBlink = 1800 + Math.random() * 2400
   let blinkAt = -10_000
 
   const resize = () => {
@@ -330,18 +334,20 @@ export function createLiveOrb(
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
     gl.viewport(0, 0, canvas.width, canvas.height)
+    // Resizing clears the canvas, so a still frame needs a redraw.
+    wake()
   }
-
-  resize()
-  const ro = new ResizeObserver(resize)
-  if (canvas.parentElement) ro.observe(canvas.parentElement)
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
-  const onReduce = () => {
-    reduce = mqReduce.matches
+
+  const moving = () =>
+    onScreen && !mqReduce.matches && document.visibilityState !== "hidden"
+
+  function wake() {
+    if (raf || destroyed) return
+    last = performance.now()
+    raf = requestAnimationFrame(tick)
   }
-  onReduce()
-  mqReduce.addEventListener("change", onReduce)
 
   const onMove = (e: PointerEvent) => {
     if (!options.interactive) return
@@ -353,11 +359,18 @@ export function createLiveOrb(
     const dy = (rect.top + rect.height / 2 - e.clientY) / (rect.height / 2)
     targetLook.x = Math.min(1, Math.max(-1, dx))
     targetLook.y = Math.min(1, Math.max(-1, dy))
+    // While moving the loop is already queued; a still frame follows the gaze.
+    if (onScreen) wake()
   }
   window.addEventListener("pointermove", onMove, { passive: true })
 
   const tick = (now: number) => {
-    if (!running) return
+    raf = 0
+    const dt = Math.min(50, Math.max(0, now - last))
+    last = now
+    const live = moving()
+    if (live) clock += dt
+    const reduce = mqReduce.matches
 
     const resolved = resolveVariant(
       options.variant,
@@ -365,21 +378,24 @@ export function createLiveOrb(
       options.eyeColor,
       options.colors
     )
-    const time = (now - start) / 1000
+    const time = clock / 1000
 
+    // A still frame skips the easing and shows where the gaze settles.
+    const follow = live ? 0.16 : 1
+    const rest = live ? 0.12 : 1
     if (options.interactive) {
-      look.x += (targetLook.x - look.x) * 0.16
-      look.y += (targetLook.y - look.y) * 0.16
+      look.x += (targetLook.x - look.x) * follow
+      look.y += (targetLook.y - look.y) * follow
     } else {
-      look.x += (0 - look.x) * 0.12
-      look.y += (0.08 - look.y) * 0.12
+      look.x += (0 - look.x) * rest
+      look.y += (0.08 - look.y) * rest
     }
 
-    if (!reduce && options.blink && now >= nextBlink) {
-      blinkAt = now
-      nextBlink = now + 2200 + Math.random() * 3800
+    if (!reduce && options.blink && clock >= nextBlink) {
+      blinkAt = clock
+      nextBlink = clock + 2200 + Math.random() * 3800
     }
-    const bt = (now - blinkAt) / 1000
+    const bt = (clock - blinkAt) / 1000
     let b = 0
     if (!reduce && options.blink) {
       if (bt < 0.055) b = bt / 0.055
@@ -409,19 +425,36 @@ export function createLiveOrb(
     gl.uniform3f(uC3, palette[2]![0], palette[2]![1], palette[2]![2])
 
     gl.drawArrays(gl.TRIANGLES, 0, 6)
-    raf = requestAnimationFrame(tick)
+    if (live && !destroyed) raf = requestAnimationFrame(tick)
   }
 
-  raf = requestAnimationFrame(tick)
+  const ro = new ResizeObserver(resize)
+  if (canvas.parentElement) ro.observe(canvas.parentElement)
+  const io = new IntersectionObserver(([entry]) => {
+    onScreen = entry?.isIntersecting ?? true
+    wake()
+  })
+  io.observe(canvas)
+  const onVisibility = () => wake()
+  document.addEventListener("visibilitychange", onVisibility)
+  const onReduce = () => wake()
+  mqReduce.addEventListener("change", onReduce)
+
+  resize()
+  wake()
 
   return {
     setOptions(next) {
       options = { ...options, ...next }
+      wake()
     },
     destroy() {
-      running = false
+      destroyed = true
       cancelAnimationFrame(raf)
+      raf = 0
       ro.disconnect()
+      io.disconnect()
+      document.removeEventListener("visibilitychange", onVisibility)
       mqReduce.removeEventListener("change", onReduce)
       window.removeEventListener("pointermove", onMove)
       options.onHasGl?.(false)

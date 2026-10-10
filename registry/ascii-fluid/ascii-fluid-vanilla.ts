@@ -414,6 +414,10 @@ function buildAtlas(
 /**
  * ASCII fluid background — pointer trails leave ink that swirls and
  * quantizes to a clean brightness-mapped glyph field. Zero deps.
+ *
+ * The simulation stops while the canvas is off screen or the tab is hidden.
+ * Under `prefers-reduced-motion` it holds a still frame and only redraws
+ * when its size, theme or options change.
  */
 export function createAsciiFluid(
   canvas: HTMLCanvasElement,
@@ -529,9 +533,16 @@ export function createAsciiFluid(
   clearFbo(dye.write)
 
   let raf = 0
-  let running = true
+  let destroyed = false
+  let onScreen = true
   let last = performance.now()
   const start = last
+
+  function wake() {
+    if (raf || destroyed) return
+    last = performance.now()
+    raf = requestAnimationFrame(tick)
+  }
 
   const resize = () => {
     const parent = canvas.parentElement
@@ -547,14 +558,15 @@ export function createAsciiFluid(
   }
 
   resize()
-  const ro = new ResizeObserver(resize)
+  // Resizing clears the canvas, so redraw even when the loop is idle.
+  const ro = new ResizeObserver(() => {
+    resize()
+    wake()
+  })
   if (canvas.parentElement) ro.observe(canvas.parentElement)
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
-  const onReduce = () => {
-    reduce = mqReduce.matches
-  }
-  onReduce()
+  const onReduce = () => wake()
   mqReduce.addEventListener("change", onReduce)
 
   const onPointer = (e: PointerEvent) => {
@@ -581,8 +593,12 @@ export function createAsciiFluid(
   parentEl?.addEventListener("pointerleave", onLeave, { passive: true })
 
   const tick = (now: number) => {
-    if (!running) return
-    const dt = Math.min((now - last) / 1000, 0.033)
+    raf = 0
+    if (destroyed) return
+    // Off screen or in a hidden tab: stop until an observer wakes the loop.
+    if (!onScreen || document.visibilityState === "hidden") return
+    reduce = mqReduce.matches
+    const dt = Math.min(Math.max(0, (now - last) / 1000), 0.033)
     last = now
     const time = (now - start) / 1000
     const p = options
@@ -809,20 +825,44 @@ export function createAsciiFluid(
     )
     blit(null)
 
-    raf = requestAnimationFrame(tick)
+    // Reduced motion skips the simulation, so every frame would be the same;
+    // hold this one until a resize, theme or option change wakes the loop.
+    if (!reduce) raf = requestAnimationFrame(tick)
   }
 
-  raf = requestAnimationFrame(tick)
+  const io = new IntersectionObserver(([entry]) => {
+    onScreen = entry?.isIntersecting ?? true
+    wake()
+  })
+  io.observe(canvas)
+  const onVisibility = () => wake()
+  document.addEventListener("visibilitychange", onVisibility)
+  const onTheme = () => wake()
+  const mo = new MutationObserver(onTheme)
+  mo.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class", "data-theme"],
+  })
+  const mqDark = window.matchMedia("(prefers-color-scheme: dark)")
+  mqDark.addEventListener("change", onTheme)
+
+  wake()
 
   return {
     setOptions(next) {
       options = { ...options, ...next }
+      wake()
     },
     destroy() {
-      running = false
+      destroyed = true
       cancelAnimationFrame(raf)
+      raf = 0
       ro.disconnect()
+      io.disconnect()
+      mo.disconnect()
+      document.removeEventListener("visibilitychange", onVisibility)
       mqReduce.removeEventListener("change", onReduce)
+      mqDark.removeEventListener("change", onTheme)
       window.removeEventListener("pointermove", onPointer)
       parentEl?.removeEventListener("pointerleave", onLeave)
       gl.deleteProgram(splat.program)
