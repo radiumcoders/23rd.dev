@@ -91,6 +91,31 @@ export function Warp() {
 
 Pitfalls: omit `containerRef` only when the window scrolls. `displacement` scales travel; `1` matches the original step. Canvas is transparent over `bg-background`. Stock colors: `#FF6B4A`, `#2DD4BF`, `#FBBF24`, `#60A5FA`, `#F472B6`, `#A3E635`, `#94A3B8`.
 
+## ring-tower
+
+Background. A three.js tower of open, tilted cylinder bands wrapped in a strip stitched from `images`. Each band leans a quarter turn from the last, so the stack zig-zags. The images crawl around the bands, dragging a band spins the tower with inertia, and the pointer turns neighboring bands opposite ways.
+
+Best fit: a showcase hero that puts screenshots or cards on display.
+
+Not this: `shader-metal` (ribbons of material, no images).
+
+Deps: `three`. Key props: `images`, `rings` (12), `speed` (1), `draggable` (true), `parallax` (24), `backface` (0.86), `theme`.
+
+```tsx
+"use client"
+import { RingTower } from "@/components/ui/ring-tower"
+
+export function Showcase() {
+  return (
+    <section className="relative isolate h-svh overflow-hidden bg-background">
+      <RingTower images={["/bands/0.jpg", "/bands/1.jpg", "/bands/2.jpg"]} />
+    </section>
+  )
+}
+```
+
+Pitfalls: images on another origin need CORS, or they are skipped. With no images, or none that load, the bands show a green grid. `parallax={0}` keeps every band in step. The canvas is transparent and receives the drag, so content laid over it blocks dragging there.
+
 ## ascii-fluid
 
 Background. WebGL fluid quantized to a glyph ramp. Pointer leaves a trail. Zero deps.

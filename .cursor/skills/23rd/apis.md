@@ -104,6 +104,23 @@ type RadiantLinesProps = {
 
 Instance: `{ setOptions, destroy }`.
 
+## ring-tower
+
+```ts
+type RingTowerProps = {
+  images?: string[] // none, draws a green grid band
+  rings?: number // DEFAULT_RINGS 12, 1-24
+  speed?: number // DEFAULT_SPEED 1, 0-4 crawl speed
+  draggable?: boolean // true
+  parallax?: number // DEFAULT_PARALLAX 24, degrees, 0-90
+  backface?: number // DEFAULT_BACKFACE 0.86, inside fade, 0-1
+  theme?: "light" | "dark" | "auto" // "auto"
+  className?: string
+}
+```
+
+The inside of the bands fades toward black in dark mode and white in light mode. The canvas is transparent; the images carry the color. Instance: `{ setOptions, destroy }`.
+
 ## ascii-fluid
 
 ```ts

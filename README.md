@@ -96,6 +96,7 @@ npx skills add radiumcoders/23rd.dev --skill 23rd -g
 | [Logo Burst](https://23rd.dev/docs/components/logo-burst)                 | `@23rd/logo-burst`         | Hair-line tentacles explode from the center, then breathe, light and dark             |
 | [Phosphor Score](https://23rd.dev/docs/components/phosphor-score)         | `@23rd/phosphor-score`     | Vertical CRT sheet music; notes fall, bloom at the playhead, then exit in a flare     |
 | [Radiant Lines](https://23rd.dev/docs/components/radiant-lines)           | `@23rd/radiant-lines`      | Hyperspace starfield background; warp speed driven by scroll                          |
+| [Ring Tower](https://23rd.dev/docs/components/ring-tower)                 | `@23rd/ring-tower`         | A three.js tower of tilted image bands; drag to spin, neighbors counter-turn          |
 | [Shader Anime Fire](https://23rd.dev/docs/components/shader-anime-fire)   | `@23rd/shader-anime-fire`  | Cel-shaded flames licking up from the bottom of a landing hero                        |
 | [Shader Gradient](https://23rd.dev/docs/components/shader-gradient)       | `@23rd/shader-gradient`    | Quiet WebGL wash behind landing heroes, empty states, and marketing sections          |
 | [Shader Sky](https://23rd.dev/docs/components/shader-sky)                 | `@23rd/shader-sky`         | Clear blue or rain behind a hero; drifting clouds, optional window-glass film         |

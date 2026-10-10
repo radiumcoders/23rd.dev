@@ -75,6 +75,7 @@ npm dependencies the registry declares:
 | Item | React | Svelte |
 | --- | --- | --- |
 | `gooey-color-picker` | `motion` | none |
+| `ring-tower` | `three` | `three` |
 | every other item | none | none |
 
 Published index: `https://23rd.dev/r/registry.json`. Docs: `https://23rd.dev/docs`.
@@ -97,6 +98,7 @@ flowchart TD
   atmo -->|Sky or rain, optional glass| ss[shader-sky]
   atmo -->|Chrome or gold ribbons| sm[shader-metal]
   atmo -->|ASCII mouse trails| af[ascii-fluid]
+  atmo -->|Screenshots on a spinning tower| rt[ring-tower]
   atmo -->|Hyperspace streaks, scroll warp| rl[radiant-lines]
   atmo -->|Hair-line explosion| lb[logo-burst]
   atmo -->|Falling sheet music| ps[phosphor-score]
@@ -120,6 +122,7 @@ Disambiguation that agents get wrong:
 | ASCII letters that shove, scatter, and fall | `ascii-logo` | `ascii-fluid` (trails, not a wordmark) |
 | CRT notation, phosphor, staves | `phosphor-score` | `shader-sky` |
 | Chrome, liquid metal, gold ribbons | `shader-metal` | `shader-gradient` (a color wash, not a material) |
+| Rings, bands, or a tower of screenshots that spins | `ring-tower` | `shader-metal` (no images) |
 | A face / orb / mascot | `live-orb` | `logo-burst` |
 | Typing effect, typewriter, text that types itself | `typewriter` | `ascii-logo` (a wordmark, not prose) |
 
@@ -178,6 +181,7 @@ Categories match `content/docs/components/meta.json`.
 | `phosphor-score` | Background | Vertical CRT score; notes fall, bloom, flare | React + Svelte |
 | `radiant-lines` | Background | Hyperspace streaks; warp follows scroll | React + Svelte |
 | `ascii-fluid` | Background | Pointer trails quantized to an ASCII brightness ramp | React + Svelte |
+| `ring-tower` | Background | three.js tower of tilted image bands; drag to spin, neighbors counter-turn | React + Svelte |
 | `shader-gradient` | Shaders | Quiet WebGL wash behind heroes and empty states | React + Svelte |
 | `shader-anime-fire` | Shaders | Cel-shaded flames licking up from the bottom | React + Svelte |
 | `shader-sky` | Shaders | Clear sky or rain; optional dotted window glass | React + Svelte |
