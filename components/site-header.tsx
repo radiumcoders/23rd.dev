@@ -7,10 +7,11 @@ import { GithubStars } from "@/components/github-stars"
 import { Logo } from "@/components/logo"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { buttonVariants } from "@/components/ui/button"
+import { DOCS_HOME } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 const NAV_LINKS = [
-  { href: "/docs", label: "Docs" },
+  { href: DOCS_HOME, label: "Docs" },
   { href: "/sponsors", label: "Sponsors" },
 ] as const
 

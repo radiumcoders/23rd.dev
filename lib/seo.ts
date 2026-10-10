@@ -152,7 +152,7 @@ export function softwareJsonLd() {
       price: "0",
       priceCurrency: "USD",
     },
-    url: absoluteUrl("/docs"),
+    url: SITE_URL,
     description: SITE_DESCRIPTION,
     author: {
       "@type": "Person",
@@ -233,7 +233,7 @@ export function docsJsonLd({
 
 function docsBreadcrumbs(slug: string[] | undefined, title: string) {
   const crumbs: { name: string; path: string }[] = [
-    { name: SITE_NAME, path: "/docs" },
+    { name: SITE_NAME, path: "/" },
   ]
 
   if (isDocsIndex(slug)) return crumbs

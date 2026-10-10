@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import Link from "next/link"
 
 import { buttonVariants } from "@/components/ui/button"
+import { DOCS_HOME } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 export default function ErrorBoundary({
@@ -31,7 +32,7 @@ export default function ErrorBoundary({
           >
             Try again
           </button>
-          <Link href="/docs" className={cn(buttonVariants({ variant: "outline" }))}>
+          <Link href={DOCS_HOME} className={cn(buttonVariants({ variant: "outline" }))}>
             Back to docs
           </Link>
         </div>

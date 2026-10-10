@@ -6,10 +6,11 @@ import { LandingWall, type WallItem } from "@/components/landing-wall"
 import { Logo } from "@/components/logo"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { getGithubRepoUrl } from "@/lib/github"
+import { DOCS_HOME } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 const NAV_LINKS = [
-  { href: "/docs/getting-started", label: "Docs" },
+  { href: DOCS_HOME, label: "Docs" },
   { href: "/sponsors", label: "Sponsors" },
 ] as const
 
@@ -58,7 +59,7 @@ function Hero() {
       </p>
       <div className="pointer-events-auto mt-8 flex flex-wrap items-center justify-center gap-3">
         <Link
-          href="/docs/getting-started"
+          href={DOCS_HOME}
           className="inline-flex h-11 items-center gap-2 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/85"
         >
           Get started

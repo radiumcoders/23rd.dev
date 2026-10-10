@@ -31,6 +31,7 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar"
+import { DOCS_HOME } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 type PageNode = { type: "page"; name: React.ReactNode; url: string }
@@ -285,7 +286,7 @@ export function DocsSidebar({
     >
       <SidebarHeader className="flex h-14 flex-row items-center gap-2 border-b px-4 py-0">
         <Link
-          href="/docs"
+          href={DOCS_HOME}
           className="flex min-w-0 items-center gap-2 text-sm font-medium"
         >
           <Logo className="size-6 shrink-0" />

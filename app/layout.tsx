@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     telephone: false,
   },
   alternates: {
-    canonical: "/docs",
+    canonical: "/",
     types: {
       "text/plain": "/llms.txt",
     },
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "/docs",
+    url: "/",
     siteName: SITE_NAME,
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,

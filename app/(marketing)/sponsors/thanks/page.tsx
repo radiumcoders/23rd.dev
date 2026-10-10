@@ -5,6 +5,7 @@ import { Logo } from "@/components/logo"
 import { ThanksConfetti } from "@/components/thanks-confetti"
 import { buttonVariants } from "@/components/ui/button"
 import { buildPageMetadata } from "@/lib/seo"
+import { DOCS_HOME } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
@@ -50,7 +51,7 @@ export default async function SponsorThanksPage({
             Back to sponsors
           </Link>
           <Link
-            href="/docs"
+            href={DOCS_HOME}
             className={cn(buttonVariants({ variant: "outline" }))}
           >
             Read the docs
