@@ -6,5 +6,4 @@ import staticAssetsIncrementalCache from "@opennextjs/cloudflare/overrides/incre
 // OpenNext rendered each page again on every request.
 export default defineCloudflareConfig({
   incrementalCache: staticAssetsIncrementalCache,
-  enableCacheInterception: true,
 })
