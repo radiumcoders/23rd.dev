@@ -327,13 +327,6 @@
     color: var(--bench);
   }
 
-  code,
-  kbd,
-  pre,
-  samp {
-    font-variation-settings: "wdth" 87.5;
-  }
-
   html {
     @apply bg-background font-sans;
     scrollbar-gutter: stable;
@@ -345,18 +338,15 @@
   }
 }
 
-/* Display face for component names — never for running text or labels.
-   Bricolage at its largest optical size, set tight. */
+/* Component names and the landing headline: Geist, heavier and set tight. */
 @utility font-display {
-  font-family: var(--font-display), var(--font-sans), sans-serif;
-  font-weight: 700;
-  font-variation-settings: "opsz" 96;
-  letter-spacing: -0.035em;
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.04em;
 }
 
-/* The landing page's headline face (Geist, loaded by the home layout). */
 @utility font-landing {
-  font-family: var(--font-landing), var(--font-sans), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   letter-spacing: -0.035em;
 }
 

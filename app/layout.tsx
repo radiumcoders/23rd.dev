@@ -1,8 +1,4 @@
-import {
-  Bricolage_Grotesque,
-  Hanken_Grotesk,
-  Martian_Mono,
-} from "next/font/google"
+import { Geist, Geist_Mono } from "next/font/google"
 import { RootProvider } from "fumadocs-ui/provider/next"
 import type { Metadata, Viewport } from "next"
 import type { ReactNode } from "react"
@@ -104,24 +100,9 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 }
 
-const fontSans = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-sans" })
+const fontSans = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
-const fontMono = Martian_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-  axes: ["wdth"],
-})
-
-/**
- * Display face for component names. Only component pages use it, so it is
- * not preloaded on every route (it is the largest of the font files).
- */
-const fontDisplay = Bricolage_Grotesque({
-  subsets: ["latin"],
-  variable: "--font-display",
-  axes: ["opsz"],
-  preload: false,
-})
+const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 export default function RootLayout({
   children,
@@ -139,8 +120,7 @@ export default function RootLayout({
       className={cn(
         "font-sans antialiased",
         fontSans.variable,
-        fontMono.variable,
-        fontDisplay.variable
+        fontMono.variable
       )}
     >
       <head>
