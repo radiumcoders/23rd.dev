@@ -237,7 +237,8 @@ export function fallbackFaceStyle(
  * Evenly lit sphere with two capsule eyes that follow the pointer.
  * The orb stays put; only the gaze moves. Frames are drawn only while the
  * canvas is on screen and the tab is visible. Under reduced motion it holds a
- * still, settled frame and redraws it when its inputs change.
+ * still, settled frame and redraws it when its inputs change. It recovers
+ * from a lost WebGL context.
  */
 export function createLiveOrb(
   canvas: HTMLCanvasElement,
@@ -266,55 +267,81 @@ export function createLiveOrb(
   })
   if (!gl) return null
 
-  const vs = compile(gl, gl.VERTEX_SHADER, VERT)
-  const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
-  if (!vs || !fs) return null
+  let vs: WebGLShader | null = null
+  let fs: WebGLShader | null = null
+  let program: WebGLProgram | null = null
+  let buf: WebGLBuffer | null = null
+  let uResolution: WebGLUniformLocation | null = null
+  let uTime: WebGLUniformLocation | null = null
+  let uSpeed: WebGLUniformLocation | null = null
+  let uLook: WebGLUniformLocation | null = null
+  let uBlink: WebGLUniformLocation | null = null
+  let uMode: WebGLUniformLocation | null = null
+  let uBody: WebGLUniformLocation | null = null
+  let uEye: WebGLUniformLocation | null = null
+  let uC1: WebGLUniformLocation | null = null
+  let uC2: WebGLUniformLocation | null = null
+  let uC3: WebGLUniformLocation | null = null
 
-  const program = gl.createProgram()
-  if (!program) return null
-  gl.attachShader(program, vs)
-  gl.attachShader(program, fs)
-  gl.linkProgram(program)
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    if (isDev()) {
-      console.warn(
-        "LiveOrb: program failed to link\n",
-        gl.getProgramInfoLog(program)
-      )
+  // Builds every GL resource. Runs at startup and again after a context restore.
+  const initGl = () => {
+    vs = compile(gl, gl.VERTEX_SHADER, VERT)
+    fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
+    if (!vs || !fs) return false
+
+    const prog = gl.createProgram()
+    if (!prog) return false
+    program = prog
+    gl.attachShader(prog, vs)
+    gl.attachShader(prog, fs)
+    gl.linkProgram(prog)
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+      if (isDev()) {
+        console.warn(
+          "LiveOrb: program failed to link\n",
+          gl.getProgramInfoLog(prog)
+        )
+      }
+      return false
     }
-    return null
+    gl.useProgram(prog)
+
+    buf = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf)
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+      gl.STATIC_DRAW
+    )
+    const loc = gl.getAttribLocation(prog, "a_position")
+    gl.enableVertexAttribArray(loc)
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
+
+    uResolution = gl.getUniformLocation(prog, "u_resolution")
+    uTime = gl.getUniformLocation(prog, "u_time")
+    uSpeed = gl.getUniformLocation(prog, "u_speed")
+    uLook = gl.getUniformLocation(prog, "u_look")
+    uBlink = gl.getUniformLocation(prog, "u_blink")
+    uMode = gl.getUniformLocation(prog, "u_mode")
+    uBody = gl.getUniformLocation(prog, "u_body")
+    uEye = gl.getUniformLocation(prog, "u_eye")
+    uC1 = gl.getUniformLocation(prog, "u_c1")
+    uC2 = gl.getUniformLocation(prog, "u_c2")
+    uC3 = gl.getUniformLocation(prog, "u_c3")
+
+    gl.enable(gl.BLEND)
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+    gl.viewport(0, 0, canvas.width, canvas.height)
+    return true
   }
-  gl.useProgram(program)
+
+  if (!initGl()) return null
   options.onHasGl?.(true)
-
-  const buf = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf)
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-    gl.STATIC_DRAW
-  )
-  const loc = gl.getAttribLocation(program, "a_position")
-  gl.enableVertexAttribArray(loc)
-  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
-
-  const uResolution = gl.getUniformLocation(program, "u_resolution")
-  const uTime = gl.getUniformLocation(program, "u_time")
-  const uSpeed = gl.getUniformLocation(program, "u_speed")
-  const uLook = gl.getUniformLocation(program, "u_look")
-  const uBlink = gl.getUniformLocation(program, "u_blink")
-  const uMode = gl.getUniformLocation(program, "u_mode")
-  const uBody = gl.getUniformLocation(program, "u_body")
-  const uEye = gl.getUniformLocation(program, "u_eye")
-  const uC1 = gl.getUniformLocation(program, "u_c1")
-  const uC2 = gl.getUniformLocation(program, "u_c2")
-  const uC3 = gl.getUniformLocation(program, "u_c3")
-
-  gl.enable(gl.BLEND)
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
   let raf = 0
   let destroyed = false
+  // Set while the GPU context is gone; nothing touches gl until it returns.
+  let lost = false
   let onScreen = true
   let last = 0
   // Milliseconds of motion so far; only advances while the orb is moving.
@@ -344,7 +371,7 @@ export function createLiveOrb(
     onScreen && !mqReduce.matches && document.visibilityState !== "hidden"
 
   function wake() {
-    if (raf || destroyed) return
+    if (raf || destroyed || lost) return
     last = performance.now()
     raf = requestAnimationFrame(tick)
   }
@@ -366,6 +393,7 @@ export function createLiveOrb(
 
   const tick = (now: number) => {
     raf = 0
+    if (lost) return
     const dt = Math.min(50, Math.max(0, now - last))
     last = now
     const live = moving()
@@ -440,6 +468,28 @@ export function createLiveOrb(
   const onReduce = () => wake()
   mqReduce.addEventListener("change", onReduce)
 
+  // Without preventDefault the browser never hands the context back.
+  const onLost = (e: Event) => {
+    e.preventDefault()
+    lost = true
+    cancelAnimationFrame(raf)
+    raf = 0
+    // A lost canvas paints a broken-image icon over the CSS fallback.
+    canvas.style.visibility = "hidden"
+    options.onHasGl?.(false)
+  }
+  const onRestored = () => {
+    if (destroyed) return
+    // A failed rebuild leaves the orb on its CSS fallback.
+    if (!initGl()) return
+    lost = false
+    canvas.style.visibility = ""
+    options.onHasGl?.(true)
+    wake()
+  }
+  canvas.addEventListener("webglcontextlost", onLost)
+  canvas.addEventListener("webglcontextrestored", onRestored)
+
   resize()
   wake()
 
@@ -457,6 +507,9 @@ export function createLiveOrb(
       document.removeEventListener("visibilitychange", onVisibility)
       mqReduce.removeEventListener("change", onReduce)
       window.removeEventListener("pointermove", onMove)
+      canvas.removeEventListener("webglcontextlost", onLost)
+      canvas.removeEventListener("webglcontextrestored", onRestored)
+      if (lost) canvas.style.visibility = ""
       options.onHasGl?.(false)
       gl.deleteProgram(program)
       gl.deleteShader(vs)

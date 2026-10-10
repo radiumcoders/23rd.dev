@@ -330,7 +330,7 @@ const REST_LIGHT = { x: -0.45, y: 0.55 }
  * crisp horizon, with a key light the pointer can steer. The canvas is
  * transparent, so the ribbons and their soft shadows sit on any page.
  * Theme-aware; pauses off-screen and in hidden tabs; holds a still frame
- * under `prefers-reduced-motion`.
+ * under `prefers-reduced-motion`. Recovers from a lost WebGL context.
  */
 export function createShaderMetal(
   canvas: HTMLCanvasElement,
@@ -362,58 +362,79 @@ export function createShaderMetal(
   })
   if (!gl) return null
 
-  const vs = compile(gl, gl.VERTEX_SHADER, VERT)
-  const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
-  if (!vs || !fs) {
-    if (vs) gl.deleteShader(vs)
-    if (fs) gl.deleteShader(fs)
-    return null
-  }
+  let vs: WebGLShader | null = null
+  let fs: WebGLShader | null = null
+  let program: WebGLProgram | null = null
+  let buf: WebGLBuffer | null = null
+  let uResolution: WebGLUniformLocation | null = null
+  let uTime: WebGLUniformLocation | null = null
+  let uCount: WebGLUniformLocation | null = null
+  let uIridescence: WebGLUniformLocation | null = null
+  let uPull: WebGLUniformLocation | null = null
+  let uDark: WebGLUniformLocation | null = null
+  let uMouse: WebGLUniformLocation | null = null
+  let uLight: WebGLUniformLocation | null = null
+  let uF0: WebGLUniformLocation | null = null
 
-  const program = gl.createProgram()
-  if (!program) {
-    gl.deleteShader(vs)
-    gl.deleteShader(fs)
-    return null
-  }
-  gl.attachShader(program, vs)
-  gl.attachShader(program, fs)
-  gl.linkProgram(program)
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    if (isDev()) {
-      console.warn(
-        "ShaderMetal: program failed to link\n",
-        gl.getProgramInfoLog(program)
-      )
+  // Builds every GL resource. Runs at startup and again after a lost
+  // context is restored, since a restore hands back a blank context.
+  const initGl = () => {
+    vs = compile(gl, gl.VERTEX_SHADER, VERT)
+    fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
+    if (!vs || !fs) {
+      if (vs) gl.deleteShader(vs)
+      if (fs) gl.deleteShader(fs)
+      return false
     }
-    gl.deleteProgram(program)
-    gl.deleteShader(vs)
-    gl.deleteShader(fs)
-    return null
+
+    program = gl.createProgram()
+    if (!program) {
+      gl.deleteShader(vs)
+      gl.deleteShader(fs)
+      return false
+    }
+    gl.attachShader(program, vs)
+    gl.attachShader(program, fs)
+    gl.linkProgram(program)
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      if (isDev()) {
+        console.warn(
+          "ShaderMetal: program failed to link\n",
+          gl.getProgramInfoLog(program)
+        )
+      }
+      gl.deleteProgram(program)
+      gl.deleteShader(vs)
+      gl.deleteShader(fs)
+      return false
+    }
+    gl.useProgram(program)
+
+    buf = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf)
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+      gl.STATIC_DRAW
+    )
+    const loc = gl.getAttribLocation(program, "a_position")
+    gl.enableVertexAttribArray(loc)
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
+
+    const prog = program
+    const u = (name: string) => gl.getUniformLocation(prog, name)
+    uResolution = u("u_resolution")
+    uTime = u("u_time")
+    uCount = u("u_count")
+    uIridescence = u("u_iridescence")
+    uPull = u("u_pull")
+    uDark = u("u_dark")
+    uMouse = u("u_mouse")
+    uLight = u("u_light")
+    uF0 = u("u_f0")
+    return true
   }
-  gl.useProgram(program)
-
-  const buf = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf)
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-    gl.STATIC_DRAW
-  )
-  const loc = gl.getAttribLocation(program, "a_position")
-  gl.enableVertexAttribArray(loc)
-  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
-
-  const u = (name: string) => gl.getUniformLocation(program, name)
-  const uResolution = u("u_resolution")
-  const uTime = u("u_time")
-  const uCount = u("u_count")
-  const uIridescence = u("u_iridescence")
-  const uPull = u("u_pull")
-  const uDark = u("u_dark")
-  const uMouse = u("u_mouse")
-  const uLight = u("u_light")
-  const uF0 = u("u_f0")
+  if (!initGl()) return null
 
   // Ribbon edges are hard, so this one renders at device resolution (up to 2x).
   const resize = () => {
@@ -448,6 +469,7 @@ export function createShaderMetal(
   let onScreen = true
   let raf = 0
   let destroyed = false
+  let lost = false
   let last = 0
   let clock = 0
 
@@ -455,7 +477,7 @@ export function createShaderMetal(
 
   function wake() {
     // An observer callback can still arrive after destroy.
-    if (raf || destroyed) return
+    if (raf || destroyed || lost) return
     last = performance.now()
     raf = requestAnimationFrame(tick)
   }
@@ -472,6 +494,7 @@ export function createShaderMetal(
   // An arrow, not a declaration, so TypeScript keeps `gl` narrowed inside.
   const tick = (now: number) => {
     raf = 0
+    if (lost) return
     const dt = Math.min(0.05, Math.max(0, (now - last) / 1000))
     last = now
     if (!visible()) return
@@ -558,6 +581,23 @@ export function createShaderMetal(
   }
   window.addEventListener("pointermove", onMove, { passive: true })
 
+  // Without preventDefault the browser never restores a lost context.
+  const onLost = (e: Event) => {
+    e.preventDefault()
+    lost = true
+    cancelAnimationFrame(raf)
+    raf = 0
+  }
+  const onRestored = () => {
+    if (destroyed || !initGl()) return
+    lost = false
+    f0Key = ""
+    gl.viewport(0, 0, canvas.width, canvas.height)
+    wake()
+  }
+  canvas.addEventListener("webglcontextlost", onLost)
+  canvas.addEventListener("webglcontextrestored", onRestored)
+
   resize()
   wake()
 
@@ -583,6 +623,8 @@ export function createShaderMetal(
       mqReduce.removeEventListener("change", onReduce)
       mqDark.removeEventListener("change", syncTheme)
       window.removeEventListener("pointermove", onMove)
+      canvas.removeEventListener("webglcontextlost", onLost)
+      canvas.removeEventListener("webglcontextrestored", onRestored)
       gl.deleteProgram(program)
       gl.deleteShader(vs)
       gl.deleteShader(fs)

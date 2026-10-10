@@ -398,7 +398,7 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
  * WebGL sky for heroes: volumetric clouds drifting across clear blue in
  * light, storm gray in dark, with optional lightning. Optional
  * window-glass film. Pauses off screen and in hidden tabs, and holds a still
- * frame under reduced motion.
+ * frame under reduced motion. Recovers from a lost WebGL context.
  */
 export function createShaderSky(
   canvas: HTMLCanvasElement,
@@ -450,88 +450,119 @@ export function createShaderSky(
   })
   if (!gl) return null
 
-  const vs = compile(gl, gl.VERTEX_SHADER, VERT)
-  const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
-  if (!vs || !fs) {
-    if (vs) gl.deleteShader(vs)
-    if (fs) gl.deleteShader(fs)
-    return null
-  }
+  let vs: WebGLShader | null = null
+  let fs: WebGLShader | null = null
+  let program: WebGLProgram | null = null
+  let buf: WebGLBuffer | null = null
+  let noiseTex: WebGLTexture | null = null
+  let uResolution: WebGLUniformLocation | null = null
+  let uTime: WebGLUniformLocation | null = null
+  let uSpeed: WebGLUniformLocation | null = null
+  let uCoverage: WebGLUniformLocation | null = null
+  let uIntensity: WebGLUniformLocation | null = null
+  let uAmount: WebGLUniformLocation | null = null
+  let uScale: WebGLUniformLocation | null = null
+  let uVariation: WebGLUniformLocation | null = null
+  let uGlass: WebGLUniformLocation | null = null
+  let uGlassSize: WebGLUniformLocation | null = null
+  let uC1: WebGLUniformLocation | null = null
+  let uC2: WebGLUniformLocation | null = null
+  let uC3: WebGLUniformLocation | null = null
+  let uC4: WebGLUniformLocation | null = null
+  let uMouse: WebGLUniformLocation | null = null
+  let uFlash: WebGLUniformLocation | null = null
+  let uFlashPos: WebGLUniformLocation | null = null
 
-  const program = gl.createProgram()
-  if (!program) {
-    gl.deleteShader(vs)
-    gl.deleteShader(fs)
-    return null
-  }
-  gl.attachShader(program, vs)
-  gl.attachShader(program, fs)
-  gl.linkProgram(program)
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    if (isDev()) {
-      console.warn(
-        "ShaderSky: program failed to link\n",
-        gl.getProgramInfoLog(program)
-      )
+  // Builds every GL resource; runs at startup and again after a lost context
+  // comes back, since a restored context starts empty.
+  const initGl = () => {
+    vs = compile(gl, gl.VERTEX_SHADER, VERT)
+    fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
+    if (!vs || !fs) {
+      if (vs) gl.deleteShader(vs)
+      if (fs) gl.deleteShader(fs)
+      return false
     }
-    gl.deleteProgram(program)
-    gl.deleteShader(vs)
-    gl.deleteShader(fs)
-    return null
+
+    program = gl.createProgram()
+    if (!program) {
+      gl.deleteShader(vs)
+      gl.deleteShader(fs)
+      return false
+    }
+    gl.attachShader(program, vs)
+    gl.attachShader(program, fs)
+    gl.linkProgram(program)
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      if (isDev()) {
+        console.warn(
+          "ShaderSky: program failed to link\n",
+          gl.getProgramInfoLog(program)
+        )
+      }
+      gl.deleteProgram(program)
+      gl.deleteShader(vs)
+      gl.deleteShader(fs)
+      return false
+    }
+    gl.useProgram(program)
+
+    buf = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf)
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+      gl.STATIC_DRAW
+    )
+    const loc = gl.getAttribLocation(program, "a_position")
+    gl.enableVertexAttribArray(loc)
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
+
+    noiseTex = gl.createTexture()
+    gl.activeTexture(gl.TEXTURE0)
+    gl.bindTexture(gl.TEXTURE_2D, noiseTex)
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      NOISE_SIZE,
+      NOISE_SIZE,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      noiseTexels()
+    )
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+    gl.uniform1i(gl.getUniformLocation(program, "u_noise"), 0)
+
+    uResolution = gl.getUniformLocation(program, "u_resolution")
+    uTime = gl.getUniformLocation(program, "u_time")
+    uSpeed = gl.getUniformLocation(program, "u_speed")
+    uCoverage = gl.getUniformLocation(program, "u_coverage")
+    uIntensity = gl.getUniformLocation(program, "u_intensity")
+    uAmount = gl.getUniformLocation(program, "u_amount")
+    uScale = gl.getUniformLocation(program, "u_scale")
+    uVariation = gl.getUniformLocation(program, "u_variation")
+    uGlass = gl.getUniformLocation(program, "u_glass")
+    uGlassSize = gl.getUniformLocation(program, "u_glassSize")
+    uC1 = gl.getUniformLocation(program, "u_c1")
+    uC2 = gl.getUniformLocation(program, "u_c2")
+    uC3 = gl.getUniformLocation(program, "u_c3")
+    uC4 = gl.getUniformLocation(program, "u_c4")
+    uMouse = gl.getUniformLocation(program, "u_mouse")
+    uFlash = gl.getUniformLocation(program, "u_flash")
+    uFlashPos = gl.getUniformLocation(program, "u_flashPos")
+    return true
   }
-  gl.useProgram(program)
-
-  const buf = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf)
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-    gl.STATIC_DRAW
-  )
-  const loc = gl.getAttribLocation(program, "a_position")
-  gl.enableVertexAttribArray(loc)
-  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
-
-  const noiseTex = gl.createTexture()
-  gl.activeTexture(gl.TEXTURE0)
-  gl.bindTexture(gl.TEXTURE_2D, noiseTex)
-  gl.texImage2D(
-    gl.TEXTURE_2D,
-    0,
-    gl.RGBA,
-    NOISE_SIZE,
-    NOISE_SIZE,
-    0,
-    gl.RGBA,
-    gl.UNSIGNED_BYTE,
-    noiseTexels()
-  )
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
-  gl.uniform1i(gl.getUniformLocation(program, "u_noise"), 0)
-
-  const uResolution = gl.getUniformLocation(program, "u_resolution")
-  const uTime = gl.getUniformLocation(program, "u_time")
-  const uSpeed = gl.getUniformLocation(program, "u_speed")
-  const uCoverage = gl.getUniformLocation(program, "u_coverage")
-  const uIntensity = gl.getUniformLocation(program, "u_intensity")
-  const uAmount = gl.getUniformLocation(program, "u_amount")
-  const uScale = gl.getUniformLocation(program, "u_scale")
-  const uVariation = gl.getUniformLocation(program, "u_variation")
-  const uGlass = gl.getUniformLocation(program, "u_glass")
-  const uGlassSize = gl.getUniformLocation(program, "u_glassSize")
-  const uC1 = gl.getUniformLocation(program, "u_c1")
-  const uC2 = gl.getUniformLocation(program, "u_c2")
-  const uC3 = gl.getUniformLocation(program, "u_c3")
-  const uC4 = gl.getUniformLocation(program, "u_c4")
-  const uMouse = gl.getUniformLocation(program, "u_mouse")
-  const uFlash = gl.getUniformLocation(program, "u_flash")
-  const uFlashPos = gl.getUniformLocation(program, "u_flashPos")
+  if (!initGl()) return null
 
   let raf = 0
   let destroyed = false
+  // The browser dropped the GL context; nothing touches gl until it returns.
+  let lost = false
   let onScreen = true
   let last = 0
   // Seconds of motion so far; it only advances while the sky is moving, so it
@@ -562,7 +593,7 @@ export function createShaderSky(
   const moving = () => shown() && !reduce
 
   function wake() {
-    if (raf || destroyed) return
+    if (raf || destroyed || lost) return
     last = performance.now()
     raf = requestAnimationFrame(tick)
   }
@@ -581,7 +612,7 @@ export function createShaderSky(
     canvas.height = Math.max(1, Math.floor(h * pixelScale))
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
-    gl.viewport(0, 0, canvas.width, canvas.height)
+    if (!lost) gl.viewport(0, 0, canvas.width, canvas.height)
     wake()
   }
 
@@ -621,7 +652,7 @@ export function createShaderSky(
 
   const tick = (now: number) => {
     raf = 0
-    if (destroyed) return
+    if (destroyed || lost) return
     // Capped so a frame queued before the tab was hidden doesn't jump ahead,
     // but loose enough that slow devices still keep real time.
     const dt = Math.min(0.25, Math.max(0, (now - last) / 1000))
@@ -685,6 +716,22 @@ export function createShaderSky(
   const onVisibility = () => wake()
   document.addEventListener("visibilitychange", onVisibility)
 
+  // Without preventDefault the browser never restores a lost context.
+  const onLost = (e: Event) => {
+    e.preventDefault()
+    lost = true
+    cancelAnimationFrame(raf)
+    raf = 0
+  }
+  const onRestored = () => {
+    if (destroyed || !initGl()) return
+    lost = false
+    gl.viewport(0, 0, canvas.width, canvas.height)
+    wake()
+  }
+  canvas.addEventListener("webglcontextlost", onLost)
+  canvas.addEventListener("webglcontextrestored", onRestored)
+
   wake()
 
   return {
@@ -704,6 +751,8 @@ export function createShaderSky(
       mqReduce.removeEventListener("change", onReduce)
       mqDark.removeEventListener("change", syncTheme)
       window.removeEventListener("pointermove", onMove)
+      canvas.removeEventListener("webglcontextlost", onLost)
+      canvas.removeEventListener("webglcontextrestored", onRestored)
       gl.deleteProgram(program)
       gl.deleteShader(vs)
       gl.deleteShader(fs)
