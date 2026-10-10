@@ -1,11 +1,9 @@
 ---
 title: Gooey Color Picker
-description: A floating color picker that expands from a swatch into hue and alpha blobs joined by an SVG gooey filter.
+description: A swatch that expands into a gooey hue wheel, alpha slider, and hex field.
 ---
 
 import { GooeyColorPicker } from "@/components/demos"
-
-A compact swatch that opens into a panel: circular color wheel, alpha slider, and editable hex field. The same button becomes the close control when open.
 
 ## Preview
 
@@ -17,7 +15,7 @@ A compact swatch that opens into a panel: circular color wheel, alpha slider, an
 
 <CliCommand item="gooey-color-picker" />
 
-Or install straight from the public GitHub source registry:
+Or from the public GitHub registry:
 
 <CliCommand item="gooey-color-picker" github />
 
@@ -67,4 +65,4 @@ export function Example() {
 | `className` | `string` | React only |
 | `class` | `string` | Svelte only |
 
-`GooeyColor` is `{ h, s, l, a }` (hue 0–360, saturation/lightness 0–100, alpha 0–1). String values accept hex or `hsl`/`hsla`.
+`GooeyColor` is `{ h, s, l, a }` (h 0–360, s and l 0–100, a 0–1); strings accept hex or `hsl`/`hsla`.

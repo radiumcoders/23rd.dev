@@ -1,11 +1,9 @@
 ---
 title: Dithered 404
-description: A Bayer-pixel 404 section. The pointer becomes a dithered fireball that scorches the glyph, burns it into embers and smoke, then reforms.
+description: A dithered 404 that your cursor burns into embers and smoke, then rebuilds.
 ---
 
 import { Dithered404Demo } from "@/components/demos"
-
-Bold **404** printed as ordered Bayer pixels, or turn **Dither** off for a soft, realistic fire. Move over the type: the cursor is a coal. Linger and the glyph scorches dark, then burns into embers and smoke. Leftover type stays put until you burn it. After most of the number is gone, it assembles again and you can burn it once more. Press `d` to switch theme.
 
 ## Preview
 
@@ -15,13 +13,13 @@ Bold **404** printed as ordered Bayer pixels, or turn **Dither** off for a soft,
 
 <CliCommand item="dithered-404" />
 
-Or install straight from the public GitHub source registry:
+Or from the public GitHub registry:
 
 <CliCommand item="dithered-404" github />
 
 ## Usage
 
-Pin it inside a relatively positioned section. Default `theme="auto"` follows shadcn / next-themes (`class` on `<html>`). Pass `color` to set the glyph ink to any hex.
+Pin it inside a relatively positioned section.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -62,7 +60,7 @@ export function NotFound() {
   </FrameworkSvelte>
 </FrameworkCode>
 
-Force a palette if the parent theme should not drive it:
+Lock the theme:
 
 <FrameworkCode>
   <FrameworkReact>
@@ -79,9 +77,7 @@ Force a palette if the parent theme should not drive it:
   </FrameworkSvelte>
 </FrameworkCode>
 
-Honors `prefers-reduced-motion` (static 404, no fireball).
-
-Print the same scene as a soft fire instead of Bayer pixels:
+Soft fire instead of Bayer pixels:
 
 <FrameworkCode>
   <FrameworkReact>

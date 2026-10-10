@@ -1,11 +1,9 @@
 ---
 title: Radiant Lines
-description: "A hyperspace starfield background: colored streaks from the center, warp speed driven by scroll."
+description: A hyperspace starfield background where scroll speed drives the warp.
 ---
 
 import { RadiantLinesDemo } from "@/components/demos"
-
-Canvas starfield in the spirit of those GSAP hyperspace scroll demos: stars project from the center as streaks. Scroll velocity boosts warp; `displacement` scales how far each star jumps. Release and it eases back to a drift.
 
 ## Preview
 
@@ -15,13 +13,13 @@ Canvas starfield in the spirit of those GSAP hyperspace scroll demos: stars proj
 
 <CliCommand item="radiant-lines" />
 
-Or install straight from the public GitHub source registry:
+Or from the public GitHub registry:
 
 <CliCommand item="radiant-lines" github />
 
 ## Usage
 
-Place it behind content in a relatively positioned container. Pass a scroll container when scroll happens inside an overflow element instead of the window.
+Pass the scroll container if the page scrolls inside an element, not the window.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -65,7 +63,7 @@ export function Hero() {
 | --- | --- | --- |
 | `colors` | `string[]` | coral / teal / amber / blue / pink / lime / slate |
 | `starCount` | `number` | `420` |
-| `displacement` | `number` | `1`, how far each star jumps on warp / scroll |
+| `displacement` | `number` | `1`, star jump on warp |
 | `containerRef` | `RefObject<HTMLElement \| null>` | React: window scroll |
 | `container` | `HTMLElement` | Svelte: window scroll |
 | `className` | `string` | React only |

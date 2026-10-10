@@ -1,11 +1,9 @@
 ---
 title: Logo Burst
-description: Hair-line tentacles explode from the center, then keep a slow inhale. Follows light and dark.
+description: Hairline tentacles burst from the center, then breathe slowly. Click to replay.
 ---
 
 import { LogoBurstDemo } from "@/components/demos"
-
-A brand-hero burst. Thin filaments detonate out of the center, tip particles lock in, then the field breathes. Click the field, or bump `replayKey`, to explode again. Default `theme="auto"` follows the site. Press `d` to toggle.
 
 ## Preview
 
@@ -15,13 +13,13 @@ A brand-hero burst. Thin filaments detonate out of the center, tip particles loc
 
 <CliCommand item="logo-burst" />
 
-Or install straight from the public GitHub source registry:
+Or from the public GitHub registry:
 
 <CliCommand item="logo-burst" github />
 
 ## Usage
 
-Give the parent a size. The canvas is transparent over `bg-background`.
+Give the parent a size; the canvas is transparent.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -52,7 +50,7 @@ export function HeroBurst() {
   </FrameworkSvelte>
 </FrameworkCode>
 
-Pass children only if you want a mark in the hole. `coreSize` is then measured from that mark unless you lock it.
+Pass children to put a mark in the center.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -114,8 +112,6 @@ Replay
   </FrameworkSvelte>
 </FrameworkCode>
 
-`prefers-reduced-motion: reduce` draws the settled field and skips the explosion and the inhale.
-
 ## Props
 
 | Prop            | Type                          | Default                                                        |
@@ -125,8 +121,8 @@ Replay
 | `color`         | `string`                      | theme ink / bone                                               |
 | `theme`         | `"light" \| "dark" \| "auto"` | `"auto"`                                                       |
 | `breathe`       | `boolean`                     | `true`                                                         |
-| `coreSize`      | `number`                      | `0`, lines meet at the origin; measured when children are set |
-| `radius`        | `number`                      | `0.48`, outer reach vs the shorter edge                       |
+| `coreSize`      | `number`                      | `0`, or measured from children |
+| `radius`        | `number`                      | `0.48`, reach vs the shorter edge |
 | `duration`      | `number`                      | `1.35`                                                         |
 | `seed`          | `number`                      | `23`                                                           |
 | `particleRatio` | `number`                      | `0.62`                                                         |
@@ -135,5 +131,3 @@ Replay
 | `label`         | `string`                      | `"Logo burst"`                                                 |
 | `className`     | `string`                      | React only                                                     |
 | `class`         | `string`                      | Svelte only                                                    |
-
-`color` overrides the theme filament. Omit it and `theme="auto"` picks ink on light, bone on dark.

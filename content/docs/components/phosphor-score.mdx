@@ -1,11 +1,9 @@
 ---
 title: Phosphor Score
-description: "Vertical CRT sheet music: notes slide down a grand staff, bloom and flare at the playhead, then fade with a phosphor afterglow."
+description: CRT-style sheet music that scrolls down a grand staff and glows at the playhead.
 ---
 
 import { PhosphorScoreDemo } from "@/components/demos"
-
-A falling score, not a piano roll. A grand staff of beamed runs, chords, slurs and dynamics scrolls down to a playhead: each note brightens as it arrives, blooms and flares as it plays, then fades with a phosphor afterglow. Default `theme="auto"` follows the site: phosphor green in dark, forest ink in light, both on the page background. `glow` is 0–100 (default `50`) and stays a tight halo on the note. Change **Seed** to crossfade to a new score. Press `d` to toggle the theme.
 
 ## Preview
 
@@ -15,13 +13,13 @@ A falling score, not a piano roll. A grand staff of beamed runs, chords, slurs a
 
 <CliCommand item="phosphor-score" />
 
-Or install straight from the public GitHub source registry:
+Or from the public GitHub registry:
 
 <CliCommand item="phosphor-score" github />
 
 ## Usage
 
-Give the parent a size. The canvas fills the parent and fades out at its top and bottom edges on its own.
+Give the parent a size; the transparent canvas fills it.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -52,7 +50,7 @@ export function HeroScore() {
   </FrameworkSvelte>
 </FrameworkCode>
 
-Lock a theme or push the bloom. Omit `color` to follow light / dark.
+Lock a theme or set the glow:
 
 <FrameworkCode>
   <FrameworkReact>
@@ -69,7 +67,7 @@ Lock a theme or push the bloom. Omit `color` to follow light / dark.
   </FrameworkSvelte>
 </FrameworkCode>
 
-Change the viewing angle. The plane turns about the playhead in perspective, like CSS `rotateX()` `rotateY()` `rotateZ()`, and fades out as it recedes.
+Tilt the plane in perspective, like CSS rotations:
 
 <FrameworkCode>
   <FrameworkReact>
@@ -85,24 +83,20 @@ Change the viewing angle. The plane turns about the playhead in perspective, lik
     ```
   </FrameworkSvelte>
 </FrameworkCode>
-
-`prefers-reduced-motion: reduce` holds a still frame of the score and stops drawing. The animation also pauses while the canvas is off-screen or the tab is hidden.
 
 ## Props
 
 | Prop        | Type                          | Default                                          |
 | ----------- | ----------------------------- | ------------------------------------------------ |
-| `color`     | `string`                      | theme phosphor / forest ink, any CSS color      |
-| `glow`      | `number`                      | `50`, 0–100, halo size at the playhead          |
-| `speed`     | `number`                      | `1.35`, beats per second                        |
-| `density`   | `number`                      | `1`, `0.35`–`1.85`, how packed the notation is  |
-| `sway`      | `boolean`                     | `true`, slow camera drift                       |
-| `seed`      | `number`                      | `23`, a new seed crossfades to a new score      |
-| `rotateX`   | `number`                      | `0`, degrees, `-70`–`70`, tips the top away     |
-| `rotateY`   | `number`                      | `0`, degrees, `-70`–`70`, swings the right away |
-| `rotateZ`   | `number`                      | `0`, degrees, spins the plane clockwise         |
+| `color`     | `string`                      | theme phosphor / forest ink |
+| `glow`      | `number`                      | `50`, 0–100 |
+| `speed`     | `number`                      | `1.35`, beats per second |
+| `density`   | `number`                      | `1`, `0.35`–`1.85` |
+| `sway`      | `boolean`                     | `true`, slow camera drift |
+| `seed`      | `number`                      | `23`, new seed crossfades |
+| `rotateX`   | `number`                      | `0`, degrees, `-70`–`70` |
+| `rotateY`   | `number`                      | `0`, degrees, `-70`–`70` |
+| `rotateZ`   | `number`                      | `0`, degrees |
 | `theme`     | `"light" \| "dark" \| "auto"` | `"auto"`                                         |
 | `className` | `string`                      | React only                                       |
 | `class`     | `string`                      | Svelte only                                      |
-
-Omit `color` and `theme="auto"` picks phosphor green on dark, forest ink on light. The canvas is transparent in both themes, so it sits on whatever background the parent paints.

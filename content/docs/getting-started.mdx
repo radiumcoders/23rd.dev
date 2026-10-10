@@ -3,21 +3,21 @@ title: Getting Started
 description: Install 23rd components into a shadcn project with the CLI.
 ---
 
-23rd is a [shadcn/ui](https://ui.shadcn.com) registry. After install you own the source, same as any other registry item. Every component ships for **React** and **Svelte 5**; pick a framework on the install command and the rest of the docs follow.
+23rd is a [shadcn/ui](https://ui.shadcn.com) registry for React and Svelte 5. Pick your framework on the install command.
 
 ## Install a component
 
 <CliCommand item="shader-gradient" />
 
-Or pull straight from the public GitHub source registry:
+Or from the public GitHub registry:
 
 <CliCommand item="shader-gradient" github />
 
-Swap `shader-gradient` for any item name: `shader-sky`, `shader-metal`, `shader-anime-fire`, `shader-fire`, `live-orb`, `ascii-logo`, `logo-burst`, `phosphor-score`, `radiant-lines`, `dithered-404`, `typewriter`, and so on. Svelte installs as `@23rd/<name>-svelte` and lands in `src/lib/components/ui/` so `$lib` imports resolve.
+Swap `shader-gradient` for any item name. Svelte items are `@23rd/<name>-svelte` and land in `src/lib/components/ui/`.
 
 ## Use a background or shader
 
-Place the component behind content in a relatively positioned container. Keep the UI in a later stacking context.
+Put it in a relatively positioned container, with your content in a later stacking context.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -50,8 +50,6 @@ export function Hero() {
   </FrameworkSvelte>
 </FrameworkCode>
 
-Shaders such as [Shader Gradient](/docs/components/shader-gradient), [Shader Anime Fire](/docs/components/shader-anime-fire), and [Shader Sky](/docs/components/shader-sky) are atmosphere, not the page.
-
 ## Browse
 
 | Category   | Components                                                                                                                                                                                 |
@@ -61,4 +59,5 @@ Shaders such as [Shader Gradient](/docs/components/shader-gradient), [Shader Ani
 | Footers    | [Stretchy Footer](/docs/components/stretchy-footer)                                                                                       |
 | Characters | [Live Orb](/docs/components/live-orb), [ASCII Logo](/docs/components/ascii-logo)                                                                                                           |
 | Pages      | [Dithered 404](/docs/components/dithered-404)                                                                                                                                              |
+| Sections   | [Folio](/docs/components/folio) |
 | Components | [Gooey Color Picker](/docs/components/gooey-color-picker), [Typewriter](/docs/components/typewriter)                                                                                       |

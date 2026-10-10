@@ -1,11 +1,9 @@
 ---
 title: Shader Metal
-description: "Liquid metal ribbons for landing heroes: chrome, gold, copper, or graphite strips twisting through a studio light rig, with a key light that follows the pointer."
+description: Liquid metal ribbons in chrome, gold, copper, or graphite, lit by the pointer.
 ---
 
 import { ShaderMetalDemo } from "@/components/demos"
-
-Polished metal ribbons that twist and flow across a hero. Each ribbon is a curved, brushed strip that reflects a whole studio (an overhead softbox, warm and cool strip lights, and a crisp horizon), so it reads as real metal, not a gradient. Light mode lights it like a bright product shoot; dark mode puts it on a black stage where only the highlights catch. Move the pointer and the key light follows it while the ribbons lean in. Pick **chrome**, **gold**, **copper**, or **graphite**, or tint your own with `color`; `iridescence` adds a thin-film sheen on the turns. The canvas is transparent, so the ribbons and their soft shadows sit on whatever background you give them.
 
 ## Preview
 
@@ -15,13 +13,13 @@ Polished metal ribbons that twist and flow across a hero. Each ribbon is a curve
 
 <CliCommand item="shader-metal" />
 
-Or install straight from the public GitHub source registry:
+Or from the public GitHub registry:
 
 <CliCommand item="shader-metal" github />
 
 ## Usage
 
-Pin it behind a relatively positioned section. Keep content in a later stacking context (`relative z-10`). The ribbons sweep corner to corner through the middle, so copy sits best top-left. Default `theme="auto"` follows shadcn / next-themes (`class` on `<html>`).
+Pin it behind a relatively positioned section. The ribbons cross the middle, so copy sits best top-left.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -68,7 +66,7 @@ export function Hero() {
   </FrameworkSvelte>
 </FrameworkCode>
 
-A custom metal, with more sheen:
+Custom tint with more sheen:
 
 <FrameworkCode>
   <FrameworkReact>
@@ -88,11 +86,11 @@ A custom metal, with more sheen:
 | Prop | Type | Default |
 | --- | --- | --- |
 | `metal` | `"chrome" \| "gold" \| "copper" \| "graphite"` | `chrome` |
-| `color` | `string` | hex tint; wins over `metal` |
+| `color` | `string` | hex tint, overrides `metal` |
 | `ribbons` | `number` | `3`, 1–5 |
 | `speed` | `number` | `0.3` |
-| `iridescence` | `number` | `0.2`, 0–1 thin-film sheen, `0` for bare metal |
-| `interactive` | `boolean` | `true`, key light follows the pointer, ribbons lean in |
+| `iridescence` | `number` | `0.2`, 0–1 sheen |
+| `interactive` | `boolean` | `true` |
 | `theme` | `"light" \| "dark" \| "auto"` | `auto` |
 | `className` | `string` | React only |
 | `class` | `string` | Svelte only |
