@@ -35,7 +35,6 @@ export function ShaderMetalDemo() {
       speed: DEFAULT_SPEED,
       iridescence: DEFAULT_IRIDESCENCE,
       interactive: true,
-      overlay: true,
     }),
     []
   )
@@ -57,30 +56,6 @@ export function ShaderMetalDemo() {
             iridescence={props.iridescence}
             interactive={props.interactive}
           />
-          {props.overlay ? (
-            <div className="relative z-10 flex size-full flex-col items-start justify-start p-8 text-left sm:p-10">
-              <p className="text-xs font-medium tracking-[0.2em] text-foreground/55 uppercase">
-                Cast in {props.metal}
-              </p>
-              <h3 className="mt-3 max-w-sm text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
-                Polished until it reflects the room
-              </h3>
-              <p className="mt-3 max-w-xs text-sm leading-relaxed text-foreground/70">
-                Move the pointer: the key light follows it and the ribbons lean
-                in.
-              </p>
-              <div className="mt-6 flex flex-wrap items-center gap-2">
-                <Button type="button">Install</Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="bg-background/70 backdrop-blur-sm"
-                >
-                  View API
-                </Button>
-              </div>
-            </div>
-          ) : null}
         </div>
       </ComponentPreview>
 
@@ -114,7 +89,7 @@ export function ShaderMetalDemo() {
               >
                 <span
                   aria-hidden
-                  className="size-2.5 rounded-full ring-1 ring-foreground/20"
+                  className="size-2.5 rounded-full ring-1 ring-current/30"
                   style={{ backgroundColor: METALS[item.id] }}
                 />
                 {item.label}
@@ -145,12 +120,6 @@ export function ShaderMetalDemo() {
           max={1}
           step={0.05}
           onChange={(v) => updateProp("iridescence", v)}
-        />
-        <ControlSwitch
-          label="Copy"
-          description="Headline over the ribbons"
-          checked={props.overlay}
-          onChange={(v) => updateProp("overlay", v)}
         />
         <ControlSwitch
           label="Interactive"

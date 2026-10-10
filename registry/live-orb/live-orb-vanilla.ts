@@ -9,7 +9,10 @@ export type LiveOrbOptions = {
   eyeColor?: string
   /** Unlit wash stops, used when `variant="webgl"`. */
   colors?: string[]
-  /** Eyes follow the pointer. Default `true`. */
+  /**
+   * Eyes follow the pointer. Default `true`. Without it, or once the pointer
+   * rests for a few seconds, they glance around on their own.
+   */
   interactive?: boolean
   /** Occasional blink. Default `true`. */
   blink?: boolean
@@ -233,8 +236,13 @@ export function fallbackFaceStyle(
   return { backgroundColor: resolved.body }
 }
 
+/** How long the pointer rests before the eyes start looking around. */
+const IDLE_MS = 3000
+const REST_LOOK = { x: 0, y: 0.08 }
+
 /**
- * Evenly lit sphere with two capsule eyes that follow the pointer.
+ * Evenly lit sphere with two capsule eyes that follow the pointer and look
+ * around when it rests.
  * The orb stays put; only the gaze moves. Frames are drawn only while the
  * canvas is on screen and the tab is visible. Under reduced motion it holds a
  * still, settled frame and redraws it when its inputs change. It recovers
@@ -256,6 +264,8 @@ export function createLiveOrb(
 
   const look = { x: 0, y: 0.08 }
   const targetLook = { x: 0, y: 0.08 }
+  // Where the eyes drift while nobody is steering them.
+  const glance = { x: 0, y: 0.08 }
 
   const gl = canvas.getContext("webgl", {
     alpha: true,
@@ -348,6 +358,9 @@ export function createLiveOrb(
   let clock = 0
   let nextBlink = 1800 + Math.random() * 2400
   let blinkAt = -10_000
+  let nextGlance = 600 + Math.random() * 900
+  // When the pointer last moved, from performance.now().
+  let pointerAt = -Infinity
 
   const resize = () => {
     const parent = canvas.parentElement
@@ -386,6 +399,7 @@ export function createLiveOrb(
     const dy = (rect.top + rect.height / 2 - e.clientY) / (rect.height / 2)
     targetLook.x = Math.min(1, Math.max(-1, dx))
     targetLook.y = Math.min(1, Math.max(-1, dy))
+    pointerAt = performance.now()
     // While moving the loop is already queued; a still frame follows the gaze.
     if (onScreen) wake()
   }
@@ -408,16 +422,20 @@ export function createLiveOrb(
     )
     const time = clock / 1000
 
-    // A still frame skips the easing and shows where the gaze settles.
-    const follow = live ? 0.16 : 1
-    const rest = live ? 0.12 : 1
-    if (options.interactive) {
-      look.x += (targetLook.x - look.x) * follow
-      look.y += (targetLook.y - look.y) * follow
-    } else {
-      look.x += (0 - look.x) * rest
-      look.y += (0.08 - look.y) * rest
+    // The pointer steers until it rests; then the eyes look around, now
+    // and then back at you. Reduced motion holds a still, centred gaze.
+    const steering = options.interactive && now - pointerAt < IDLE_MS
+    if (!steering && live && clock >= nextGlance) {
+      const back = Math.random() < 0.3
+      glance.x = back ? 0 : (Math.random() * 2 - 1) * 0.8
+      glance.y = back ? 0.08 : (Math.random() * 2 - 1) * 0.5
+      nextGlance = clock + 900 + Math.random() * 2100
     }
+    const goal = steering ? targetLook : reduce ? REST_LOOK : glance
+    // A still frame skips the easing and shows where the gaze settles.
+    const ease = live ? (steering ? 0.16 : 0.1) : 1
+    look.x += (goal.x - look.x) * ease
+    look.y += (goal.y - look.y) * ease
 
     if (!reduce && options.blink && clock >= nextBlink) {
       blinkAt = clock

@@ -34,7 +34,6 @@ Swap the component, keep the shell:
 | --- | --- | --- |
 | Fire along the floor | `ShaderAnimeFire` | `height={0.45}` |
 | Pixel fire | `ShaderAnimeFire` | `dither pixelSize={3}` |
-| Soft heat wash | `ShaderFire` | defaults |
 | Blue sky | `ShaderSky` | leave `colors` unset |
 | Rain / dusk sky | `ShaderSky` | `theme="dark"` or `html.dark` |
 | Window glass | `ShaderSky` | `glass glassSize={7}` |
