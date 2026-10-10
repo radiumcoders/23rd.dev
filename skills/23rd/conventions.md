@@ -14,7 +14,7 @@ registry/<name>/
 content/docs/components/<name>.mdx
 ```
 
-`<name>` is kebab-case (`/^[a-z0-9]+(?:-[a-z0-9]+)*$/`). One folder per component. Extra engines are `<name>-something-vanilla.ts` (see `stretchy-footer-spring-vanilla.ts`). The build inlines every sibling `*-vanilla` import. Do not list vanilla files in `registry.json`.
+`<name>` is kebab-case (`/^[a-z0-9]+(?:-[a-z0-9]+)*$/`). One folder per component. Every component currently has a single engine; a second one would be another sibling `<name>-something-vanilla.ts`. The build inlines every sibling `*-vanilla` import. Do not list vanilla files in `registry.json`.
 
 ## registry.json
 
@@ -29,7 +29,6 @@ Match `registry/shader-gradient/registry.json`.
       "type": "registry:ui",
       "title": "Human Title",
       "description": "One sentence an installer will read.",
-      "dependencies": ["motion"],
       "files": [
         {
           "path": "<name>.tsx",
@@ -153,7 +152,7 @@ Add the page under a separator in `content/docs/components/meta.json`. Current g
 
 MDX components already global: `CliCommand`, `ComponentPreview`, `ComponentControls`, `FrameworkCode`, `FrameworkReact`, `FrameworkSvelte`.
 
-Props tables must match the wrapper defaults. Do not copy a usage example into the Default column (the gooey `defaultValue` row in the docs does this; do not repeat it).
+Props tables must match the wrapper defaults. Do not copy a usage example into the Default column.
 
 Update the component table in `README.md` when the item should be listed there. The README table is not the source of truth for the registry; `content/docs/components/meta.json` is.
 

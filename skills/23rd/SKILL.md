@@ -218,7 +218,7 @@ export function Hero() {
 }
 ```
 
-Color control (not a background). Uncontrolled unless `value` is passed. Omitted color is `{ h: 320, s: 90, l: 58, a: 1 }`, not the docs-table example `{ h: 210, s: 90, l: 55, a: 1 }`.
+Color control (not a background). Uncontrolled unless `value` is passed. Omitted color is `{ h: 320, s: 90, l: 58, a: 1 }`, not the `{ h: 210, s: 90, l: 55, a: 1 }` this example passes.
 
 ```bash
 pnpm dlx shadcn@latest add @23rd/gooey-color-picker

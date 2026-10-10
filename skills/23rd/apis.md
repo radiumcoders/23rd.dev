@@ -78,6 +78,9 @@ type PhosphorScoreProps = {
   density?: number // 1
   sway?: boolean // true
   seed?: number // 23
+  rotateX?: number // 0 degrees, -70–70; positive tips the incoming notes away
+  rotateY?: number // 0 degrees, -70–70; positive swings the right side away
+  rotateZ?: number // 0 degrees; positive is clockwise
   theme?: "light" | "dark" | "auto" // "auto"
   className?: string
 }
@@ -125,27 +128,30 @@ type AsciiFluidProps = {
 " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
 ```
 
-Theme paper/ink when color props are omitted: light `#18181b` / `#fafafa`, dark `#e4e4e7` / `#09090b`.
+Theme ink/paper when color props are omitted: light `#18181b` / `#fafafa`, dark `#e4e4e7` / `#09090b`.
 
 ## shader-gradient
 
 ```ts
 type ShaderGradientProps = {
-  colors?: string[] // up to 4: sky, sage, cream, lavender
+  colors?: string[] // up to 4, cycled in order
   speed?: number // 0.14
   blur?: number // 0.7
   intensity?: number // 0.95
+  grain?: number // 0.35, 0–1 film grain; 0 turns it off
   interactive?: boolean // true
   theme?: "light" | "dark" | "auto"
   className?: string
 }
 ```
 
-`LIGHT_COLORS`: `#7CB4E0`, `#B4D8C4`, `#EFE4BC`, `#D2D7EC`.
+`LIGHT_COLORS`: `#F7A48B`, `#F9D78E`, `#9FCBF0`, `#BBA9EE`.
 
-`DARK_COLORS`: `#3A6FA0`, `#2F6B52`, `#8A6B32`, `#4A4D7A`.
+`DARK_COLORS`: `#3D52F2`, `#9150F2`, `#E0479F`, `#FF7B60`.
 
-`LIGHT_FALLBACK` and `DARK_FALLBACK` are CSS background stacks used when WebGL is unavailable. Palette line in the engine: `options.colors ?? (dark ? DARK_COLORS : LIGHT_COLORS)`.
+Also exported: `DEFAULT_SPEED`, `DEFAULT_BLUR`, `DEFAULT_INTENSITY`, `DEFAULT_GRAIN`.
+
+`LIGHT_FALLBACK` and `DARK_FALLBACK` are CSS background stacks used when WebGL is unavailable. Palette line in the engine: `options.colors?.length ? options.colors : dark ? DARK_COLORS : LIGHT_COLORS`.
 
 ## shader-anime-fire
 
@@ -163,9 +169,11 @@ type ShaderAnimeFireProps = {
 }
 ```
 
-`LIGHT_COLORS`: `#9C3A24`, `#C96A32`, `#E6C4A0`.
+`LIGHT_COLORS`: `#D8341A`, `#F9731E`, `#FFBA3A`.
 
-`DARK_COLORS`: `#A33A18`, `#D4682A`, `#E8B45A`.
+`DARK_COLORS`: `#B4200A`, `#FF6512`, `#FFC04A`.
+
+Also exported: `DEFAULT_SPEED`, `DEFAULT_INTENSITY`, `DEFAULT_HEIGHT`.
 
 Same `colors ?? theme palette` rule. Fallbacks exported as `LIGHT_FALLBACK` / `DARK_FALLBACK`.
 
@@ -203,6 +211,7 @@ type ShaderSkyProps = {
   scale?: number // 0.4
   variation?: number // 0.7
   interactive?: boolean // false
+  lightning?: boolean // false; storm flashes, off under reduced motion
   glass?: boolean // false
   glassSize?: number // 7 CSS px
   theme?: "light" | "dark" | "auto"
@@ -245,18 +254,20 @@ type StretchyFooterProps = {
   windowScroll?: boolean // false
   contentSelector?: string // "[data-stretchy-page]"
   maxStretch?: number // 280
-  colors?: string[] // DEFAULT_COLORS, 10 stops
+  colors?: string[] // DEFAULT_COLORS, 9 stops, top of each column to the floor
   stiffness?: number // 380
   damping?: number // 32
-  columns?: number // 48
-  blur?: number // 14
-  glow?: number // 0.22
+  columns?: number // 9, stepping down from the middle
+  blur?: number // 16 px
+  glow?: number // 0, white floor bloom, 0–1
+  flip?: boolean // false; edge columns tallest, middle dips
+  rotate?: 0 | 180 // 0; 180 hangs the aurora from the lifted page
   label?: string // "Stretchy overflow"
   demoId?: string
 }
 ```
 
-`DEFAULT_COLORS`: `#FF3B30`, `#FF9500`, `#FFCC00`, `#34C759`, `#00C7BE`, `#32ADE6`, `#007AFF`, `#5856D6`, `#AF52DE`, `#FF2D55`.
+`DEFAULT_COLORS`: `#FF1AE6`, `#FF2E5E`, `#FF8A1A`, `#FFC81F`, `#E2E6EC`, `#8DB6E6`, `#2F74DC`, `#1459E3`, `#1C2566`. Also exported: `DEFAULT_MAX_STRETCH`, `DEFAULT_STIFFNESS`, `DEFAULT_DAMPING`, `DEFAULT_COLUMNS`, `DEFAULT_BLUR`, `DEFAULT_GLOW`.
 
 Modes:
 
@@ -375,7 +386,7 @@ Not props: tilt angle (`TILT_PEAK` is 16 inside the engine), scroll speed, sprin
 type FolioPlayDetail = {
   target?: string
   scrollRoot?: HTMLElement | null
-  holdMs?: number // 420
+  holdMs?: number // 720
 }
 ```
 
