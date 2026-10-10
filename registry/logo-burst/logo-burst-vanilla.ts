@@ -41,9 +41,9 @@ export type LogoBurstInstance = {
   destroy: () => void
 }
 
-/** Bone filament — reads on slate / black */
+/** Bone filament, reads on slate / black */
 export const DARK_COLOR = "#D6D2CA"
-/** Ink filament — reads on paper / white */
+/** Ink filament, reads on paper / white */
 export const LIGHT_COLOR = "#3F3F46"
 /** @deprecated Use `DARK_COLOR` or omit `color` and set `theme`. */
 export const DEFAULT_COLOR = DARK_COLOR
@@ -248,7 +248,7 @@ function createTentacles(
 }
 
 /**
- * Hair-line tentacle burst — filaments explode from the center, then
+ * Hair-line tentacle burst: filaments explode from the center, then
  * keep a slow inhale. Transparent canvas over `bg-background`.
  */
 export function createLogoBurst(

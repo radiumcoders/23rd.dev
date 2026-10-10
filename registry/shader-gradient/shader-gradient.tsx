@@ -41,7 +41,7 @@ export type ShaderGradientProps = Omit<
 }
 
 /**
- * A grainy liquid gradient for heroes and empty states — the palette flows
+ * A grainy liquid gradient for heroes and empty states: the palette flows
  * through slow warped noise under a film grain. Theme-aware.
  */
 export function ShaderGradient({

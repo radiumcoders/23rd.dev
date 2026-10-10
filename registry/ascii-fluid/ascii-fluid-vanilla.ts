@@ -412,7 +412,7 @@ function buildAtlas(
 }
 
 /**
- * ASCII fluid background — pointer trails leave ink that swirls and
+ * ASCII fluid background: pointer trails leave ink that swirls and
  * quantizes to a clean brightness-mapped glyph field. Zero deps.
  *
  * The simulation stops while the canvas is off screen or the tab is hidden.
@@ -698,7 +698,7 @@ export function createAsciiFluid(
       blit(velocity.write)
       velocity.swap()
 
-      // Dye trail — denser with speed so fast moves write brighter glyphs
+      // Dye trail, denser with speed so fast moves write brighter glyphs
       const dyeAmt = Math.min(1.4, 0.45 + speed * 8) * p.force
       gl.activeTexture(gl.TEXTURE0)
       gl.bindTexture(gl.TEXTURE_2D, dye.read.tex)

@@ -26,7 +26,7 @@ export type RadiantLinesProps = Omit<RadiantLinesOptions, "container"> & {
 }
 
 /**
- * Hyperspace starfield — colored streaks radiate from the center.
+ * Hyperspace starfield: colored streaks radiate from the center.
  * Transparent canvas over `bg-background` (shadcn theme).
  */
 export function RadiantLines({

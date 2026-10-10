@@ -38,7 +38,7 @@ export type TypewriterProps = TypewriterOptions & {
 }
 
 /**
- * A typewriter that types — each letter presses its key, swings that key's
+ * A typewriter that types: each letter presses its key, swings that key's
  * typebar up to strike the ribbon, and steps the carriage left. At the
  * margin the lever kicks, the platen turns up a line, and the carriage
  * slides home. Ink follows `currentColor`. Honors

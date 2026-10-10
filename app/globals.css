@@ -61,7 +61,7 @@
     --animate-toc-scope: toc-scope 1.1s linear infinite;
 }
 
-/* On this page — the SVG rail draws in, rows follow it, the scope trace runs. */
+/* On this page: the SVG rail draws in, rows follow it, the scope trace runs. */
 @keyframes toc-rail {
     from {
         stroke-dashoffset: 1;
@@ -99,7 +99,7 @@
     }
 }
 
-/* Docs page navigations — soft blur crossfade via React <ViewTransition> */
+/* Docs page navigations: a soft blur crossfade via React <ViewTransition> */
 ::view-transition-old(root),
 ::view-transition-new(root) {
     animation: none;
@@ -161,7 +161,7 @@
 }
 
 /*
- * v2 tokens — "monitor bench".
+ * v2 tokens: "monitor bench".
  * The chrome is a quiet, achromatic bench; the only colour on the page comes
  * from the components running on their screens. Dark mode is carbon: a deep,
  * faintly warm black rather than blue-grey slate.
@@ -186,7 +186,7 @@
     --wash: #e6e8e9;
     --rule: #d8dadc;
 
-    /* Subpixel triad — the "this one is on" indicator. */
+    /* Subpixel triad: the "this one is on" indicator. */
     --triad-r: #ff3b3b;
     --triad-g: #1fc760;
     --triad-b: #3563ff;

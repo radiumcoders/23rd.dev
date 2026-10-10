@@ -23,7 +23,7 @@ export type ShaderSkyOptions = {
    */
   lightning?: boolean
   /**
-   * Window glass — a transparent dotted film over the sky.
+   * Window glass: a transparent dotted film over the sky.
    * Default false
    */
   glass?: boolean
@@ -45,9 +45,9 @@ export type ShaderSkyInstance = {
   destroy: () => void
 }
 
-/** Open daylight — zenith / horizon / white smoke / cool shade */
+/** Open daylight: zenith / horizon / white smoke / cool shade */
 export const LIGHT_COLORS = ["#2478C8", "#8ECBF2", "#F7FBFF", "#C5D8EC"]
-/** Storm ceiling — light slate / rain horizon / mid cloud / cool shade */
+/** Storm ceiling: light slate / rain horizon / mid cloud / cool shade */
 export const DARK_COLORS = ["#9AA3AD", "#C8CED4", "#5C6570", "#3F4750"]
 
 export const LIGHT_FALLBACK = {

@@ -33,7 +33,7 @@ export type ShaderGradientInstance = {
 /** Peach, butter, sky and lilac, flowing over warm paper. */
 export const LIGHT_COLORS = ["#F7A48B", "#F9D78E", "#9FCBF0", "#BBA9EE"]
 /**
- * Blue, violet, magenta and coral over near-black ink — a narrow hue arc,
+ * Blue, violet, magenta and coral over near-black ink: a narrow hue arc,
  * so every blend on the cycle stays rich instead of passing through grey.
  */
 export const DARK_COLORS = ["#3D52F2", "#9150F2", "#E0479F", "#FF7B60"]
@@ -45,7 +45,7 @@ export const DEFAULT_BLUR = 0.7
 export const DEFAULT_INTENSITY = 0.95
 export const DEFAULT_GRAIN = 0.35
 
-/** Film grain for the CSS fallback — the same idea, as an SVG turbulence tile. */
+/** Film grain for the CSS fallback: the same idea, as an SVG turbulence tile. */
 const GRAIN_TILE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`
 
 function fallback(colors: string[], base: string) {
@@ -92,7 +92,7 @@ uniform vec3 u_c2;
 uniform vec3 u_c3;
 uniform vec3 u_base;
 
-// Dave Hoskins' hash — no sin(), so it stays stable on mobile GPUs.
+// Dave Hoskins' hash: no sin(), so it stays stable on mobile GPUs.
 float hash(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
   p3 += dot(p3, p3.yzx + 33.33);

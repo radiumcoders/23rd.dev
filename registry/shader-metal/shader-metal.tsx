@@ -33,7 +33,7 @@ export type ShaderMetalProps = Omit<ShaderMetalOptions, "onThemeChange"> & {
 }
 
 /**
- * Liquid metal ribbons twisting through a studio light rig — brushed,
+ * Liquid metal ribbons twisting through a studio light rig: brushed,
  * curved strips with soft shadows on a transparent canvas. Theme-aware.
  */
 export function ShaderMetal({

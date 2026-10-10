@@ -478,7 +478,7 @@ function drawFireball(
 }
 
 /**
- * Bayer-pixel 404 section — a fireball cursor scorches and burns
+ * Bayer-pixel 404 section: a fireball cursor scorches and burns
  * the glyph into embers and smoke, then the type reforms.
  * `dither={false}` is a soft realistic fire.
  */

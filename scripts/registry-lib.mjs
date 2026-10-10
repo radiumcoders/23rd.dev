@@ -53,7 +53,7 @@ export function readRootRegistry(rootRegistryPath = ROOT_REGISTRY_PATH) {
 
 /**
  * Build the next root registry object from the current one plus discovered
- * includes. Pure — does not touch the filesystem.
+ * includes. Pure; does not touch the filesystem.
  */
 export function composeRootRegistry(current, includes) {
   return {

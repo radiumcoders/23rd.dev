@@ -2,7 +2,7 @@
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "shader-metal-svelte",
   "title": "Shader Metal",
-  "description": "Liquid chrome, gold, or copper ribbons twisting through a studio light rig — transparent WebGL, theme-aware, with a key light that follows the pointer.",
+  "description": "Liquid chrome, gold, or copper ribbons twisting through a studio light rig: transparent WebGL, theme-aware, with a key light that follows the pointer.",
   "files": [
     {
       "path": "registry/shader-metal/shader-metal.svelte",

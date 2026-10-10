@@ -55,7 +55,7 @@ function Wordmark() {
   )
 }
 
-/** Logo, search, page tree, and the footer row — shared by desktop and the mobile sheet. */
+/** Logo, search, page tree, and the footer row, shared by desktop and the mobile sheet. */
 function SidebarBody({
   tree,
   githubStars,

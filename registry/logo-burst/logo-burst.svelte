@@ -21,7 +21,7 @@
 
   interface Props extends Omit<LogoBurstOptions, "onThemeChange"> {
     class?: string
-    /** Optional centered mark. Omitted by default — the burst is the hero. */
+    /** Optional centered mark. Omitted by default; the burst is the hero. */
     children?: Snippet
     /**
      * Increment to replay the explosion. Mount already plays once.

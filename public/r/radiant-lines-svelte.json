@@ -2,7 +2,7 @@
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "radiant-lines-svelte",
   "title": "Radiant Lines",
-  "description": "A hyperspace starfield background — colored streaks radiate from the center, with warp speed driven by scroll velocity.",
+  "description": "A hyperspace starfield background: colored streaks radiate from the center, with warp speed driven by scroll velocity.",
   "dependencies": [],
   "files": [
     {

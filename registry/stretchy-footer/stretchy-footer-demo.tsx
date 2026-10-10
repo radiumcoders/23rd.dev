@@ -25,7 +25,7 @@ import {
 
 const PREVIEW_DEMO_ID = "stretchy-footer-preview"
 
-// Gradient stops, top of each column to the floor — nine, like the default.
+// Gradient stops, top of each column to the floor: nine, like the default.
 const SUNSET = [
   "#FFE8A3",
   "#FFD166",
@@ -70,7 +70,7 @@ function colorsEqual(a: string[], b: string[]) {
   )
 }
 
-/** Preview card with its own scroller — button plays the stretch in-place. */
+/** Preview card with its own scroller; button plays the stretch in-place. */
 export function StretchyFooterDemo() {
   const scrollerRef = useRef<HTMLDivElement>(null)
   const [playing, setPlaying] = useState(false)

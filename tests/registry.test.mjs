@@ -44,7 +44,7 @@ test("root registry include list is in sync with registry/ contents", () => {
   assert.deepEqual(
     rootRegistry.include,
     includes,
-    "registry.json is stale — run `pnpm registry:build`"
+    "registry.json is stale; run `pnpm registry:build`"
   )
 })
 
@@ -229,7 +229,7 @@ for (const { include, dir, item } of items) {
 test("built output directory exists", () => {
   assert.ok(
     existsSync(BUILD_DIR),
-    "public/r missing — run `pnpm registry:build`"
+    "public/r missing; run `pnpm registry:build`"
   )
 })
 
@@ -242,7 +242,7 @@ test("built registry.json lists exactly the source items", () => {
   assert.deepEqual(
     builtNames,
     sourceNames,
-    "public/r is stale — run `pnpm registry:build`"
+    "public/r is stale; run `pnpm registry:build`"
   )
 })
 
@@ -279,7 +279,7 @@ for (const { dir, item } of items) {
       assert.equal(
         normalizeEol(builtFile.content),
         expected,
-        `${item.name}: built content is stale for ${sourceFile.path} — run \`pnpm registry:build\``
+        `${item.name}: built content is stale for ${sourceFile.path}; run \`pnpm registry:build\``
       )
     }
   })
@@ -292,7 +292,7 @@ test("built payloads do not import sibling *-vanilla modules", () => {
       assert.doesNotMatch(
         file.content ?? "",
         /from\s+["']\.\/[^"']+-vanilla["']/,
-        `${item.name}: ${file.path} still imports a vanilla sibling — run \`pnpm registry:build\``
+        `${item.name}: ${file.path} still imports a vanilla sibling; run \`pnpm registry:build\``
       )
     }
   }

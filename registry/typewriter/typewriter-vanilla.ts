@@ -1,7 +1,7 @@
 export const DEFAULT_TEXT =
   "Dear reader,\nevery key is wired to a typebar. Press one and its bar swings up out of the basket, strikes the ribbon, and the carriage steps left for the next letter.\n\nYours, 23rd"
 
-/** Enamel of the body and paper rest — a vintage mint. */
+/** Enamel of the body and paper rest, a vintage mint. */
 export const DEFAULT_COLOR = "#8EC3B5"
 /** Characters per second. */
 export const DEFAULT_SPEED = 12
@@ -403,7 +403,7 @@ const easeOut = (t: number) => 1 - (1 - t) ** 3
 const easeInOut = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
 
-/** Down fast, hold, ease back up — a key, a typebar, the ribbon. */
+/** Down fast, hold, ease back up: a key, a typebar, the ribbon. */
 function pulse(t: number, from: number, rise: number, hold: number) {
   if (t < rise) return from + (1 - from) * easeOut(t / rise)
   if (t < rise + hold) return 1
@@ -431,7 +431,7 @@ type Key = { cap: SVGGElement; bar: Bar | null; v: number }
 
 type Machine = {
   columns: number
-  /** Everything but the ground shadow — it shudders on each strike. */
+  /** Everything but the ground shadow; it shudders on each strike. */
   rig: SVGGElement
   /** Under-inked fills, for letters the ribbon didn't fully cover. */
   inkFills: string[]

@@ -38,7 +38,7 @@ export type PhosphorScoreProps = Omit<PhosphorScoreOptions, "onThemeChange"> & {
 }
 
 /**
- * Vertical phosphor sheet music — a grand staff scrolls down to a playhead,
+ * Vertical phosphor sheet music: a grand staff scrolls down to a playhead,
  * each note blooms and flares as it plays, then fades with an afterglow.
  * Follows light and dark.
  */

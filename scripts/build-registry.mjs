@@ -71,7 +71,7 @@ const includes = discoverIncludes()
 const registry = writeRootRegistry(includes)
 
 console.log(
-  `registry: ${registry.name} — ${includes.length} item(s)\n${includes.map((i) => `  - ${i}`).join("\n") || "  (none)"}`
+  `registry: ${registry.name}: ${includes.length} item(s)\n${includes.map((i) => `  - ${i}`).join("\n") || "  (none)"}`
 )
 
 if (includes.length === 0) {

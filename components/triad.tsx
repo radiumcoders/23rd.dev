@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils"
 
 /**
- * Three subpixel bars. Marks the component that is currently "on" — the open
+ * Three subpixel bars. Marks the component that is currently "on": the open
  * page in the sidebar, the feed on the docs monitor.
  */
 export function Triad({ className }: { className?: string }) {

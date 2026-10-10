@@ -140,7 +140,7 @@
 
 {#if windowScroll}
   {#if mounted}
-    <!-- Portal so `fixed` stays on the viewport — the lifted page is
+    <!-- Portal so `fixed` stays on the viewport; the lifted page is
          transformed and would otherwise pin it to the content. -->
     <div
       use:portalToBody

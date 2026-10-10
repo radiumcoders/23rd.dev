@@ -31,7 +31,7 @@ export type AsciiLogoProps = AsciiLogoOptions & {
 }
 
 /**
- * Interactive ASCII wordmark — glyphs shove away from the cursor, then
+ * Interactive ASCII wordmark: glyphs shove away from the cursor, then
  * click-cycle through scatter, gravity drop, and reassemble. Zero deps.
  */
 export function AsciiLogo({

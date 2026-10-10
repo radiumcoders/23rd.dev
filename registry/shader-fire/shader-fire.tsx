@@ -30,7 +30,7 @@ export type ShaderFireProps = Omit<ShaderFireOptions, "onThemeChange"> & {
 }
 
 /**
- * Sparse 2D fire wash — tongues rise from the bottom behind UI.
+ * Sparse 2D fire wash: tongues rise from the bottom behind UI.
  * Theme-aware light / dusk.
  */
 export function ShaderFire({

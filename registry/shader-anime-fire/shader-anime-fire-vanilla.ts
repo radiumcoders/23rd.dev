@@ -32,7 +32,7 @@ export type ShaderAnimeFireInstance = {
   destroy: () => void
 }
 
-/** Brick, flame orange and marigold — saturated enough to hold on paper. */
+/** Brick, flame orange and marigold, saturated enough to hold on paper. */
 export const LIGHT_COLORS = ["#D8341A", "#F9731E", "#FFBA3A"]
 /** Deep ember, flame and gold; the tonemap carries the core to white-hot. */
 export const DARK_COLORS = ["#B4200A", "#FF6512", "#FFC04A"]
@@ -86,7 +86,7 @@ uniform vec3 u_c1;
 uniform vec3 u_c2;
 uniform vec3 u_base;
 
-// Dave Hoskins' hash — no sin(), so it stays stable on mobile GPUs.
+// Dave Hoskins' hash: no sin(), so it stays stable on mobile GPUs.
 float hash(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
   p3 += dot(p3, p3.yzx + 33.33);
@@ -404,7 +404,7 @@ export function createShaderAnimeFire(
   }
   if (!initGl()) return null
 
-  // Flame edges are crisp, so render a bit past 1x — but not a full 2x,
+  // Flame edges are crisp, so render a bit past 1x, but not a full 2x,
   // which would quadruple the fbm work on retina screens.
   let dpr = 1
   const resize = () => {

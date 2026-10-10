@@ -5,7 +5,7 @@ import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes"
 
 // next-themes also injects an inline <script> (see lib/theme-bootstrap.ts for the
 // copy that actually runs in <head> before first paint). React 19 warns about
-// script tags inside client components — the warning is noisy, not a failure.
+// script tags inside client components; the warning is noisy, not a failure.
 if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   const originalError = console.error
   console.error = (...args: unknown[]) => {

@@ -20,7 +20,7 @@ export const DEFAULT_GLOW = 0
 export const DEFAULT_STIFFNESS = 380
 export const DEFAULT_DAMPING = 32
 
-/** Docs / demos — dispatch to play the rubber stretch without faking wheel input. */
+/** Docs / demos: dispatch to play the rubber stretch without faking wheel input. */
 export const STRETCHY_FOOTER_PLAY = "stretchy-footer:play"
 
 /** Stretch per px of overscroll at rest; it falls off toward `maxStretch`. */
@@ -171,7 +171,7 @@ function wheelPixels(event: WheelEvent) {
 
 /**
  * True when something between `target` and the scroller can still scroll
- * in that direction — a code block or a menu gets the wheel, not us.
+ * in that direction: a code block or a menu gets the wheel, not us.
  */
 function nestedCanScroll(
   target: EventTarget | null,
@@ -302,7 +302,7 @@ export function createStretchyFooter(
     const max = maxOf()
     // Room past the edges, so the blur doesn't fade the sides and floor.
     const pad = Math.ceil(blur * 2)
-    // Blurred anyway — half resolution is plenty and half the fill.
+    // Blurred anyway, so half resolution is plenty and half the fill.
     const scale = blur >= 6 ? 0.5 : Math.min(window.devicePixelRatio || 1, 2)
     size.w = (parent?.clientWidth ?? 0) + pad * 2
     size.pad = pad

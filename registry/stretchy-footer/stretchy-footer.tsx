@@ -71,7 +71,7 @@ export type StretchyFooterProps = StretchyFooterOptions & {
 const noopSubscribe = () => () => {}
 
 /**
- * Dia-style stretchy overflow — overscroll past the bottom and a rainbow
+ * Dia-style stretchy overflow: overscroll past the bottom and a rainbow
  * aurora stretches up from the floor while the page lifts with it, then
  * springs back with a wobble. Honors `prefers-reduced-motion`.
  */
@@ -174,7 +174,7 @@ export function StretchyFooter({
 
   if (windowScroll) {
     if (!portalHost) return null
-    // Portal so `fixed` stays on the viewport — the lifted page is
+    // Portal so `fixed` stays on the viewport; the lifted page is
     // transformed and would otherwise pin it to the content.
     return createPortal(
       <div

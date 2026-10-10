@@ -5,7 +5,7 @@
       "name": "stretchy-footer",
       "type": "registry:ui",
       "title": "Stretchy Footer",
-      "description": "Dia-style rubber overscroll — rainbow aurora stretches up past the bottom, then snaps back.",
+      "description": "Dia-style rubber overscroll: rainbow aurora stretches up past the bottom, then snaps back.",
       "files": [
         {
           "path": "stretchy-footer.tsx",
@@ -18,7 +18,7 @@
       "name": "stretchy-footer-svelte",
       "type": "registry:ui",
       "title": "Stretchy Footer",
-      "description": "Dia-style rubber overscroll — rainbow aurora stretches up past the bottom, then snaps back.",
+      "description": "Dia-style rubber overscroll: rainbow aurora stretches up past the bottom, then snaps back.",
       "files": [
         {
           "path": "stretchy-footer.svelte",

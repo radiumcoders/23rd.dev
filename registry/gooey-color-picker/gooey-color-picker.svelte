@@ -177,7 +177,7 @@
       const { sRGBHex } = await new Ctor().open()
       applyColor({ ...parseColor(sRGBHex), a: color.a })
     } catch {
-      // user dismissed the eyedropper — no-op
+      // user dismissed the eyedropper; no-op
     }
   }
 

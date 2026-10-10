@@ -29,7 +29,7 @@ export type ShaderSkyProps = Omit<ShaderSkyOptions, "onThemeChange"> & {
 }
 
 /**
- * WebGL sky for heroes — clear blue with drifting clouds in light,
+ * WebGL sky for heroes: clear blue with drifting clouds in light,
  * storm gray in dark, with optional lightning. Optional window-glass film.
  */
 export function ShaderSky({

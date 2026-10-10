@@ -207,7 +207,7 @@ export function GooeyColorPicker({
   }, [hex])
 
   // Commit a color from any picker surface (wheel, alpha, eyedropper) and keep
-  // the code field in sync — even while the input is focused.
+  // the code field in sync, even while the input is focused.
   const applyColor = useCallback(
     (next: GooeyColor) => {
       setColor(next)
@@ -224,7 +224,7 @@ export function GooeyColorPicker({
       const { sRGBHex } = await new Ctor().open()
       applyColor({ ...parseColor(sRGBHex), a: colorRef.current.a })
     } catch {
-      // user dismissed the eyedropper — no-op
+      // user dismissed the eyedropper; no-op
     }
   }, [applyColor])
 

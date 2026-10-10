@@ -3,11 +3,11 @@ export type LiveOrbVariant = "white" | "black" | "webgl" | "custom"
 export type LiveOrbOptions = {
   /** Material preset. Default `"white"`. */
   variant?: LiveOrbVariant
-  /** Body hex — used when `variant="custom"`. */
+  /** Body hex, used when `variant="custom"`. */
   color?: string
-  /** Eye hex — used when `variant="custom"`. */
+  /** Eye hex, used when `variant="custom"`. */
   eyeColor?: string
-  /** Unlit wash stops — used when `variant="webgl"`. */
+  /** Unlit wash stops, used when `variant="webgl"`. */
   colors?: string[]
   /** Eyes follow the pointer. Default `true`. */
   interactive?: boolean
@@ -25,7 +25,7 @@ export type LiveOrbInstance = {
 export const WHITE = { color: "#F4F4F5", eyeColor: "#09090B" } as const
 export const BLACK = { color: "#18181B", eyeColor: "#F4F4F5" } as const
 export const CUSTOM_DEFAULT = { color: "#7C5CFF", eyeColor: "#FAFAFA" } as const
-/** Violet / foam / dust-rose — stock unlit wash. */
+/** Violet / foam / dust-rose: stock unlit wash. */
 export const WEBGL_COLORS = ["#7C6AF7", "#7DD3C7", "#E8B4D4"]
 
 const VERT = `

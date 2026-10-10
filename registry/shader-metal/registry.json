@@ -5,7 +5,7 @@
       "name": "shader-metal",
       "type": "registry:ui",
       "title": "Shader Metal",
-      "description": "Liquid chrome, gold, or copper ribbons twisting through a studio light rig — transparent WebGL, theme-aware, with a key light that follows the pointer.",
+      "description": "Liquid chrome, gold, or copper ribbons twisting through a studio light rig: transparent WebGL, theme-aware, with a key light that follows the pointer.",
       "files": [
         {
           "path": "shader-metal.tsx",
@@ -18,7 +18,7 @@
       "name": "shader-metal-svelte",
       "type": "registry:ui",
       "title": "Shader Metal",
-      "description": "Liquid chrome, gold, or copper ribbons twisting through a studio light rig — transparent WebGL, theme-aware, with a key light that follows the pointer.",
+      "description": "Liquid chrome, gold, or copper ribbons twisting through a studio light rig: transparent WebGL, theme-aware, with a key light that follows the pointer.",
       "files": [
         {
           "path": "shader-metal.svelte",

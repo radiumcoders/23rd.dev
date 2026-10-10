@@ -29,9 +29,9 @@ export type ShaderFireInstance = {
   destroy: () => void
 }
 
-/** Warm ink on paper — sienna / amber / dusty peach */
+/** Warm ink on paper: sienna / amber / dusty peach */
 export const LIGHT_COLORS = ["#9C3A24", "#C96A32", "#E6C4A0"]
-/** Visible coals on slate — ember / flame / highlight */
+/** Visible coals on slate: ember / flame / highlight */
 export const DARK_COLORS = ["#A33A18", "#D4682A", "#E8B45A"]
 
 export const LIGHT_FALLBACK = {
@@ -126,11 +126,11 @@ float bayer8(vec2 p) {
 float fireField(vec2 uv, float aspect, float t) {
   float climb = mix(0.22, 0.82, clamp(u_height, 0.0, 1.0));
 
-  // Column space — sway as they rise
+  // Column space: sway as they rise
   vec2 q = vec2(uv.x * aspect * 1.85, uv.y * 1.55 - t * 0.48);
   q.x += sin(uv.y * 7.0 + t * 1.6) * 0.045 * (0.25 + uv.y);
 
-  // Two-pass domain warp — curling tongues, not blobs
+  // Two-pass domain warp: curling tongues, not blobs
   vec2 w1 = vec2(
     fbm(q * 1.7 + vec2(t * 0.28, t * 0.22)),
     fbm(q * 1.7 + vec2(-t * 0.24, t * 0.31) + 5.2)
@@ -189,7 +189,7 @@ void main() {
   vec3 paper = u_dark < 0.5
     ? vec3(0.992, 0.986, 0.978)
     : vec3(0.03, 0.032, 0.042);
-  // Light: watercolor on paper — more air, less orange stain
+  // Light: watercolor on paper, more air, less orange stain
   float cover = u_dither > 0.5
     ? field
     : field * (u_dark < 0.5 ? 0.68 : 0.84);
@@ -262,7 +262,7 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
 }
 
 /**
- * Sparse 2D fire wash — tongues rise from the bottom behind UI.
+ * Sparse 2D fire wash: tongues rise from the bottom behind UI.
  * Theme-aware light / dusk. Pauses while off screen or in a hidden tab, and
  * holds a still frame under `prefers-reduced-motion`. Recovers from a lost
  * WebGL context.

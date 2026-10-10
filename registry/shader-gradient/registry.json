@@ -5,7 +5,7 @@
       "name": "shader-gradient",
       "type": "registry:ui",
       "title": "Shader Gradient",
-      "description": "Quiet WebGL color wash for landing heroes, empty states, and marketing sections — theme-aware, optional pointer follow.",
+      "description": "Quiet WebGL color wash for landing heroes, empty states, and marketing sections: theme-aware, optional pointer follow.",
       "files": [
         {
           "path": "shader-gradient.tsx",
@@ -18,7 +18,7 @@
       "name": "shader-gradient-svelte",
       "type": "registry:ui",
       "title": "Shader Gradient",
-      "description": "Quiet WebGL color wash for landing heroes, empty states, and marketing sections — theme-aware, optional pointer follow.",
+      "description": "Quiet WebGL color wash for landing heroes, empty states, and marketing sections: theme-aware, optional pointer follow.",
       "files": [
         {
           "path": "shader-gradient.svelte",
