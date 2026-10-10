@@ -6,17 +6,8 @@ const withMDX = createMDX()
 /** @type {import('next').NextConfig} */
 const config = {
   reactStrictMode: true,
-  experimental: {
-    viewTransition: true,
-  },
   async redirects() {
     return [
-      // Temporary until the landing page lands at `/`.
-      {
-        source: "/",
-        destination: "/docs/getting-started",
-        permanent: false,
-      },
       {
         source: "/docs",
         destination: "/docs/getting-started",

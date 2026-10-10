@@ -1,0 +1,96 @@
+---
+title: Shader Metal
+description: Liquid metal ribbons in chrome, gold, copper, or graphite, lit by the pointer.
+---
+
+import { ShaderMetalDemo } from "@/components/demos"
+
+## Preview
+
+<ShaderMetalDemo />
+
+## Installation
+
+<CliCommand item="shader-metal" />
+
+Or from the public GitHub registry:
+
+<CliCommand item="shader-metal" github />
+
+## Usage
+
+Pin it behind a relatively positioned section. The ribbons cross the middle, so copy sits best top-left.
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+"use client"
+
+import { ShaderMetal } from "@/components/ui/shader-metal"
+
+export function Hero() {
+  return (
+    <section className="relative isolate min-h-svh overflow-hidden bg-background">
+      <ShaderMetal metal="gold" />
+      <div className="relative z-10 mx-auto max-w-5xl px-6 pt-24">
+        <h1 className="max-w-md text-4xl font-medium tracking-tight">
+          Polished until it reflects the room
+        </h1>
+        <p className="mt-3 max-w-sm text-muted-foreground">
+          The ribbons stay in the back. The key light follows the pointer.
+        </p>
+      </div>
+    </section>
+  )
+}
+```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import ShaderMetal from "$lib/components/ui/shader-metal.svelte"
+</script>
+
+<section class="relative isolate min-h-svh overflow-hidden bg-background">
+  <ShaderMetal metal="gold" />
+  <div class="relative z-10 mx-auto max-w-5xl px-6 pt-24">
+    <h1 class="max-w-md text-4xl font-medium tracking-tight">
+      Polished until it reflects the room
+    </h1>
+    <p class="mt-3 max-w-sm text-muted-foreground">
+      The ribbons stay in the back. The key light follows the pointer.
+    </p>
+  </div>
+</section>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+Custom tint with more sheen:
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+<ShaderMetal color="#9FB7FF" iridescence={0.6} ribbons={4} />
+```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<ShaderMetal color="#9FB7FF" iridescence={0.6} ribbons={4} />
+```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+## Props
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `metal` | `"chrome" \| "gold" \| "copper" \| "graphite"` | `chrome` |
+| `color` | `string` | hex tint, overrides `metal` |
+| `ribbons` | `number` | `3`, 1–5 |
+| `speed` | `number` | `0.3` |
+| `iridescence` | `number` | `0.2`, 0–1 sheen |
+| `interactive` | `boolean` | `true` |
+| `theme` | `"light" \| "dark" \| "auto"` | `auto` |
+| `className` | `string` | React only |
+| `class` | `string` | Svelte only |

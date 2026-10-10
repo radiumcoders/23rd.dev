@@ -37,7 +37,7 @@ export type {
 
 export type LogoBurstProps = Omit<LogoBurstOptions, "onThemeChange"> & {
   className?: string
-  /** Optional centered mark. Omitted by default — the burst is the hero. */
+  /** Optional centered mark. Omitted by default; the burst is the hero. */
   children?: ReactNode
   /**
    * Increment to replay the explosion. Mount already plays once.

@@ -1,3 +1,4 @@
+import { DOCS_HOME } from "@/lib/site"
 import { source } from "@/lib/source"
 import { getGithubRepoUrl } from "@/lib/github"
 import {
@@ -44,7 +45,7 @@ export function GET() {
 ${SITE_DESCRIPTION}
 
 Site: ${SITE_URL}
-Docs: ${absoluteUrl("/docs")}
+Docs: ${absoluteUrl(DOCS_HOME)}
 Registry: ${absoluteUrl("/r/registry.json")}
 GitHub: ${getGithubRepoUrl()}
 
@@ -58,8 +59,7 @@ ${list(components)}
 
 ## Optional
 
-- [Full documentation](${absoluteUrl("/docs")})
-- [Install with shadcn CLI](${absoluteUrl("/docs/getting-started")})
+- [Install with shadcn CLI](${absoluteUrl(DOCS_HOME)})
 `
 
   return new Response(body, {

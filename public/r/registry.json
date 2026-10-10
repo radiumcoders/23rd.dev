@@ -32,7 +32,7 @@
     {
       "name": "ascii-logo",
       "title": "ASCII Logo",
-      "description": "Interactive ASCII wordmark — glyphs shove away from the cursor, then click-cycle through scatter, gravity drop, and reassemble. Zero deps.",
+      "description": "Interactive ASCII wordmark: glyphs shove away from the cursor, then click-cycle through scatter, gravity drop, and reassemble. Zero deps.",
       "files": [
         {
           "path": "registry/ascii-logo/ascii-logo.tsx",
@@ -45,7 +45,7 @@
     {
       "name": "ascii-logo-svelte",
       "title": "ASCII Logo",
-      "description": "Interactive ASCII wordmark — glyphs shove away from the cursor, then click-cycle through scatter, gravity drop, and reassemble. Zero deps.",
+      "description": "Interactive ASCII wordmark: glyphs shove away from the cursor, then click-cycle through scatter, gravity drop, and reassemble. Zero deps.",
       "files": [
         {
           "path": "registry/ascii-logo/ascii-logo.svelte",
@@ -58,7 +58,7 @@
     {
       "name": "dithered-404",
       "title": "Dithered 404",
-      "description": "Bayer-pixel 404 section — a fireball cursor scorches the glyph, burns it into embers and smoke, then reforms. Optional soft realistic fire.",
+      "description": "Bayer-pixel 404 section: a fireball cursor scorches the glyph, burns it into embers and smoke, then reforms. Optional soft realistic fire.",
       "files": [
         {
           "path": "registry/dithered-404/dithered-404.tsx",
@@ -71,7 +71,7 @@
     {
       "name": "dithered-404-svelte",
       "title": "Dithered 404",
-      "description": "Bayer-pixel 404 section — a fireball cursor scorches the glyph, burns it into embers and smoke, then reforms. Optional soft realistic fire.",
+      "description": "Bayer-pixel 404 section: a fireball cursor scorches the glyph, burns it into embers and smoke, then reforms. Optional soft realistic fire.",
       "files": [
         {
           "path": "registry/dithered-404/dithered-404.svelte",
@@ -140,7 +140,7 @@
     {
       "name": "live-orb",
       "title": "Live Orb",
-      "description": "An evenly lit sphere with two capsule eyes that follow the pointer — white, black, webgl, and custom variants.",
+      "description": "An evenly lit sphere with two capsule eyes that follow the pointer: white, black, webgl, and custom variants.",
       "files": [
         {
           "path": "registry/live-orb/live-orb.tsx",
@@ -153,7 +153,7 @@
     {
       "name": "live-orb-svelte",
       "title": "Live Orb",
-      "description": "An evenly lit sphere with two capsule eyes that follow the pointer — white, black, webgl, and custom variants.",
+      "description": "An evenly lit sphere with two capsule eyes that follow the pointer: white, black, webgl, and custom variants.",
       "files": [
         {
           "path": "registry/live-orb/live-orb.svelte",
@@ -192,7 +192,7 @@
     {
       "name": "phosphor-score",
       "title": "Phosphor Score",
-      "description": "Vertical sheet music on a CRT phosphor — notes fall, bloom at the playhead, then exit in a flare.",
+      "description": "Vertical sheet music on a CRT phosphor: notes fall, bloom at the playhead, then exit in a flare.",
       "files": [
         {
           "path": "registry/phosphor-score/phosphor-score.tsx",
@@ -205,7 +205,7 @@
     {
       "name": "phosphor-score-svelte",
       "title": "Phosphor Score",
-      "description": "Vertical sheet music on a CRT phosphor — notes fall, bloom at the playhead, then exit in a flare.",
+      "description": "Vertical sheet music on a CRT phosphor: notes fall, bloom at the playhead, then exit in a flare.",
       "files": [
         {
           "path": "registry/phosphor-score/phosphor-score.svelte",
@@ -218,7 +218,7 @@
     {
       "name": "radiant-lines",
       "title": "Radiant Lines",
-      "description": "A hyperspace starfield background — colored streaks radiate from the center, with warp speed driven by scroll velocity.",
+      "description": "A hyperspace starfield background: colored streaks radiate from the center, with warp speed driven by scroll velocity.",
       "files": [
         {
           "path": "registry/radiant-lines/radiant-lines.tsx",
@@ -231,7 +231,7 @@
     {
       "name": "radiant-lines-svelte",
       "title": "Radiant Lines",
-      "description": "A hyperspace starfield background — colored streaks radiate from the center, with warp speed driven by scroll velocity.",
+      "description": "A hyperspace starfield background: colored streaks radiate from the center, with warp speed driven by scroll velocity.",
       "dependencies": [],
       "files": [
         {
@@ -245,7 +245,7 @@
     {
       "name": "shader-anime-fire",
       "title": "Shader Anime Fire",
-      "description": "Cel-shaded WebGL flames for landing heroes — tongues lick up from the bottom in flat bands of heat, and the fire reaches for the pointer.",
+      "description": "Cel-shaded WebGL flames for landing heroes: tongues lick up from the bottom in flat bands of heat, and the fire reaches for the pointer.",
       "files": [
         {
           "path": "registry/shader-anime-fire/shader-anime-fire.tsx",
@@ -258,7 +258,7 @@
     {
       "name": "shader-anime-fire-svelte",
       "title": "Shader Anime Fire",
-      "description": "Cel-shaded WebGL flames for landing heroes — tongues lick up from the bottom in flat bands of heat, and the fire reaches for the pointer.",
+      "description": "Cel-shaded WebGL flames for landing heroes: tongues lick up from the bottom in flat bands of heat, and the fire reaches for the pointer.",
       "dependencies": [],
       "files": [
         {
@@ -272,7 +272,7 @@
     {
       "name": "shader-fire",
       "title": "Shader Fire",
-      "description": "Sparse 2D WebGL fire wash for landing heroes — tongues rise from the bottom, theme-aware, optional pointer heat.",
+      "description": "Sparse 2D WebGL fire wash for landing heroes: tongues rise from the bottom, theme-aware, optional pointer heat.",
       "files": [
         {
           "path": "registry/shader-fire/shader-fire.tsx",
@@ -285,7 +285,7 @@
     {
       "name": "shader-fire-svelte",
       "title": "Shader Fire",
-      "description": "Sparse 2D WebGL fire wash for landing heroes — tongues rise from the bottom, theme-aware, optional pointer heat.",
+      "description": "Sparse 2D WebGL fire wash for landing heroes: tongues rise from the bottom, theme-aware, optional pointer heat.",
       "dependencies": [],
       "files": [
         {
@@ -299,7 +299,7 @@
     {
       "name": "shader-gradient",
       "title": "Shader Gradient",
-      "description": "Quiet WebGL color wash for landing heroes, empty states, and marketing sections — theme-aware, optional pointer follow.",
+      "description": "Quiet WebGL color wash for landing heroes, empty states, and marketing sections: theme-aware, optional pointer follow.",
       "files": [
         {
           "path": "registry/shader-gradient/shader-gradient.tsx",
@@ -312,7 +312,7 @@
     {
       "name": "shader-gradient-svelte",
       "title": "Shader Gradient",
-      "description": "Quiet WebGL color wash for landing heroes, empty states, and marketing sections — theme-aware, optional pointer follow.",
+      "description": "Quiet WebGL color wash for landing heroes, empty states, and marketing sections: theme-aware, optional pointer follow.",
       "files": [
         {
           "path": "registry/shader-gradient/shader-gradient.svelte",
@@ -323,9 +323,35 @@
       "type": "registry:ui"
     },
     {
+      "name": "shader-metal",
+      "title": "Shader Metal",
+      "description": "Liquid chrome, gold, or copper ribbons twisting through a studio light rig: transparent WebGL, theme-aware, with a key light that follows the pointer.",
+      "files": [
+        {
+          "path": "registry/shader-metal/shader-metal.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/shader-metal.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
+      "name": "shader-metal-svelte",
+      "title": "Shader Metal",
+      "description": "Liquid chrome, gold, or copper ribbons twisting through a studio light rig: transparent WebGL, theme-aware, with a key light that follows the pointer.",
+      "files": [
+        {
+          "path": "registry/shader-metal/shader-metal.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/shader-metal.svelte"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "shader-sky",
       "title": "Shader Sky",
-      "description": "WebGL sky for landing heroes — clear blue with drifting clouds in light, storm gray in dark, optional window-glass film.",
+      "description": "WebGL sky for landing heroes: clear blue with drifting clouds in light, storm gray in dark, optional window-glass film.",
       "files": [
         {
           "path": "registry/shader-sky/shader-sky.tsx",
@@ -338,7 +364,7 @@
     {
       "name": "shader-sky-svelte",
       "title": "Shader Sky",
-      "description": "WebGL sky for landing heroes — clear blue with drifting clouds in light, storm gray in dark, optional window-glass film.",
+      "description": "WebGL sky for landing heroes: clear blue with drifting clouds in light, storm gray in dark, optional window-glass film.",
       "files": [
         {
           "path": "registry/shader-sky/shader-sky.svelte",
@@ -351,7 +377,7 @@
     {
       "name": "stretchy-footer",
       "title": "Stretchy Footer",
-      "description": "Dia-style rubber overscroll — rainbow aurora stretches up past the bottom, then snaps back.",
+      "description": "Dia-style rubber overscroll: rainbow aurora stretches up past the bottom, then snaps back.",
       "files": [
         {
           "path": "registry/stretchy-footer/stretchy-footer.tsx",
@@ -364,7 +390,7 @@
     {
       "name": "stretchy-footer-svelte",
       "title": "Stretchy Footer",
-      "description": "Dia-style rubber overscroll — rainbow aurora stretches up past the bottom, then snaps back.",
+      "description": "Dia-style rubber overscroll: rainbow aurora stretches up past the bottom, then snaps back.",
       "dependencies": [],
       "files": [
         {
@@ -378,7 +404,7 @@
     {
       "name": "typewriter",
       "title": "Typewriter",
-      "description": "A real, playable typewriter in SVG — each key presses down, its typebar swings up to strike the ribbon, and the carriage steps along. Click it and type.",
+      "description": "A real, playable typewriter in SVG: each key presses down, its typebar swings up to strike the ribbon, and the carriage steps along. Click it and type.",
       "files": [
         {
           "path": "registry/typewriter/typewriter.tsx",
@@ -391,7 +417,7 @@
     {
       "name": "typewriter-svelte",
       "title": "Typewriter",
-      "description": "A real, playable typewriter in SVG — each key presses down, its typebar swings up to strike the ribbon, and the carriage steps along. Click it and type.",
+      "description": "A real, playable typewriter in SVG: each key presses down, its typebar swings up to strike the ribbon, and the carriage steps along. Click it and type.",
       "files": [
         {
           "path": "registry/typewriter/typewriter.svelte",

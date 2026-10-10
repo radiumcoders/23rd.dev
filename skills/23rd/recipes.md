@@ -38,6 +38,7 @@ Swap the component, keep the shell:
 | Blue sky | `ShaderSky` | leave `colors` unset |
 | Rain / dusk sky | `ShaderSky` | `theme="dark"` or `html.dark` |
 | Window glass | `ShaderSky` | `glass glassSize={7}` |
+| Chrome / gold ribbons | `ShaderMetal` | `metal="gold"`; copy top-left |
 | ASCII trails | `AsciiFluid` | `interactive` |
 | CRT score | `PhosphorScore` | parent `overflow-hidden`; do not expect a `d` key |
 | Burst, no mark | `LogoBurst` | no children |

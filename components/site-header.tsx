@@ -7,10 +7,11 @@ import { GithubStars } from "@/components/github-stars"
 import { Logo } from "@/components/logo"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { buttonVariants } from "@/components/ui/button"
+import { DOCS_HOME } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 const NAV_LINKS = [
-  { href: "/docs", label: "Docs" },
+  { href: DOCS_HOME, label: "Docs" },
   { href: "/sponsors", label: "Sponsors" },
 ] as const
 
@@ -20,7 +21,7 @@ export function SiteHeader({ githubStars }: { githubStars?: number | null }) {
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
       <Link
-        href="/docs"
+        href="/"
         className="flex min-w-0 items-center gap-2 text-sm font-medium"
       >
         <Logo className="size-6 shrink-0" />

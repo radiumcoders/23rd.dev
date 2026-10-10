@@ -33,7 +33,7 @@ export type LiveOrbProps = Omit<LiveOrbOptions, "onHasGl"> & {
 
 /**
  * Evenly lit sphere with two capsule eyes that follow the pointer.
- * The orb stays put — only the gaze moves.
+ * The orb stays put; only the gaze moves.
  */
 export function LiveOrb({
   className,

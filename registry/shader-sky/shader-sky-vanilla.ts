@@ -23,7 +23,7 @@ export type ShaderSkyOptions = {
    */
   lightning?: boolean
   /**
-   * Window glass — a transparent dotted film over the sky.
+   * Window glass: a transparent dotted film over the sky.
    * Default false
    */
   glass?: boolean
@@ -45,9 +45,9 @@ export type ShaderSkyInstance = {
   destroy: () => void
 }
 
-/** Open daylight — zenith / horizon / white smoke / cool shade */
+/** Open daylight: zenith / horizon / white smoke / cool shade */
 export const LIGHT_COLORS = ["#2478C8", "#8ECBF2", "#F7FBFF", "#C5D8EC"]
-/** Storm ceiling — light slate / rain horizon / mid cloud / cool shade */
+/** Storm ceiling: light slate / rain horizon / mid cloud / cool shade */
 export const DARK_COLORS = ["#9AA3AD", "#C8CED4", "#5C6570", "#3F4750"]
 
 export const LIGHT_FALLBACK = {
@@ -395,9 +395,10 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
 }
 
 /**
- * WebGL sky for heroes — volumetric clouds drifting across clear blue in
+ * WebGL sky for heroes: volumetric clouds drifting across clear blue in
  * light, storm gray in dark, with optional lightning. Optional
- * window-glass film.
+ * window-glass film. Pauses off screen and in hidden tabs, and holds a still
+ * frame under reduced motion. Recovers from a lost WebGL context.
  */
 export function createShaderSky(
   canvas: HTMLCanvasElement,
@@ -449,90 +450,124 @@ export function createShaderSky(
   })
   if (!gl) return null
 
-  const vs = compile(gl, gl.VERTEX_SHADER, VERT)
-  const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
-  if (!vs || !fs) {
-    if (vs) gl.deleteShader(vs)
-    if (fs) gl.deleteShader(fs)
-    return null
-  }
+  let vs: WebGLShader | null = null
+  let fs: WebGLShader | null = null
+  let program: WebGLProgram | null = null
+  let buf: WebGLBuffer | null = null
+  let noiseTex: WebGLTexture | null = null
+  let uResolution: WebGLUniformLocation | null = null
+  let uTime: WebGLUniformLocation | null = null
+  let uSpeed: WebGLUniformLocation | null = null
+  let uCoverage: WebGLUniformLocation | null = null
+  let uIntensity: WebGLUniformLocation | null = null
+  let uAmount: WebGLUniformLocation | null = null
+  let uScale: WebGLUniformLocation | null = null
+  let uVariation: WebGLUniformLocation | null = null
+  let uGlass: WebGLUniformLocation | null = null
+  let uGlassSize: WebGLUniformLocation | null = null
+  let uC1: WebGLUniformLocation | null = null
+  let uC2: WebGLUniformLocation | null = null
+  let uC3: WebGLUniformLocation | null = null
+  let uC4: WebGLUniformLocation | null = null
+  let uMouse: WebGLUniformLocation | null = null
+  let uFlash: WebGLUniformLocation | null = null
+  let uFlashPos: WebGLUniformLocation | null = null
 
-  const program = gl.createProgram()
-  if (!program) {
-    gl.deleteShader(vs)
-    gl.deleteShader(fs)
-    return null
-  }
-  gl.attachShader(program, vs)
-  gl.attachShader(program, fs)
-  gl.linkProgram(program)
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    if (isDev()) {
-      console.warn(
-        "ShaderSky: program failed to link\n",
-        gl.getProgramInfoLog(program)
-      )
+  // Builds every GL resource; runs at startup and again after a lost context
+  // comes back, since a restored context starts empty.
+  const initGl = () => {
+    vs = compile(gl, gl.VERTEX_SHADER, VERT)
+    fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
+    if (!vs || !fs) {
+      if (vs) gl.deleteShader(vs)
+      if (fs) gl.deleteShader(fs)
+      return false
     }
-    gl.deleteProgram(program)
-    gl.deleteShader(vs)
-    gl.deleteShader(fs)
-    return null
+
+    program = gl.createProgram()
+    if (!program) {
+      gl.deleteShader(vs)
+      gl.deleteShader(fs)
+      return false
+    }
+    gl.attachShader(program, vs)
+    gl.attachShader(program, fs)
+    gl.linkProgram(program)
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      if (isDev()) {
+        console.warn(
+          "ShaderSky: program failed to link\n",
+          gl.getProgramInfoLog(program)
+        )
+      }
+      gl.deleteProgram(program)
+      gl.deleteShader(vs)
+      gl.deleteShader(fs)
+      return false
+    }
+    gl.useProgram(program)
+
+    buf = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf)
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+      gl.STATIC_DRAW
+    )
+    const loc = gl.getAttribLocation(program, "a_position")
+    gl.enableVertexAttribArray(loc)
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
+
+    noiseTex = gl.createTexture()
+    gl.activeTexture(gl.TEXTURE0)
+    gl.bindTexture(gl.TEXTURE_2D, noiseTex)
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      NOISE_SIZE,
+      NOISE_SIZE,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      noiseTexels()
+    )
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+    gl.uniform1i(gl.getUniformLocation(program, "u_noise"), 0)
+
+    uResolution = gl.getUniformLocation(program, "u_resolution")
+    uTime = gl.getUniformLocation(program, "u_time")
+    uSpeed = gl.getUniformLocation(program, "u_speed")
+    uCoverage = gl.getUniformLocation(program, "u_coverage")
+    uIntensity = gl.getUniformLocation(program, "u_intensity")
+    uAmount = gl.getUniformLocation(program, "u_amount")
+    uScale = gl.getUniformLocation(program, "u_scale")
+    uVariation = gl.getUniformLocation(program, "u_variation")
+    uGlass = gl.getUniformLocation(program, "u_glass")
+    uGlassSize = gl.getUniformLocation(program, "u_glassSize")
+    uC1 = gl.getUniformLocation(program, "u_c1")
+    uC2 = gl.getUniformLocation(program, "u_c2")
+    uC3 = gl.getUniformLocation(program, "u_c3")
+    uC4 = gl.getUniformLocation(program, "u_c4")
+    uMouse = gl.getUniformLocation(program, "u_mouse")
+    uFlash = gl.getUniformLocation(program, "u_flash")
+    uFlashPos = gl.getUniformLocation(program, "u_flashPos")
+    return true
   }
-  gl.useProgram(program)
-
-  const buf = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf)
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-    gl.STATIC_DRAW
-  )
-  const loc = gl.getAttribLocation(program, "a_position")
-  gl.enableVertexAttribArray(loc)
-  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
-
-  const noiseTex = gl.createTexture()
-  gl.activeTexture(gl.TEXTURE0)
-  gl.bindTexture(gl.TEXTURE_2D, noiseTex)
-  gl.texImage2D(
-    gl.TEXTURE_2D,
-    0,
-    gl.RGBA,
-    NOISE_SIZE,
-    NOISE_SIZE,
-    0,
-    gl.RGBA,
-    gl.UNSIGNED_BYTE,
-    noiseTexels()
-  )
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
-  gl.uniform1i(gl.getUniformLocation(program, "u_noise"), 0)
-
-  const uResolution = gl.getUniformLocation(program, "u_resolution")
-  const uTime = gl.getUniformLocation(program, "u_time")
-  const uSpeed = gl.getUniformLocation(program, "u_speed")
-  const uCoverage = gl.getUniformLocation(program, "u_coverage")
-  const uIntensity = gl.getUniformLocation(program, "u_intensity")
-  const uAmount = gl.getUniformLocation(program, "u_amount")
-  const uScale = gl.getUniformLocation(program, "u_scale")
-  const uVariation = gl.getUniformLocation(program, "u_variation")
-  const uGlass = gl.getUniformLocation(program, "u_glass")
-  const uGlassSize = gl.getUniformLocation(program, "u_glassSize")
-  const uC1 = gl.getUniformLocation(program, "u_c1")
-  const uC2 = gl.getUniformLocation(program, "u_c2")
-  const uC3 = gl.getUniformLocation(program, "u_c3")
-  const uC4 = gl.getUniformLocation(program, "u_c4")
-  const uMouse = gl.getUniformLocation(program, "u_mouse")
-  const uFlash = gl.getUniformLocation(program, "u_flash")
-  const uFlashPos = gl.getUniformLocation(program, "u_flashPos")
+  if (!initGl()) return null
 
   let raf = 0
-  let running = true
-  const start = performance.now()
-  let frozenTime = 0
+  let destroyed = false
+  // The browser dropped the GL context; nothing touches gl until it returns.
+  let lost = false
+  let onScreen = true
+  let last = 0
+  // Seconds of motion so far; it only advances while the sky is moving, so it
+  // resumes where it left off.
+  let clock = 0
 
   // One strike = a bright flicker and a softer echo, then 4–10s of quiet.
   const strike = { at: 0, next: 0, x: 0, y: 0 }
@@ -554,6 +589,15 @@ export function createShaderSky(
     return Math.min(1, pulse(s) + 0.65 * pulse(s - 0.16))
   }
 
+  const shown = () => onScreen && document.visibilityState !== "hidden"
+  const moving = () => shown() && !reduce
+
+  function wake() {
+    if (raf || destroyed || lost) return
+    last = performance.now()
+    raf = requestAnimationFrame(tick)
+  }
+
   // Device pixels per CSS pixel actually rendered (after the pixel cap).
   let pixelScale = 1
   const resize = () => {
@@ -568,18 +612,15 @@ export function createShaderSky(
     canvas.height = Math.max(1, Math.floor(h * pixelScale))
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
-    gl.viewport(0, 0, canvas.width, canvas.height)
+    if (!lost) gl.viewport(0, 0, canvas.width, canvas.height)
+    wake()
   }
-
-  resize()
-  const ro = new ResizeObserver(resize)
-  if (canvas.parentElement) ro.observe(canvas.parentElement)
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
   const onReduce = () => {
     reduce = mqReduce.matches
+    wake()
   }
-  onReduce()
   mqReduce.addEventListener("change", onReduce)
 
   const syncTheme = () => {
@@ -587,6 +628,7 @@ export function createShaderSky(
     if (next === dark) return
     dark = next
     options.onThemeChange?.(dark)
+    wake()
   }
   const mo = new MutationObserver(syncTheme)
   mo.observe(document.documentElement, {
@@ -604,19 +646,21 @@ export function createShaderSky(
     if (rect.width <= 0 || rect.height <= 0) return
     targetMouse.x = (e.clientX - rect.left) / rect.width
     targetMouse.y = 1 - (e.clientY - rect.top) / rect.height
+    if (shown()) wake()
   }
   window.addEventListener("pointermove", onMove, { passive: true })
 
   const tick = (now: number) => {
-    if (!running) return
+    raf = 0
+    if (destroyed || lost) return
+    // Capped so a frame queued before the tab was hidden doesn't jump ahead,
+    // but loose enough that slow devices still keep real time.
+    const dt = Math.min(0.25, Math.max(0, (now - last) / 1000))
+    last = now
+    const live = moving()
+    if (live) clock += dt
 
-    if (reduce) {
-      if (frozenTime === 0) frozenTime = (now - start) / 1000
-    } else {
-      frozenTime = 0
-    }
-
-    const time = reduce ? frozenTime : (now - start) / 1000
+    const time = clock
     const paletteSrc = options.colors ?? (dark ? DARK_COLORS : LIGHT_COLORS)
     const palette = [0, 1, 2, 3].map((i) =>
       hexToRgb(paletteSrc[i % paletteSrc.length] ?? LIGHT_COLORS[i]!)
@@ -624,6 +668,11 @@ export function createShaderSky(
 
     mouse.x += (targetMouse.x - mouse.x) * 0.03
     mouse.y += (targetMouse.y - mouse.y) * 0.03
+    // The pointer shifts the clouds, so a still frame keeps easing toward it.
+    const easing =
+      options.interactive &&
+      Math.abs(targetMouse.x - mouse.x) + Math.abs(targetMouse.y - mouse.y) >
+        0.001
 
     const glassPx = Math.max(2, options.glassSize ?? 7) * pixelScale
 
@@ -647,33 +696,75 @@ export function createShaderSky(
       options.interactive ? mouse.y : 0.5
     )
 
-    gl.uniform1f(uFlash, flashAt(now))
+    gl.uniform1f(uFlash, flashAt(clock * 1000))
     gl.uniform2f(uFlashPos, strike.x, strike.y)
 
     gl.drawArrays(gl.TRIANGLES, 0, 6)
-    raf = requestAnimationFrame(tick)
+    if (live || (easing && shown())) raf = requestAnimationFrame(tick)
   }
 
-  raf = requestAnimationFrame(tick)
+  // Run after `tick` exists, since both can wake the loop.
+  resize()
+  const ro = new ResizeObserver(resize)
+  if (canvas.parentElement) ro.observe(canvas.parentElement)
+  onReduce()
+  const io = new IntersectionObserver(([entry]) => {
+    onScreen = entry?.isIntersecting ?? true
+    wake()
+  })
+  io.observe(canvas)
+  const onVisibility = () => wake()
+  document.addEventListener("visibilitychange", onVisibility)
+
+  // Without preventDefault the browser never restores a lost context.
+  const onLost = (e: Event) => {
+    e.preventDefault()
+    lost = true
+    cancelAnimationFrame(raf)
+    raf = 0
+  }
+  const onRestored = () => {
+    if (destroyed || !initGl()) return
+    lost = false
+    gl.viewport(0, 0, canvas.width, canvas.height)
+    wake()
+  }
+  canvas.addEventListener("webglcontextlost", onLost)
+  canvas.addEventListener("webglcontextrestored", onRestored)
+
+  wake()
 
   return {
     setOptions(next) {
       options = { ...options, ...next }
       syncTheme()
+      wake()
     },
     destroy() {
-      running = false
+      destroyed = true
       cancelAnimationFrame(raf)
+      raf = 0
       ro.disconnect()
+      io.disconnect()
       mo.disconnect()
+      document.removeEventListener("visibilitychange", onVisibility)
       mqReduce.removeEventListener("change", onReduce)
       mqDark.removeEventListener("change", syncTheme)
       window.removeEventListener("pointermove", onMove)
+      canvas.removeEventListener("webglcontextlost", onLost)
+      canvas.removeEventListener("webglcontextrestored", onRestored)
       gl.deleteProgram(program)
       gl.deleteShader(vs)
       gl.deleteShader(fs)
       gl.deleteBuffer(buf)
       gl.deleteTexture(noiseTex)
+      // Free the GPU context once the canvas has left the page; browsers cap
+      // live contexts at about 16. A canvas still in the page (a React
+      // Strict Mode replay) keeps it, so a new engine can reuse it.
+      const lose = gl.getExtension("WEBGL_lose_context")
+      queueMicrotask(() => {
+        if (!canvas.isConnected && !gl.isContextLost()) lose?.loseContext()
+      })
     },
   }
 }

@@ -29,7 +29,7 @@ const PAGES = [
   {
     eyebrow: "Scroll to warp",
     title: "Hyperspace starfield",
-    body: "Colored streaks shoot from the center. Scroll to the next page — warp eases with you.",
+    body: "Colored streaks shoot from the center. Scroll to the next page and the warp eases with you.",
   },
   {
     eyebrow: "Page two",

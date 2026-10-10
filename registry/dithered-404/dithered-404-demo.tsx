@@ -96,7 +96,7 @@ export function Dithered404Demo() {
         />
         <ControlSwitch
           label="Dither"
-          description="Ordered Bayer pixels — off is a soft realistic fire"
+          description="Ordered Bayer pixels; off is a soft realistic fire"
           checked={props.dither}
           onChange={(v) => updateProp("dither", v)}
         />

@@ -3,7 +3,7 @@ name: 23rd
 description: >
   Install, choose, and compose 23rd shadcn/ui registry components for React and
   Svelte 5. Use when the user wants a UI component, background, shader, WebGL
-  wash, hero atmosphere, footer, 404, color picker, typewriter text, ASCII effect,
+  wash, liquid metal or chrome, hero atmosphere, footer, 404, color picker, typewriter text, ASCII effect,
   starfield, orb, or page-tilt from the 23rd registry (@23rd, 23rd.dev, radiumcoders/23rd.dev),
   or when adding a new component to this registry. Covers install commands,
   import paths, props, theming, and when not to use each item.
@@ -96,6 +96,7 @@ flowchart TD
   atmo -->|Cel-shaded fire from the bottom| saf[shader-anime-fire]
   atmo -->|Soft fire wash from the bottom| sf[shader-fire]
   atmo -->|Sky or rain, optional glass| ss[shader-sky]
+  atmo -->|Chrome or gold ribbons| sm[shader-metal]
   atmo -->|ASCII mouse trails| af[ascii-fluid]
   atmo -->|Hyperspace streaks, scroll warp| rl[radiant-lines]
   atmo -->|Hair-line explosion| lb[logo-burst]
@@ -120,6 +121,7 @@ Disambiguation that agents get wrong:
 | Logo explodes into lines | `logo-burst` | `ascii-logo` |
 | ASCII letters that shove, scatter, and fall | `ascii-logo` | `ascii-fluid` (trails, not a wordmark) |
 | CRT notation, phosphor, staves | `phosphor-score` | `shader-sky` |
+| Chrome, liquid metal, gold ribbons | `shader-metal` | `shader-gradient` (a color wash, not a material) |
 | A face / orb / mascot | `live-orb` | `logo-burst` |
 | Typing effect, typewriter, text that types itself | `typewriter` | `ascii-logo` (a wordmark, not prose) |
 
@@ -137,6 +139,8 @@ Backgrounds and shaders fill the parent. They do not create a page.
 ```
 
 Same shell for `ShaderAnimeFire`, `ShaderFire`, `ShaderSky`, `AsciiFluid`, `LogoBurst`, `PhosphorScore`, and `Dithered404`. Give the parent a height. Put UI in a later stacking context (`relative z-10`).
+
+`ShaderMetal` uses the same shell but is transparent: the ribbons and their shadows sit on the parent's background, so set one (`bg-background`). The ribbons cross the middle; put copy top-left.
 
 `RadiantLines` is transparent and warps with scroll. Inside an overflow div, pass the scroller (`containerRef` in React, `container` in Svelte) and make the canvas `sticky top-0 h-svh`. Omit the scroller to use the window.
 
@@ -180,6 +184,7 @@ Categories match `content/docs/components/meta.json`.
 | `shader-anime-fire` | Shaders | Cel-shaded flames licking up from the bottom | React + Svelte |
 | `shader-fire` | Shaders | Sparse fire tongues rising from the bottom | React + Svelte |
 | `shader-sky` | Shaders | Clear sky or rain; optional dotted window glass | React + Svelte |
+| `shader-metal` | Shaders | Chrome, gold, copper, or graphite ribbons; pointer key light | React + Svelte |
 | `stretchy-footer` | Footers | Dia-style rubber overscroll with an aurora floor | React + Svelte |
 | `live-orb` | Characters | Lit sphere; eyes follow the pointer | React + Svelte |
 | `ascii-logo` | Characters | ASCII wordmark: hover shove, click scatter / fall / gather | React + Svelte |
@@ -213,7 +218,7 @@ export function Hero() {
 }
 ```
 
-Color control (not a background). Uncontrolled unless `value` is passed. Omitted color is `{ h: 320, s: 90, l: 58, a: 1 }`, not the docs-table example `{ h: 210, s: 90, l: 55, a: 1 }`.
+Color control (not a background). Uncontrolled unless `value` is passed. Omitted color is `{ h: 320, s: 90, l: 58, a: 1 }`, not the `{ h: 210, s: 90, l: 55, a: 1 }` this example passes.
 
 ```bash
 pnpm dlx shadcn@latest add @23rd/gooey-color-picker

@@ -412,8 +412,13 @@ function buildAtlas(
 }
 
 /**
- * ASCII fluid background — pointer trails leave ink that swirls and
+ * ASCII fluid background: pointer trails leave ink that swirls and
  * quantizes to a clean brightness-mapped glyph field. Zero deps.
+ *
+ * The simulation stops while the canvas is off screen or the tab is hidden.
+ * Under `prefers-reduced-motion` it holds a still frame and only redraws
+ * when its size, theme or options change. It recovers from a lost WebGL
+ * context.
  */
 export function createAsciiFluid(
   canvas: HTMLCanvasElement,
@@ -465,26 +470,23 @@ export function createAsciiFluid(
   })
   if (!gl) return null
 
-  const vs = compile(gl, gl.VERTEX_SHADER, VERT)
-  if (!vs) return null
+  type Program = NonNullable<ReturnType<typeof createProgram>>
+  type DoubleFBO = NonNullable<ReturnType<typeof createDoubleFBO>>
 
-  const splat = createProgram(gl, vs, FRAG_SPLAT)
-  const advect = createProgram(gl, vs, FRAG_ADVECT)
-  const divergence = createProgram(gl, vs, FRAG_DIVERGENCE)
-  const pressure = createProgram(gl, vs, FRAG_PRESSURE)
-  const gradient = createProgram(gl, vs, FRAG_GRADIENT)
-  const display = createProgram(gl, vs, FRAG_DISPLAY)
-  if (!splat || !advect || !divergence || !pressure || !gradient || !display) {
-    return null
-  }
-
-  const buf = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf)
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-    gl.STATIC_DRAW
-  )
+  // GL resources live in `let`s so a restored context can rebuild them.
+  let vs: WebGLShader
+  let splat: Program
+  let advect: Program
+  let divergence: Program
+  let pressure: Program
+  let gradient: Program
+  let display: Program
+  let buf: WebGLBuffer | null
+  let velocity: DoubleFBO
+  let dye: DoubleFBO
+  let pressureFbo: DoubleFBO
+  let divergenceFbo: FBO
+  let atlas: { tex: WebGLTexture; count: number }
 
   const bindQuad = (program: WebGLProgram) => {
     gl.useProgram(program)
@@ -494,16 +496,6 @@ export function createAsciiFluid(
   }
 
   const SIM = 180
-  const velocity = createDoubleFBO(gl, SIM, SIM, gl.LINEAR)
-  const dye = createDoubleFBO(gl, SIM, SIM, gl.LINEAR)
-  const pressureFbo = createDoubleFBO(gl, SIM, SIM, gl.NEAREST)
-  const divergenceFbo = createFBO(gl, SIM, SIM, gl.NEAREST)
-  if (!velocity || !dye || !pressureFbo || !divergenceFbo) return null
-
-  const initialAtlas = buildAtlas(gl, options.charset)
-  if (!initialAtlas) return null
-  let atlas = initialAtlas
-  currentCharset = options.charset
 
   const blit = (target: FBO | null) => {
     if (target) {
@@ -523,15 +515,85 @@ export function createAsciiFluid(
     gl.clear(gl.COLOR_BUFFER_BIT)
   }
 
-  clearFbo(velocity.read, 0.5, 0.5, 0.5)
-  clearFbo(velocity.write, 0.5, 0.5, 0.5)
-  clearFbo(dye.read)
-  clearFbo(dye.write)
+  // Builds every GL resource with an empty fluid. Runs at startup and again
+  // when a lost context is restored; returns false if anything fails.
+  const initGl = () => {
+    const nextVs = compile(gl, gl.VERTEX_SHADER, VERT)
+    if (!nextVs) return false
+
+    const nextSplat = createProgram(gl, nextVs, FRAG_SPLAT)
+    const nextAdvect = createProgram(gl, nextVs, FRAG_ADVECT)
+    const nextDivergence = createProgram(gl, nextVs, FRAG_DIVERGENCE)
+    const nextPressure = createProgram(gl, nextVs, FRAG_PRESSURE)
+    const nextGradient = createProgram(gl, nextVs, FRAG_GRADIENT)
+    const nextDisplay = createProgram(gl, nextVs, FRAG_DISPLAY)
+    if (
+      !nextSplat ||
+      !nextAdvect ||
+      !nextDivergence ||
+      !nextPressure ||
+      !nextGradient ||
+      !nextDisplay
+    ) {
+      return false
+    }
+
+    const nextBuf = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, nextBuf)
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+      gl.STATIC_DRAW
+    )
+
+    const nextVelocity = createDoubleFBO(gl, SIM, SIM, gl.LINEAR)
+    const nextDye = createDoubleFBO(gl, SIM, SIM, gl.LINEAR)
+    const nextPressureFbo = createDoubleFBO(gl, SIM, SIM, gl.NEAREST)
+    const nextDivergenceFbo = createFBO(gl, SIM, SIM, gl.NEAREST)
+    if (!nextVelocity || !nextDye || !nextPressureFbo || !nextDivergenceFbo) {
+      return false
+    }
+
+    const nextAtlas = buildAtlas(gl, options.charset)
+    if (!nextAtlas) return false
+
+    vs = nextVs
+    splat = nextSplat
+    advect = nextAdvect
+    divergence = nextDivergence
+    pressure = nextPressure
+    gradient = nextGradient
+    display = nextDisplay
+    buf = nextBuf
+    velocity = nextVelocity
+    dye = nextDye
+    pressureFbo = nextPressureFbo
+    divergenceFbo = nextDivergenceFbo
+    atlas = nextAtlas
+    currentCharset = options.charset
+
+    clearFbo(velocity.read, 0.5, 0.5, 0.5)
+    clearFbo(velocity.write, 0.5, 0.5, 0.5)
+    clearFbo(dye.read)
+    clearFbo(dye.write)
+    return true
+  }
+
+  if (!initGl()) return null
 
   let raf = 0
-  let running = true
+  let destroyed = false
+  // Set while the WebGL context is lost; nothing may touch gl until restored.
+  let lost = false
+  let onScreen = true
   let last = performance.now()
   const start = last
+
+  function wake() {
+    if (raf || destroyed || lost) return
+    last = performance.now()
+    raf = requestAnimationFrame(tick)
+  }
 
   const resize = () => {
     const parent = canvas.parentElement
@@ -547,14 +609,15 @@ export function createAsciiFluid(
   }
 
   resize()
-  const ro = new ResizeObserver(resize)
+  // Resizing clears the canvas, so redraw even when the loop is idle.
+  const ro = new ResizeObserver(() => {
+    resize()
+    wake()
+  })
   if (canvas.parentElement) ro.observe(canvas.parentElement)
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
-  const onReduce = () => {
-    reduce = mqReduce.matches
-  }
-  onReduce()
+  const onReduce = () => wake()
   mqReduce.addEventListener("change", onReduce)
 
   const onPointer = (e: PointerEvent) => {
@@ -581,8 +644,12 @@ export function createAsciiFluid(
   parentEl?.addEventListener("pointerleave", onLeave, { passive: true })
 
   const tick = (now: number) => {
-    if (!running) return
-    const dt = Math.min((now - last) / 1000, 0.033)
+    raf = 0
+    if (destroyed || lost) return
+    // Off screen or in a hidden tab: stop until an observer wakes the loop.
+    if (!onScreen || document.visibilityState === "hidden") return
+    reduce = mqReduce.matches
+    const dt = Math.min(Math.max(0, (now - last) / 1000), 0.033)
     last = now
     const time = (now - start) / 1000
     const p = options
@@ -631,7 +698,7 @@ export function createAsciiFluid(
       blit(velocity.write)
       velocity.swap()
 
-      // Dye trail — denser with speed so fast moves write brighter glyphs
+      // Dye trail, denser with speed so fast moves write brighter glyphs
       const dyeAmt = Math.min(1.4, 0.45 + speed * 8) * p.force
       gl.activeTexture(gl.TEXTURE0)
       gl.bindTexture(gl.TEXTURE_2D, dye.read.tex)
@@ -809,22 +876,68 @@ export function createAsciiFluid(
     )
     blit(null)
 
-    raf = requestAnimationFrame(tick)
+    // Reduced motion skips the simulation, so every frame would be the same;
+    // hold this one until a resize, theme or option change wakes the loop.
+    if (!reduce) raf = requestAnimationFrame(tick)
   }
 
-  raf = requestAnimationFrame(tick)
+  const io = new IntersectionObserver(([entry]) => {
+    onScreen = entry?.isIntersecting ?? true
+    wake()
+  })
+  io.observe(canvas)
+  const onVisibility = () => wake()
+  document.addEventListener("visibilitychange", onVisibility)
+  const onTheme = () => wake()
+  const mo = new MutationObserver(onTheme)
+  mo.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class", "data-theme"],
+  })
+  const mqDark = window.matchMedia("(prefers-color-scheme: dark)")
+  mqDark.addEventListener("change", onTheme)
+
+  // Without preventDefault() the browser never restores a lost context.
+  const onContextLost = (e: Event) => {
+    e.preventDefault()
+    lost = true
+    cancelAnimationFrame(raf)
+    raf = 0
+  }
+  // Every GL object died with the old context, so rebuild them all and
+  // restart the fluid empty. If that fails, stay quietly blank.
+  const onContextRestored = () => {
+    if (destroyed || !initGl()) return
+    lost = false
+    mouse.moved = false
+    mouse.dx = 0
+    mouse.dy = 0
+    wake()
+  }
+  canvas.addEventListener("webglcontextlost", onContextLost)
+  canvas.addEventListener("webglcontextrestored", onContextRestored)
+
+  wake()
 
   return {
     setOptions(next) {
       options = { ...options, ...next }
+      wake()
     },
     destroy() {
-      running = false
+      destroyed = true
       cancelAnimationFrame(raf)
+      raf = 0
       ro.disconnect()
+      io.disconnect()
+      mo.disconnect()
+      document.removeEventListener("visibilitychange", onVisibility)
       mqReduce.removeEventListener("change", onReduce)
+      mqDark.removeEventListener("change", onTheme)
       window.removeEventListener("pointermove", onPointer)
       parentEl?.removeEventListener("pointerleave", onLeave)
+      canvas.removeEventListener("webglcontextlost", onContextLost)
+      canvas.removeEventListener("webglcontextrestored", onContextRestored)
       gl.deleteProgram(splat.program)
       gl.deleteProgram(advect.program)
       gl.deleteProgram(divergence.program)
@@ -852,6 +965,13 @@ export function createAsciiFluid(
         gl.deleteTexture(f.tex)
         gl.deleteFramebuffer(f.fbo)
       }
+      // Free the GPU context once the canvas has left the page; browsers cap
+      // live contexts at about 16. A canvas still in the page (a React
+      // Strict Mode replay) keeps it, so a new engine can reuse it.
+      const lose = gl.getExtension("WEBGL_lose_context")
+      queueMicrotask(() => {
+        if (!canvas.isConnected && !gl.isContextLost()) lose?.loseContext()
+      })
     },
   }
 }

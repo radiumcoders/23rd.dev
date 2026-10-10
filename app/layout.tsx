@@ -1,8 +1,4 @@
-import {
-  Bricolage_Grotesque,
-  Hanken_Grotesk,
-  Martian_Mono,
-} from "next/font/google"
+import { Geist, Geist_Mono } from "next/font/google"
 import { RootProvider } from "fumadocs-ui/provider/next"
 import type { Metadata, Viewport } from "next"
 import type { ReactNode } from "react"
@@ -50,7 +46,7 @@ export const metadata: Metadata = {
     telephone: false,
   },
   alternates: {
-    canonical: "/docs",
+    canonical: "/",
     types: {
       "text/plain": "/llms.txt",
     },
@@ -69,7 +65,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "/docs",
+    url: "/",
     siteName: SITE_NAME,
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
@@ -107,20 +103,9 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 }
 
-const fontSans = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-sans" })
+const fontSans = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
-const fontMono = Martian_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-  axes: ["wdth"],
-})
-
-/** Display face for component names. */
-const fontDisplay = Bricolage_Grotesque({
-  subsets: ["latin"],
-  variable: "--font-display",
-  axes: ["opsz"],
-})
+const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 export default function RootLayout({
   children,
@@ -138,8 +123,7 @@ export default function RootLayout({
       className={cn(
         "font-sans antialiased",
         fontSans.variable,
-        fontMono.variable,
-        fontDisplay.variable
+        fontMono.variable
       )}
     >
       <head>

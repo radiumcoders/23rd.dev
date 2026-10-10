@@ -2,7 +2,7 @@
 </script>
 
 <script lang="ts">
-  import { onMount } from "svelte"
+  import { onMount, untrack } from "svelte"
   import {
     CLOSE_PATHS,
     clamp,
@@ -45,8 +45,11 @@
   let wheelEl: HTMLDivElement | undefined = $state()
   let alphaEl: HTMLDivElement | undefined = $state()
   let open = $state(false)
-  let uncontrolled = $state(parseColor(defaultValue ?? value))
-  let hexDraft = $state(toHex(parseColor(defaultValue ?? value)))
+  // Seeded once from the initial props; later `value` changes go through
+  // `color` below.
+  const initial = untrack(() => parseColor(defaultValue ?? value))
+  let uncontrolled = $state(initial)
+  let hexDraft = $state(toHex(initial))
   let hexFocused = false
   let supportsEyeDropper = $state(false)
 
@@ -103,23 +106,31 @@
       const target = event.currentTarget
       if (!(target instanceof HTMLElement)) return
       const el: HTMLElement = target
-      el.setPointerCapture(event.pointerId)
+      const pointerId = event.pointerId
+      el.setPointerCapture(pointerId)
       onMove(event.clientX, event.clientY)
 
       function move(e: PointerEvent) {
-        onMove(e.clientX, e.clientY)
+        if (e.pointerId === pointerId) onMove(e.clientX, e.clientY)
       }
-      function up(e: PointerEvent) {
+      // A drag ends on release, on a cancelled touch, or when capture is
+      // lost, which is also what happens if the picker unmounts mid-drag.
+      function end(e: PointerEvent) {
+        if (e.pointerId !== pointerId) return
         window.removeEventListener("pointermove", move)
-        window.removeEventListener("pointerup", up)
+        window.removeEventListener("pointerup", end)
+        window.removeEventListener("pointercancel", end)
+        document.removeEventListener("lostpointercapture", end, true)
         try {
-          el.releasePointerCapture(e.pointerId)
+          el.releasePointerCapture(pointerId)
         } catch {
           // ignore
         }
       }
       window.addEventListener("pointermove", move)
-      window.addEventListener("pointerup", up)
+      window.addEventListener("pointerup", end)
+      window.addEventListener("pointercancel", end)
+      document.addEventListener("lostpointercapture", end, true)
     }
   }
 
@@ -166,7 +177,7 @@
       const { sRGBHex } = await new Ctor().open()
       applyColor({ ...parseColor(sRGBHex), a: color.a })
     } catch {
-      // user dismissed the eyedropper — no-op
+      // user dismissed the eyedropper; no-op
     }
   }
 

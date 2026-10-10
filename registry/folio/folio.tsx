@@ -19,7 +19,7 @@ export type FolioProps = FolioRuntimeOptions & {
   children?: ReactNode
   /**
    * Bind to the window and tilt `contentSelector` instead of wrapping
-   * children. Default `false` — this component *is* the scroller.
+   * children. Default `false`; this component *is* the scroller.
    */
   windowScroll?: boolean
   /**

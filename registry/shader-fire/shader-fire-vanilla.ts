@@ -29,9 +29,9 @@ export type ShaderFireInstance = {
   destroy: () => void
 }
 
-/** Warm ink on paper — sienna / amber / dusty peach */
+/** Warm ink on paper: sienna / amber / dusty peach */
 export const LIGHT_COLORS = ["#9C3A24", "#C96A32", "#E6C4A0"]
-/** Visible coals on slate — ember / flame / highlight */
+/** Visible coals on slate: ember / flame / highlight */
 export const DARK_COLORS = ["#A33A18", "#D4682A", "#E8B45A"]
 
 export const LIGHT_FALLBACK = {
@@ -126,11 +126,11 @@ float bayer8(vec2 p) {
 float fireField(vec2 uv, float aspect, float t) {
   float climb = mix(0.22, 0.82, clamp(u_height, 0.0, 1.0));
 
-  // Column space — sway as they rise
+  // Column space: sway as they rise
   vec2 q = vec2(uv.x * aspect * 1.85, uv.y * 1.55 - t * 0.48);
   q.x += sin(uv.y * 7.0 + t * 1.6) * 0.045 * (0.25 + uv.y);
 
-  // Two-pass domain warp — curling tongues, not blobs
+  // Two-pass domain warp: curling tongues, not blobs
   vec2 w1 = vec2(
     fbm(q * 1.7 + vec2(t * 0.28, t * 0.22)),
     fbm(q * 1.7 + vec2(-t * 0.24, t * 0.31) + 5.2)
@@ -189,7 +189,7 @@ void main() {
   vec3 paper = u_dark < 0.5
     ? vec3(0.992, 0.986, 0.978)
     : vec3(0.03, 0.032, 0.042);
-  // Light: watercolor on paper — more air, less orange stain
+  // Light: watercolor on paper, more air, less orange stain
   float cover = u_dither > 0.5
     ? field
     : field * (u_dark < 0.5 ? 0.68 : 0.84);
@@ -262,8 +262,10 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
 }
 
 /**
- * Sparse 2D fire wash — tongues rise from the bottom behind UI.
- * Theme-aware light / dusk.
+ * Sparse 2D fire wash: tongues rise from the bottom behind UI.
+ * Theme-aware light / dusk. Pauses while off screen or in a hidden tab, and
+ * holds a still frame under `prefers-reduced-motion`. Recovers from a lost
+ * WebGL context.
  */
 export function createShaderFire(
   canvas: HTMLCanvasElement,
@@ -294,7 +296,6 @@ export function createShaderFire(
 
   const mouse = { x: 0.5, y: 0.12 }
   const targetMouse = { x: 0.5, y: 0.12 }
-  let reduce = false
   let dark = resolveDark(options.theme ?? "auto")
   options.onThemeChange?.(dark)
 
@@ -307,65 +308,90 @@ export function createShaderFire(
   })
   if (!gl) return null
 
-  const vs = compile(gl, gl.VERTEX_SHADER, VERT)
-  const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
-  if (!vs || !fs) {
-    if (vs) gl.deleteShader(vs)
-    if (fs) gl.deleteShader(fs)
-    return null
-  }
+  let vs: WebGLShader | null = null
+  let fs: WebGLShader | null = null
+  let program: WebGLProgram | null = null
+  let buf: WebGLBuffer | null = null
+  let uResolution: WebGLUniformLocation | null = null
+  let uTime: WebGLUniformLocation | null = null
+  let uSpeed: WebGLUniformLocation | null = null
+  let uIntensity: WebGLUniformLocation | null = null
+  let uHeight: WebGLUniformLocation | null = null
+  let uDark: WebGLUniformLocation | null = null
+  let uC1: WebGLUniformLocation | null = null
+  let uC2: WebGLUniformLocation | null = null
+  let uC3: WebGLUniformLocation | null = null
+  let uMouse: WebGLUniformLocation | null = null
+  let uDither: WebGLUniformLocation | null = null
+  let uPixelSize: WebGLUniformLocation | null = null
 
-  const program = gl.createProgram()
-  if (!program) {
-    gl.deleteShader(vs)
-    gl.deleteShader(fs)
-    return null
-  }
-  gl.attachShader(program, vs)
-  gl.attachShader(program, fs)
-  gl.linkProgram(program)
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    if (isDev()) {
-      console.warn(
-        "ShaderFire: program failed to link\n",
-        gl.getProgramInfoLog(program)
-      )
+  // Builds every GL resource. Runs at startup and again after a lost context
+  // is restored, since a restore hands back a blank context.
+  const initGl = () => {
+    vs = compile(gl, gl.VERTEX_SHADER, VERT)
+    fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
+    if (!vs || !fs) {
+      if (vs) gl.deleteShader(vs)
+      if (fs) gl.deleteShader(fs)
+      return false
     }
-    gl.deleteProgram(program)
-    gl.deleteShader(vs)
-    gl.deleteShader(fs)
-    return null
+
+    program = gl.createProgram()
+    if (!program) {
+      gl.deleteShader(vs)
+      gl.deleteShader(fs)
+      return false
+    }
+    gl.attachShader(program, vs)
+    gl.attachShader(program, fs)
+    gl.linkProgram(program)
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      if (isDev()) {
+        console.warn(
+          "ShaderFire: program failed to link\n",
+          gl.getProgramInfoLog(program)
+        )
+      }
+      gl.deleteProgram(program)
+      gl.deleteShader(vs)
+      gl.deleteShader(fs)
+      return false
+    }
+    gl.useProgram(program)
+
+    buf = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf)
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+      gl.STATIC_DRAW
+    )
+    const loc = gl.getAttribLocation(program, "a_position")
+    gl.enableVertexAttribArray(loc)
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
+
+    uResolution = gl.getUniformLocation(program, "u_resolution")
+    uTime = gl.getUniformLocation(program, "u_time")
+    uSpeed = gl.getUniformLocation(program, "u_speed")
+    uIntensity = gl.getUniformLocation(program, "u_intensity")
+    uHeight = gl.getUniformLocation(program, "u_height")
+    uDark = gl.getUniformLocation(program, "u_dark")
+    uC1 = gl.getUniformLocation(program, "u_c1")
+    uC2 = gl.getUniformLocation(program, "u_c2")
+    uC3 = gl.getUniformLocation(program, "u_c3")
+    uMouse = gl.getUniformLocation(program, "u_mouse")
+    uDither = gl.getUniformLocation(program, "u_dither")
+    uPixelSize = gl.getUniformLocation(program, "u_pixelSize")
+    return true
   }
-  gl.useProgram(program)
-
-  const buf = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf)
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-    gl.STATIC_DRAW
-  )
-  const loc = gl.getAttribLocation(program, "a_position")
-  gl.enableVertexAttribArray(loc)
-  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
-
-  const uResolution = gl.getUniformLocation(program, "u_resolution")
-  const uTime = gl.getUniformLocation(program, "u_time")
-  const uSpeed = gl.getUniformLocation(program, "u_speed")
-  const uIntensity = gl.getUniformLocation(program, "u_intensity")
-  const uHeight = gl.getUniformLocation(program, "u_height")
-  const uDark = gl.getUniformLocation(program, "u_dark")
-  const uC1 = gl.getUniformLocation(program, "u_c1")
-  const uC2 = gl.getUniformLocation(program, "u_c2")
-  const uC3 = gl.getUniformLocation(program, "u_c3")
-  const uMouse = gl.getUniformLocation(program, "u_mouse")
-  const uDither = gl.getUniformLocation(program, "u_dither")
-  const uPixelSize = gl.getUniformLocation(program, "u_pixelSize")
+  if (!initGl()) return null
 
   let raf = 0
-  let running = true
-  const start = performance.now()
-  let frozenTime = 0
+  let destroyed = false
+  let lost = false
+  let onScreen = true
+  let last = 0
+  let clock = 0
 
   const resize = () => {
     const parent = canvas.parentElement
@@ -378,25 +404,34 @@ export function createShaderFire(
     canvas.height = Math.max(1, Math.floor(h * dpr))
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
-    gl.viewport(0, 0, canvas.width, canvas.height)
+    if (!lost) gl.viewport(0, 0, canvas.width, canvas.height)
+    wake()
   }
-
-  resize()
-  const ro = new ResizeObserver(resize)
-  if (canvas.parentElement) ro.observe(canvas.parentElement)
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
-  const onReduce = () => {
-    reduce = mqReduce.matches
-  }
-  onReduce()
+  const onReduce = () => wake()
   mqReduce.addEventListener("change", onReduce)
+
+  const moving = () =>
+    onScreen && !mqReduce.matches && document.visibilityState !== "hidden"
+  // The pointer's heat spot eases in, so a still frame redraws until it lands.
+  const settling = () =>
+    !!options.interactive &&
+    (Math.abs(targetMouse.x - mouse.x) > 0.001 ||
+      Math.abs(targetMouse.y - mouse.y) > 0.001)
+
+  function wake() {
+    if (raf || destroyed || lost) return
+    last = performance.now()
+    raf = requestAnimationFrame(tick)
+  }
 
   const syncTheme = () => {
     const next = resolveDark(options.theme ?? "auto")
     if (next === dark) return
     dark = next
     options.onThemeChange?.(dark)
+    wake()
   }
   const mo = new MutationObserver(syncTheme)
   mo.observe(document.documentElement, {
@@ -414,19 +449,20 @@ export function createShaderFire(
     if (rect.width <= 0 || rect.height <= 0) return
     targetMouse.x = (e.clientX - rect.left) / rect.width
     targetMouse.y = 1 - (e.clientY - rect.top) / rect.height
+    if (onScreen) wake()
   }
   window.addEventListener("pointermove", onMove, { passive: true })
 
+  // An arrow, not a declaration, so TypeScript keeps `gl` narrowed inside.
   const tick = (now: number) => {
-    if (!running) return
+    raf = 0
+    if (destroyed || lost) return
+    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000))
+    last = now
+    const live = moving()
+    // Only advances while animating, so the flame resumes where it paused.
+    if (live) clock += dt
 
-    if (reduce) {
-      if (frozenTime === 0) frozenTime = (now - start) / 1000
-    } else {
-      frozenTime = 0
-    }
-
-    const time = reduce ? frozenTime : (now - start) / 1000
     const paletteSrc = options.colors ?? (dark ? DARK_COLORS : LIGHT_COLORS)
     const palette = [0, 1, 2].map((i) =>
       hexToRgb(paletteSrc[i % paletteSrc.length] ?? LIGHT_COLORS[i]!)
@@ -439,8 +475,8 @@ export function createShaderFire(
     const px = Math.max(1, options.pixelSize ?? 1) * dpr
 
     gl.uniform2f(uResolution, canvas.width, canvas.height)
-    gl.uniform1f(uTime, time)
-    gl.uniform1f(uSpeed, reduce ? 0 : (options.speed ?? 0.55))
+    gl.uniform1f(uTime, clock)
+    gl.uniform1f(uSpeed, options.speed ?? 0.55)
     gl.uniform1f(uIntensity, Math.min(1, Math.max(0, options.intensity ?? 0.55)))
     gl.uniform1f(uHeight, Math.min(1, Math.max(0, options.height ?? 0.45)))
     gl.uniform1f(uDark, dark ? 1 : 0)
@@ -456,28 +492,68 @@ export function createShaderFire(
     )
 
     gl.drawArrays(gl.TRIANGLES, 0, 6)
-    raf = requestAnimationFrame(tick)
+    if (live || (onScreen && settling())) raf = requestAnimationFrame(tick)
   }
 
-  raf = requestAnimationFrame(tick)
+  const ro = new ResizeObserver(resize)
+  if (canvas.parentElement) ro.observe(canvas.parentElement)
+  const io = new IntersectionObserver(([entry]) => {
+    onScreen = entry?.isIntersecting ?? true
+    wake()
+  })
+  io.observe(canvas)
+  const onVisibility = () => wake()
+  document.addEventListener("visibilitychange", onVisibility)
+
+  // Without preventDefault the browser never restores a lost context.
+  const onContextLost = (e: Event) => {
+    e.preventDefault()
+    lost = true
+    cancelAnimationFrame(raf)
+    raf = 0
+  }
+  const onContextRestored = () => {
+    if (destroyed || !initGl()) return
+    gl.viewport(0, 0, canvas.width, canvas.height)
+    lost = false
+    wake()
+  }
+  canvas.addEventListener("webglcontextlost", onContextLost)
+  canvas.addEventListener("webglcontextrestored", onContextRestored)
+
+  resize()
+  wake()
 
   return {
     setOptions(next) {
       options = { ...options, ...next }
       syncTheme()
+      wake()
     },
     destroy() {
-      running = false
+      destroyed = true
       cancelAnimationFrame(raf)
+      raf = 0
       ro.disconnect()
+      io.disconnect()
       mo.disconnect()
+      document.removeEventListener("visibilitychange", onVisibility)
       mqReduce.removeEventListener("change", onReduce)
       mqDark.removeEventListener("change", syncTheme)
       window.removeEventListener("pointermove", onMove)
+      canvas.removeEventListener("webglcontextlost", onContextLost)
+      canvas.removeEventListener("webglcontextrestored", onContextRestored)
       gl.deleteProgram(program)
       gl.deleteShader(vs)
       gl.deleteShader(fs)
       gl.deleteBuffer(buf)
+      // Free the GPU context once the canvas has left the page; browsers cap
+      // live contexts at about 16. A canvas still in the page (a React
+      // Strict Mode replay) keeps it, so a new engine can reuse it.
+      const lose = gl.getExtension("WEBGL_lose_context")
+      queueMicrotask(() => {
+        if (!canvas.isConnected && !gl.isContextLost()) lose?.loseContext()
+      })
     },
   }
 }

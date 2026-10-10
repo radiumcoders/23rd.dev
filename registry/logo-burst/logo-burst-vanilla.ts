@@ -41,9 +41,9 @@ export type LogoBurstInstance = {
   destroy: () => void
 }
 
-/** Bone filament — reads on slate / black */
+/** Bone filament, reads on slate / black */
 export const DARK_COLOR = "#D6D2CA"
-/** Ink filament — reads on paper / white */
+/** Ink filament, reads on paper / white */
 export const LIGHT_COLOR = "#3F3F46"
 /** @deprecated Use `DARK_COLOR` or omit `color` and set `theme`. */
 export const DEFAULT_COLOR = DARK_COLOR
@@ -248,7 +248,7 @@ function createTentacles(
 }
 
 /**
- * Hair-line tentacle burst — filaments explode from the center, then
+ * Hair-line tentacle burst: filaments explode from the center, then
  * keep a slow inhale. Transparent canvas over `bg-background`.
  */
 export function createLogoBurst(
@@ -298,6 +298,8 @@ export function createLogoBurst(
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    // Resizing clears the canvas, and a reduced-motion burst isn't looping.
+    paintStill()
   }
 
   resize()
@@ -306,8 +308,14 @@ export function createLogoBurst(
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
   const onReduce = () => {
+    const was = reduce
     reduce = mqReduce.matches
     if (reduce) settled = true
+    // Motion back on: restart the loop, which a reduced-motion paint ends.
+    if (was && !reduce && running) {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(paint)
+    }
   }
   onReduce()
   mqReduce.addEventListener("change", onReduce)
@@ -317,6 +325,7 @@ export function createLogoBurst(
     if (next === dark) return
     dark = next
     options.onThemeChange?.(dark)
+    paintStill()
   }
   const mo = new MutationObserver(syncTheme)
   mo.observe(document.documentElement, {
@@ -423,6 +432,13 @@ export function createLogoBurst(
     }
   }
 
+  /** Under reduced motion there is no loop, so redraw the settled frame. */
+  function paintStill() {
+    if (!reduce || !running) return
+    cancelAnimationFrame(raf)
+    raf = requestAnimationFrame(paint)
+  }
+
   raf = requestAnimationFrame(paint)
 
   const replay = () => {
@@ -471,9 +487,8 @@ export function createLogoBurst(
           particleRatioOf(options.particleRatio)
         )
         replay()
-      } else if (reduce) {
-        cancelAnimationFrame(raf)
-        raf = requestAnimationFrame(paint)
+      } else {
+        paintStill()
       }
     },
     replay,

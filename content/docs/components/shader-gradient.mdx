@@ -1,11 +1,9 @@
 ---
 title: Shader Gradient
-description: A grainy liquid gradient for landing heroes, empty states, and marketing sections — the palette flows under a film grain, follows the theme, and swirls around the pointer.
+description: A grainy, flowing WebGL gradient that follows the theme and swirls around the pointer.
 ---
 
-import { ShaderGradientDemo } from "@/registry/shader-gradient/shader-gradient-demo"
-
-Atmosphere behind a hero, wait screen, or empty state. Four colors flow through slow, warped noise — liquid bands that never read as a loop — and blend in OKLab, so neighbours stay clean instead of going muddy. A film grain sits on top (`grain`, 0–1), re-rolled at 24 fps like film. Some paper or ink breathes through so it never turns into wall-to-wall color. Peach, butter, sky and lilac on paper in light mode; blue, violet, magenta and coral on ink in dark. Press `d` to toggle.
+import { ShaderGradientDemo } from "@/components/demos"
 
 ## Preview
 
@@ -15,13 +13,13 @@ Atmosphere behind a hero, wait screen, or empty state. Four colors flow through 
 
 <CliCommand item="shader-gradient" />
 
-Or install straight from the public GitHub source registry:
+Or from the public GitHub registry:
 
 <CliCommand item="shader-gradient" github />
 
 ## Usage
 
-Pin it behind a relatively positioned section. Keep content in a later stacking context (`relative z-10`). Default `theme="auto"` follows shadcn / next-themes (`class` on `<html>`).
+Pin it behind a relatively positioned section, with content in `relative z-10`.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -76,7 +74,7 @@ export function Hero() {
   </FrameworkSvelte>
 </FrameworkCode>
 
-Force a palette if the parent theme should not drive it:
+Lock the theme:
 
 <FrameworkCode>
   <FrameworkReact>
@@ -97,12 +95,12 @@ Force a palette if the parent theme should not drive it:
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `colors` | `string[]` | theme palette — up to 4, cycled in order |
+| `colors` | `string[]` | theme palette, up to 4 |
 | `speed` | `number` | `0.14` |
-| `blur` | `number` | `0.7` — 0–1, broader and calmer bands |
-| `intensity` | `number` | `0.95` — 0–1, lower shows more paper / ink |
-| `grain` | `number` | `0.35` — 0–1 film grain, `0` for none |
-| `interactive` | `boolean` | `true` — the flow swirls around the pointer |
+| `blur` | `number` | `0.7`, 0–1 |
+| `intensity` | `number` | `0.95`, 0–1 |
+| `grain` | `number` | `0.35`, 0–1, `0` for none |
+| `interactive` | `boolean` | `true` |
 | `theme` | `"light" \| "dark" \| "auto"` | `auto` |
 | `className` | `string` | React only |
 | `class` | `string` | Svelte only |

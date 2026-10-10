@@ -6,7 +6,7 @@ export type FolioPlayDetail = {
   target?: string
   /** Nested scroller to drive. Omit for `window`. */
   scrollRoot?: HTMLElement | null
-  /** How long to hold the lean before springing back, in ms. Default `420`. */
+  /** How long to hold the lean before springing back, in ms. Default `720`. */
   holdMs?: number
 }
 
@@ -296,6 +296,8 @@ function ensureBlurVeil(plane: HTMLElement) {
   if (!veil) {
     if (getComputedStyle(plane).position === "static") {
       plane.style.position = "relative"
+      // Marked so destroy() only undoes a position it set itself.
+      plane.dataset.folioPositioned = ""
     }
     veil = document.createElement("div")
     veil.dataset.slot = "folio-blur-veil"
@@ -321,6 +323,7 @@ export function createFolio(options: {
 
   let reduced = false
   let playing = false
+  let destroyed = false
   let lastTop = readScrollTop(options.scroller)
   let lastTime = performance.now()
   let lastWheelAt = 0
@@ -571,7 +574,8 @@ export function createFolio(options: {
       await animateScroll(scroller, dest, Math.max(1400, hold + 700), signal)
       if (signal.aborted) {
         playing = false
-        applyReduce()
+        // Aborted by destroy(): leave the plane as destroy() reset it.
+        if (!destroyed) applyReduce()
         return
       }
       playing = false
@@ -592,6 +596,7 @@ export function createFolio(options: {
       paint(spring.get())
     },
     destroy() {
+      destroyed = true
       playing = false
       playAbort.current.abort()
       if (idleTimer) clearTimeout(idleTimer)
@@ -608,6 +613,10 @@ export function createFolio(options: {
       options.plane.style.willChange = ""
       options.plane.style.backfaceVisibility = ""
       options.plane.style.transformOrigin = ""
+      if ("folioPositioned" in options.plane.dataset) {
+        options.plane.style.position = ""
+        delete options.plane.dataset.folioPositioned
+      }
     },
   }
 }

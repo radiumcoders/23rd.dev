@@ -33,17 +33,17 @@
   </a>
 </p>
 
-**23rd** is an open-source [shadcn/ui](https://ui.shadcn.com) registry of tasteful, opinionated UI components. Copy what you need, paste into your app, and ship — without fighting a kitchen-sink design system.
+**23rd** is an open-source [shadcn/ui](https://ui.shadcn.com) registry of tasteful, opinionated UI components. Copy what you need, paste into your app, and ship, without fighting a kitchen-sink design system.
 
 Site: [23rd.dev](https://23rd.dev) · Docs: [23rd.dev/docs](https://23rd.dev/docs)
 
 ## Why 23rd
 
-Most kits hand you every option. 23rd picks a direction: spacing, motion, and interaction patterns that already feel finished. You can still override anything — you just start from a sharper baseline.
+Most kits hand you every option. 23rd picks a direction: spacing, motion, and interaction patterns that already feel finished. You can still override anything; you just start from a sharper baseline.
 
-- **shadcn-native** — install with the CLI, own the source in your repo
-- **Opinionated defaults** — less boilerplate, clearer decisions
-- **React and Svelte 5** — every published registry item ships for both; pick a framework on the install command
+- **shadcn-native**: install with the CLI, own the source in your repo
+- **Opinionated defaults**: less boilerplate, clearer decisions
+- **React and Svelte 5**: every published registry item ships for both; pick a framework on the install command
 
 ## Quick start
 
@@ -85,20 +85,24 @@ npx skills add radiumcoders/23rd.dev --skill 23rd -g
 
 ## Components
 
-| Component                                                                 | Install                    | Description                                                                        |
-| ------------------------------------------------------------------------- | -------------------------- | ---------------------------------------------------------------------------------- |
-| [ASCII Fluid](https://23rd.dev/docs/components/ascii-fluid)               | `@23rd/ascii-fluid`        | Mouse-trail WebGL fluid quantized to a clean ASCII brightness ramp                 |
-| [ASCII Logo](https://23rd.dev/docs/components/ascii-logo)                 | `@23rd/ascii-logo`         | Interactive ASCII wordmark — hover shove, then click to scatter, drop, and gather  |
-| [Gooey Color Picker](https://23rd.dev/docs/components/gooey-color-picker) | `@23rd/gooey-color-picker` | Floating swatch → hue wheel, alpha, hex — joined by an SVG gooey filter            |
-| [Logo Burst](https://23rd.dev/docs/components/logo-burst)                 | `@23rd/logo-burst`         | Hair-line tentacles explode from the center, then breathe — light and dark         |
-| [Phosphor Score](https://23rd.dev/docs/components/phosphor-score)         | `@23rd/phosphor-score`     | Vertical CRT sheet music — notes fall, bloom at the playhead, then exit in a flare |
-| [Radiant Lines](https://23rd.dev/docs/components/radiant-lines)           | `@23rd/radiant-lines`      | Hyperspace starfield background; warp speed driven by scroll                       |
-| [Shader Anime Fire](https://23rd.dev/docs/components/shader-anime-fire)               | `@23rd/shader-anime-fire`        | Cel-shaded flames licking up from the bottom of a landing hero                    |
-| [Shader Fire](https://23rd.dev/docs/components/shader-fire)               | `@23rd/shader-fire`        | Sparse 2D fire wash — tongues rise from the bottom behind a landing hero           |
-| [Shader Gradient](https://23rd.dev/docs/components/shader-gradient)       | `@23rd/shader-gradient`    | Quiet WebGL wash behind landing heroes, empty states, and marketing sections       |
-| [Shader Sky](https://23rd.dev/docs/components/shader-sky)                 | `@23rd/shader-sky`         | Clear blue or rain behind a hero — drifting clouds, optional window-glass film     |
-| [Stretchy Footer](https://23rd.dev/docs/components/stretchy-footer)       | `@23rd/stretchy-footer`    | Dia-style rubber overscroll; aurora stretches past the bottom, then snaps back     |
-| [Typewriter](https://23rd.dev/docs/components/typewriter)                 | `@23rd/typewriter`         | A playable typewriter in SVG — keys press, typebars strike, the carriage steps |
+| Component                                                                 | Install                    | Description                                                                           |
+| ------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------- |
+| [ASCII Fluid](https://23rd.dev/docs/components/ascii-fluid)               | `@23rd/ascii-fluid`        | Mouse-trail WebGL fluid quantized to a clean ASCII brightness ramp                    |
+| [ASCII Logo](https://23rd.dev/docs/components/ascii-logo)                 | `@23rd/ascii-logo`         | Interactive ASCII wordmark: hover shove, then click to scatter, drop, and gather      |
+| [Dithered 404](https://23rd.dev/docs/components/dithered-404)             | `@23rd/dithered-404`       | Bayer-pixel 404; a fireball cursor scorches it into embers and smoke, then it reforms |
+| [Folio](https://23rd.dev/docs/components/folio)                           | `@23rd/folio`              | The page leans back in perspective while you scroll, blurs, then springs flat         |
+| [Gooey Color Picker](https://23rd.dev/docs/components/gooey-color-picker) | `@23rd/gooey-color-picker` | Floating swatch → hue wheel, alpha, hex, joined by an SVG gooey filter                |
+| [Live Orb](https://23rd.dev/docs/components/live-orb)                     | `@23rd/live-orb`           | An evenly lit sphere with two capsule eyes that follow the pointer                    |
+| [Logo Burst](https://23rd.dev/docs/components/logo-burst)                 | `@23rd/logo-burst`         | Hair-line tentacles explode from the center, then breathe, light and dark             |
+| [Phosphor Score](https://23rd.dev/docs/components/phosphor-score)         | `@23rd/phosphor-score`     | Vertical CRT sheet music; notes fall, bloom at the playhead, then exit in a flare     |
+| [Radiant Lines](https://23rd.dev/docs/components/radiant-lines)           | `@23rd/radiant-lines`      | Hyperspace starfield background; warp speed driven by scroll                          |
+| [Shader Anime Fire](https://23rd.dev/docs/components/shader-anime-fire)   | `@23rd/shader-anime-fire`  | Cel-shaded flames licking up from the bottom of a landing hero                        |
+| [Shader Fire](https://23rd.dev/docs/components/shader-fire)               | `@23rd/shader-fire`        | Sparse 2D fire wash; tongues rise from the bottom behind a landing hero               |
+| [Shader Gradient](https://23rd.dev/docs/components/shader-gradient)       | `@23rd/shader-gradient`    | Quiet WebGL wash behind landing heroes, empty states, and marketing sections          |
+| [Shader Sky](https://23rd.dev/docs/components/shader-sky)                 | `@23rd/shader-sky`         | Clear blue or rain behind a hero; drifting clouds, optional window-glass film         |
+| [Shader Metal](https://23rd.dev/docs/components/shader-metal)             | `@23rd/shader-metal`       | Liquid chrome, gold, or copper ribbons; the key light follows the pointer             |
+| [Stretchy Footer](https://23rd.dev/docs/components/stretchy-footer)       | `@23rd/stretchy-footer`    | Dia-style rubber overscroll; aurora stretches past the bottom, then snaps back        |
+| [Typewriter](https://23rd.dev/docs/components/typewriter)                 | `@23rd/typewriter`         | A playable typewriter in SVG; keys press, typebars strike, the carriage steps         |
 
 ```tsx
 import { GooeyColorPicker } from "@/components/ui/gooey-color-picker"
@@ -140,13 +144,14 @@ Useful scripts:
 | Script                | What it does                                           |
 | --------------------- | ------------------------------------------------------ |
 | `pnpm dev`            | Next.js dev server                                     |
-| `pnpm build`          | Build registry + production app                        |
+| `pnpm build`          | Build registry, OG cards, and the production app       |
 | `pnpm preview`        | Build with OpenNext and preview in the Workers runtime |
 | `pnpm cf:deploy`      | Build with OpenNext and deploy to Cloudflare Workers   |
 | `pnpm cf:upload`      | Build with OpenNext and upload a preview version       |
 | `pnpm registry:build` | Emit `public/r/*.json` from `registry/`                |
-| `pnpm test`           | Run registry tests                                     |
+| `pnpm test`           | Registry, Svelte compile, OG, and sponsors tests       |
 | `pnpm typecheck`      | MDX + TypeScript check                                 |
+| `pnpm lint`           | ESLint                                                 |
 
 Stack: Next.js 16, React 19, Fumadocs, Tailwind CSS 4, shadcn/ui (Base UI), Cloudflare Workers (OpenNext).
 
@@ -194,7 +199,7 @@ You can do the same from the [Creem CLI](https://github.com/armitage-labs/homebr
 ```bash
 creem products create \
   --name "23rd Diamond" \
-  --description "Monthly Diamond sponsorship — logo, link, and release notes." \
+  --description "Monthly Diamond sponsorship: logo, link, and release notes." \
   --price 25000 \
   --currency USD \
   --billing-type recurring \

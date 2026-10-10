@@ -33,7 +33,7 @@ export type ShaderGradientInstance = {
 /** Peach, butter, sky and lilac, flowing over warm paper. */
 export const LIGHT_COLORS = ["#F7A48B", "#F9D78E", "#9FCBF0", "#BBA9EE"]
 /**
- * Blue, violet, magenta and coral over near-black ink — a narrow hue arc,
+ * Blue, violet, magenta and coral over near-black ink: a narrow hue arc,
  * so every blend on the cycle stays rich instead of passing through grey.
  */
 export const DARK_COLORS = ["#3D52F2", "#9150F2", "#E0479F", "#FF7B60"]
@@ -45,7 +45,7 @@ export const DEFAULT_BLUR = 0.7
 export const DEFAULT_INTENSITY = 0.95
 export const DEFAULT_GRAIN = 0.35
 
-/** Film grain for the CSS fallback — the same idea, as an SVG turbulence tile. */
+/** Film grain for the CSS fallback: the same idea, as an SVG turbulence tile. */
 const GRAIN_TILE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`
 
 function fallback(colors: string[], base: string) {
@@ -92,7 +92,7 @@ uniform vec3 u_c2;
 uniform vec3 u_c3;
 uniform vec3 u_base;
 
-// Dave Hoskins' hash — no sin(), so it stays stable on mobile GPUs.
+// Dave Hoskins' hash: no sin(), so it stays stable on mobile GPUs.
 float hash(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
   p3 += dot(p3, p3.yzx + 33.33);
@@ -289,6 +289,7 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
  * through slow domain-warped noise, blends in OKLab so neighbours never go
  * muddy, and carries a film grain. Theme-aware; pauses off-screen and in
  * hidden tabs; holds a still frame under `prefers-reduced-motion`.
+ * Recovers from a lost WebGL context.
  */
 export function createShaderGradient(
   canvas: HTMLCanvasElement,
@@ -317,60 +318,77 @@ export function createShaderGradient(
   })
   if (!gl) return null
 
-  const vs = compile(gl, gl.VERTEX_SHADER, VERT)
-  const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
-  if (!vs || !fs) {
-    if (vs) gl.deleteShader(vs)
-    if (fs) gl.deleteShader(fs)
-    return null
-  }
+  type Loc = WebGLUniformLocation | null
+  let vs: WebGLShader | null = null
+  let fs: WebGLShader | null = null
+  let program: WebGLProgram | null = null
+  let buf: WebGLBuffer | null = null
+  let uResolution: Loc, uTime: Loc, uBlur: Loc, uIntensity: Loc, uGrain: Loc
+  let uGrainSeed: Loc, uPixel: Loc, uPointer: Loc, uMouse: Loc, uBase: Loc
+  let uStops: Loc[] = []
 
-  const program = gl.createProgram()
-  if (!program) {
-    gl.deleteShader(vs)
-    gl.deleteShader(fs)
-    return null
-  }
-  gl.attachShader(program, vs)
-  gl.attachShader(program, fs)
-  gl.linkProgram(program)
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    if (isDev()) {
-      console.warn(
-        "ShaderGradient: program failed to link\n",
-        gl.getProgramInfoLog(program)
-      )
+  // Builds every GL resource. Runs at startup and again when the browser
+  // restores a lost context, since the old objects die with it.
+  const initGl = () => {
+    vs = compile(gl, gl.VERTEX_SHADER, VERT)
+    fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
+    if (!vs || !fs) {
+      if (vs) gl.deleteShader(vs)
+      if (fs) gl.deleteShader(fs)
+      return false
     }
-    gl.deleteProgram(program)
-    gl.deleteShader(vs)
-    gl.deleteShader(fs)
-    return null
+
+    program = gl.createProgram()
+    if (!program) {
+      gl.deleteShader(vs)
+      gl.deleteShader(fs)
+      return false
+    }
+    gl.attachShader(program, vs)
+    gl.attachShader(program, fs)
+    gl.linkProgram(program)
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      if (isDev()) {
+        console.warn(
+          "ShaderGradient: program failed to link\n",
+          gl.getProgramInfoLog(program)
+        )
+      }
+      gl.deleteProgram(program)
+      gl.deleteShader(vs)
+      gl.deleteShader(fs)
+      return false
+    }
+    gl.useProgram(program)
+
+    buf = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf)
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+      gl.STATIC_DRAW
+    )
+    const loc = gl.getAttribLocation(program, "a_position")
+    gl.enableVertexAttribArray(loc)
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
+    gl.viewport(0, 0, canvas.width, canvas.height)
+
+    const linked = program
+    const u = (name: string) => gl.getUniformLocation(linked, name)
+    uResolution = u("u_resolution")
+    uTime = u("u_time")
+    uBlur = u("u_blur")
+    uIntensity = u("u_intensity")
+    uGrain = u("u_grain")
+    uGrainSeed = u("u_grainSeed")
+    uPixel = u("u_pixel")
+    uPointer = u("u_pointer")
+    uMouse = u("u_mouse")
+    uStops = [u("u_c0"), u("u_c1"), u("u_c2"), u("u_c3")]
+    uBase = u("u_base")
+    return true
   }
-  gl.useProgram(program)
-
-  const buf = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf)
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-    gl.STATIC_DRAW
-  )
-  const loc = gl.getAttribLocation(program, "a_position")
-  gl.enableVertexAttribArray(loc)
-  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
-
-  const u = (name: string) => gl.getUniformLocation(program, name)
-  const uResolution = u("u_resolution")
-  const uTime = u("u_time")
-  const uBlur = u("u_blur")
-  const uIntensity = u("u_intensity")
-  const uGrain = u("u_grain")
-  const uGrainSeed = u("u_grainSeed")
-  const uPixel = u("u_pixel")
-  const uPointer = u("u_pointer")
-  const uMouse = u("u_mouse")
-  const uStops = [u("u_c0"), u("u_c1"), u("u_c2"), u("u_c3")]
-  const uBase = u("u_base")
+  if (!initGl()) return null
 
   // The gradient is soft enough that one sample per CSS pixel is plenty;
   // it also keeps the grain the same size on every screen.
@@ -409,6 +427,8 @@ export function createShaderGradient(
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
   let onScreen = true
   let raf = 0
+  let destroyed = false
+  let lost = false
   let last = 0
   let clock = 0
 
@@ -416,7 +436,8 @@ export function createShaderGradient(
     onScreen && !mqReduce.matches && document.visibilityState !== "hidden"
 
   function wake() {
-    if (raf) return
+    // An observer callback can still arrive after destroy.
+    if (raf || destroyed || lost) return
     last = performance.now()
     raf = requestAnimationFrame(tick)
   }
@@ -424,6 +445,7 @@ export function createShaderGradient(
   // An arrow, not a declaration, so TypeScript keeps `gl` narrowed inside.
   const tick = (now: number) => {
     raf = 0
+    if (lost) return
     const dt = Math.min(0.05, Math.max(0, (now - last) / 1000))
     last = now
     const live = moving()
@@ -452,6 +474,25 @@ export function createShaderGradient(
 
     if (live) raf = requestAnimationFrame(tick)
   }
+
+  // A GPU reset, a driver update or too many live contexts can drop ours.
+  // preventDefault asks the browser to restore it; until then gl is off limits.
+  const onLost = (e: Event) => {
+    e.preventDefault()
+    lost = true
+    cancelAnimationFrame(raf)
+    raf = 0
+    vs = fs = program = buf = null
+  }
+  const onRestored = () => {
+    if (destroyed || !initGl()) return
+    lost = false
+    // Uniforms reset with the context, so the colours go up again.
+    colorsKey = ""
+    wake()
+  }
+  canvas.addEventListener("webglcontextlost", onLost)
+  canvas.addEventListener("webglcontextrestored", onRestored)
 
   const ro = new ResizeObserver(resize)
   if (canvas.parentElement) ro.observe(canvas.parentElement)
@@ -505,6 +546,7 @@ export function createShaderGradient(
       wake()
     },
     destroy() {
+      destroyed = true
       cancelAnimationFrame(raf)
       raf = 0
       ro.disconnect()
@@ -514,10 +556,19 @@ export function createShaderGradient(
       mqReduce.removeEventListener("change", onReduce)
       mqDark.removeEventListener("change", syncTheme)
       window.removeEventListener("pointermove", onMove)
+      canvas.removeEventListener("webglcontextlost", onLost)
+      canvas.removeEventListener("webglcontextrestored", onRestored)
       gl.deleteProgram(program)
       gl.deleteShader(vs)
       gl.deleteShader(fs)
       gl.deleteBuffer(buf)
+      // Free the GPU context once the canvas has left the page; browsers cap
+      // live contexts at about 16. A canvas still in the page (a React
+      // Strict Mode replay) keeps it, so a new engine can reuse it.
+      const lose = gl.getExtension("WEBGL_lose_context")
+      queueMicrotask(() => {
+        if (!canvas.isConnected && !gl.isContextLost()) lose?.loseContext()
+      })
     },
   }
 }

@@ -1,11 +1,9 @@
 ---
 title: ASCII Logo
-description: An interactive ASCII wordmark — glyphs shove away from the cursor, then scatter, fall, and gather back on click.
+description: An ASCII wordmark that dodges the cursor and scatters, falls, and regroups on click.
 ---
 
-import { AsciiLogoDemo } from "@/registry/ascii-logo/ascii-logo-demo"
-
-A logo sampled onto a grid of letters and numbers. Move over it and the characters drift aside. Click to scatter them, click again to drop them under gravity, click once more to gather them back. Theme-aware. Press `d` to toggle theme.
+import { AsciiLogoDemo } from "@/components/demos"
 
 ## Preview
 
@@ -15,13 +13,13 @@ A logo sampled onto a grid of letters and numbers. Move over it and the characte
 
 <CliCommand item="ascii-logo" />
 
-Or install straight from the public GitHub source registry:
+Or from the public GitHub registry:
 
 <CliCommand item="ascii-logo" github />
 
 ## Usage
 
-Place it in a sized container. The canvas fills the parent.
+Give the parent a size; the canvas fills it.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -52,9 +50,7 @@ export function FooterMark() {
   </FrameworkSvelte>
 </FrameworkCode>
 
-`text` is limited to 5 letters. Extra characters are dropped.
-
-Pass `src` to sample an image instead of text — any raster, or a same-origin SVG.
+`text` takes up to 5 letters. Pass `src` to sample an image instead (any raster, or a same-origin SVG).
 
 <FrameworkCode>
   <FrameworkReact>
@@ -69,14 +65,14 @@ Pass `src` to sample an image instead of text — any raster, or a same-origin S
   </FrameworkSvelte>
 </FrameworkCode>
 
-Clicks cycle `logo → scattered → fallen → returning → logo`. Hover repulsion only runs in the resting `logo` phase.
+Clicks cycle `logo → scattered → fallen → returning → logo`.
 
 ## Props
 
 | Prop              | Type                          | Default                         |
 | ----------------- | ----------------------------- | ------------------------------- |
 | `text`            | `string`                      | `"23rd"` (max 5 letters)        |
-| `src`             | `string`                      | —                               |
+| `src`             | `string`                      | none                               |
 | `fit`             | `number`                      | `0.82`                          |
 | `cellSize`        | `number`                      | `11`                            |
 | `cellGap`         | `number`                      | `2`                             |
@@ -97,6 +93,6 @@ Clicks cycle `logo → scattered → fallen → returning → logo`. Hover repul
 | `interactive`     | `boolean`                     | `true`                          |
 | `theme`           | `"light" \| "dark" \| "auto"` | `auto`                          |
 | `label`           | `string`                      | `text` or `"ASCII logo"`        |
-| `onPhaseChange`   | `(phase) => void`             | —                               |
+| `onPhaseChange`   | `(phase) => void`             | none                               |
 | `className`       | `string`                      | React only                      |
 | `class`           | `string`                      | Svelte only                     |

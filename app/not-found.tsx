@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 
 import { buttonVariants } from "@/components/ui/button"
+import { DOCS_HOME } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
@@ -23,7 +24,7 @@ export default function NotFound() {
           This page could not be found. It might have been moved or deleted.
         </p>
         <Link
-          href="/docs"
+          href={DOCS_HOME}
           className={cn(buttonVariants({ variant: "default" }))}
         >
           Back to docs

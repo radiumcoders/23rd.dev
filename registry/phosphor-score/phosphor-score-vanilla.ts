@@ -51,9 +51,9 @@ export const DARK_COLOR = "#4DFF6A"
 export const LIGHT_COLOR = "#147A3A"
 /** @deprecated Use `DARK_COLOR` or omit `color` and set `theme`. */
 export const DEFAULT_COLOR = DARK_COLOR
-/** Transparent in both themes — the parent's background shows through. */
+/** Transparent in both themes; the parent's background shows through. */
 export const DARK_BG = "transparent"
-/** Transparent in both themes — the parent's background shows through. */
+/** Transparent in both themes; the parent's background shows through. */
 export const LIGHT_BG = "transparent"
 export const DEFAULT_GLOW = 50
 export const DEFAULT_SPEED = 1.35
@@ -482,7 +482,7 @@ function makeView(
 
   // The screen, less whatever lies beyond FAR_SCALE, traced back onto the
   // plane. Along a ray through screen point (u, v) the plane is hit at
-  // t = m22·cam / (m22·cam − m02·u − m12·v), with depth scale 1 / t — so
+  // t = m22·cam / (m22·cam − m02·u − m12·v), with depth scale 1 / t, so
   // "not too far" is a straight line on screen and clips the rectangle.
   const [m02, m12, m22] = [m[2]!, m[5]!, m[8]!]
   const far = (u: number, v: number) =>
@@ -670,7 +670,7 @@ export function createPhosphorScore(
     if (animate) raf = requestAnimationFrame(tick)
   }
 
-  /** Every note whose time was crossed since the last frame flares once — no frame can skip one. */
+  /** Every note whose time was crossed since the last frame flares once; no frame can skip one. */
   function spawnFlares(from: number, to: number) {
     const span = wrapDelta(to, from)
     if (span <= 0) return
@@ -1136,7 +1136,7 @@ export function createPhosphorScore(
     ctx!.globalCompositeOperation = "source-over"
   }
 
-  /** Top and bottom fade into the background — in the canvas, so it costs nothing and blurs nothing. */
+  /** Top and bottom fade into the background, in the canvas, so it costs nothing and blurs nothing. */
   function drawEdgeFade(w: number, h: number) {
     const f = h * EDGE_FADE
     // Erase toward the edges rather than paint over them, so the fade

@@ -4,6 +4,9 @@
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-08-06",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  // esbuild's keep_names adds __name() calls, which break functions that are
+  // serialized into inline scripts (next-themes' anti-flash script).
+  "keep_names": false,
   "preview_urls": true,
   "assets": {
     "directory": ".open-next/assets",

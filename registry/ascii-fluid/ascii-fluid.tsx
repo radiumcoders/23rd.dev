@@ -23,7 +23,7 @@ export type AsciiFluidProps = AsciiFluidOptions & {
 }
 
 /**
- * ASCII fluid background — pointer trails leave ink that swirls and
+ * ASCII fluid background: pointer trails leave ink that swirls and
  * quantizes to a clean brightness-mapped glyph field. Zero deps.
  */
 export function AsciiFluid({

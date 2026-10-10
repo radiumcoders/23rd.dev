@@ -1,11 +1,9 @@
 ---
 title: Shader Sky
-description: A WebGL sky for landing heroes — clear blue with drifting clouds in light, storm gray in dark, optional window-glass film.
+description: "A WebGL sky with drifting clouds: clear blue in light mode, stormy in dark."
 ---
 
-import { ShaderSkyDemo } from "@/registry/shader-sky/shader-sky-demo"
-
-Not a stock photo. Use it as weather behind a hero so light and dark already feel like a forecast. Open blue in light; a gray storm ceiling in dark. Clouds sit on a deck that recedes to the horizon — big and sunlit overhead, small and hazy far off — and drift toward you, catching light on the sun side with sky-blue shade on the other. Toggle **Lightning** for storm flashes inside the clouds, or **Glass** for a transparent window film. Press `d` to switch theme. Turn on **Copy** to drop a headline over the sky.
+import { ShaderSkyDemo } from "@/components/demos"
 
 ## Preview
 
@@ -15,13 +13,13 @@ Not a stock photo. Use it as weather behind a hero so light and dark already fee
 
 <CliCommand item="shader-sky" />
 
-Or install straight from the public GitHub source registry:
+Or from the public GitHub registry:
 
 <CliCommand item="shader-sky" github />
 
 ## Usage
 
-Pin it behind a relatively positioned section. Keep content in a later stacking context (`relative z-10`). Default `theme="auto"` follows shadcn / next-themes (`class` on `<html>`), so the site theme _is_ the weather: light = clear, dark = rain.
+Pin it behind a relatively positioned section, with content in `relative z-10`.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -74,7 +72,7 @@ export function Hero() {
   </FrameworkSvelte>
 </FrameworkCode>
 
-Force a forecast if the parent theme should not drive it:
+Lock the weather:
 
 <FrameworkCode>
   <FrameworkReact>
@@ -91,7 +89,7 @@ Force a forecast if the parent theme should not drive it:
   </FrameworkSvelte>
 </FrameworkCode>
 
-See the same sky through window glass — a transparent dotted film, sky still moving underneath:
+Window glass, a dotted film over the sky:
 
 <FrameworkCode>
   <FrameworkReact>
@@ -106,7 +104,7 @@ See the same sky through window glass — a transparent dotted film, sky still m
   </FrameworkSvelte>
 </FrameworkCode>
 
-Let the storm flash. Strikes light the clouds from inside every few seconds and stop under reduced motion:
+Lightning flashes inside the clouds:
 
 <FrameworkCode>
   <FrameworkReact>
@@ -121,7 +119,7 @@ Let the storm flash. Strikes light the clouds from inside every few seconds and 
   </FrameworkSvelte>
 </FrameworkCode>
 
-Fewer, smaller clouds with a mix of sizes:
+Fewer, smaller clouds:
 
 <FrameworkCode>
   <FrameworkReact>

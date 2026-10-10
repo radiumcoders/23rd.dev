@@ -32,7 +32,7 @@ export type ShaderAnimeFireInstance = {
   destroy: () => void
 }
 
-/** Brick, flame orange and marigold — saturated enough to hold on paper. */
+/** Brick, flame orange and marigold, saturated enough to hold on paper. */
 export const LIGHT_COLORS = ["#D8341A", "#F9731E", "#FFBA3A"]
 /** Deep ember, flame and gold; the tonemap carries the core to white-hot. */
 export const DARK_COLORS = ["#B4200A", "#FF6512", "#FFC04A"]
@@ -86,7 +86,7 @@ uniform vec3 u_c1;
 uniform vec3 u_c2;
 uniform vec3 u_base;
 
-// Dave Hoskins' hash — no sin(), so it stays stable on mobile GPUs.
+// Dave Hoskins' hash: no sin(), so it stays stable on mobile GPUs.
 float hash(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
   p3 += dot(p3, p3.yzx + 33.33);
@@ -294,7 +294,7 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
  * A wall of cel-shaded fire along the bottom edge: turbulent tongues in
  * flat bands of heat over a warm, flickering glow. Theme-aware; pauses
  * off-screen and in hidden tabs; holds a still frame under
- * `prefers-reduced-motion`.
+ * `prefers-reduced-motion`. Recovers from a lost WebGL context.
  */
 export function createShaderAnimeFire(
   canvas: HTMLCanvasElement,
@@ -323,63 +323,88 @@ export function createShaderAnimeFire(
   })
   if (!gl) return null
 
-  const vs = compile(gl, gl.VERTEX_SHADER, VERT)
-  const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
-  if (!vs || !fs) {
-    if (vs) gl.deleteShader(vs)
-    if (fs) gl.deleteShader(fs)
-    return null
-  }
+  // GL resources, made by initGl at startup and again when a lost context
+  // is restored.
+  type Loc = WebGLUniformLocation | null
+  let vs: WebGLShader | null = null
+  let fs: WebGLShader | null = null
+  let program: WebGLProgram | null = null
+  let buf: WebGLBuffer | null = null
+  let uResolution: Loc = null
+  let uTime: Loc = null
+  let uIntensity: Loc = null
+  let uHeight: Loc = null
+  let uIgnite: Loc = null
+  let uDark: Loc = null
+  let uDither: Loc = null
+  let uPixel: Loc = null
+  let uPointer: Loc = null
+  let uMouse: Loc = null
+  let uStops: Loc[] = []
+  let uBase: Loc = null
 
-  const program = gl.createProgram()
-  if (!program) {
-    gl.deleteShader(vs)
-    gl.deleteShader(fs)
-    return null
-  }
-  gl.attachShader(program, vs)
-  gl.attachShader(program, fs)
-  gl.linkProgram(program)
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    if (isDev()) {
-      console.warn(
-        "ShaderAnimeFire: program failed to link\n",
-        gl.getProgramInfoLog(program)
-      )
+  const initGl = () => {
+    vs = compile(gl, gl.VERTEX_SHADER, VERT)
+    fs = compile(gl, gl.FRAGMENT_SHADER, FRAG)
+    if (!vs || !fs) {
+      if (vs) gl.deleteShader(vs)
+      if (fs) gl.deleteShader(fs)
+      return false
     }
-    gl.deleteProgram(program)
-    gl.deleteShader(vs)
-    gl.deleteShader(fs)
-    return null
+
+    const linked = gl.createProgram()
+    if (!linked) {
+      gl.deleteShader(vs)
+      gl.deleteShader(fs)
+      return false
+    }
+    program = linked
+    gl.attachShader(linked, vs)
+    gl.attachShader(linked, fs)
+    gl.linkProgram(linked)
+    if (!gl.getProgramParameter(linked, gl.LINK_STATUS)) {
+      if (isDev()) {
+        console.warn(
+          "ShaderAnimeFire: program failed to link\n",
+          gl.getProgramInfoLog(linked)
+        )
+      }
+      gl.deleteProgram(linked)
+      gl.deleteShader(vs)
+      gl.deleteShader(fs)
+      return false
+    }
+    gl.useProgram(linked)
+
+    buf = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf)
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+      gl.STATIC_DRAW
+    )
+    const loc = gl.getAttribLocation(linked, "a_position")
+    gl.enableVertexAttribArray(loc)
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
+
+    const u = (name: string) => gl.getUniformLocation(linked, name)
+    uResolution = u("u_resolution")
+    uTime = u("u_time")
+    uIntensity = u("u_intensity")
+    uHeight = u("u_height")
+    uIgnite = u("u_ignite")
+    uDark = u("u_dark")
+    uDither = u("u_dither")
+    uPixel = u("u_pixel")
+    uPointer = u("u_pointer")
+    uMouse = u("u_mouse")
+    uStops = [u("u_c0"), u("u_c1"), u("u_c2")]
+    uBase = u("u_base")
+    return true
   }
-  gl.useProgram(program)
+  if (!initGl()) return null
 
-  const buf = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf)
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-    gl.STATIC_DRAW
-  )
-  const loc = gl.getAttribLocation(program, "a_position")
-  gl.enableVertexAttribArray(loc)
-  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
-
-  const u = (name: string) => gl.getUniformLocation(program, name)
-  const uResolution = u("u_resolution")
-  const uTime = u("u_time")
-  const uIntensity = u("u_intensity")
-  const uHeight = u("u_height")
-  const uIgnite = u("u_ignite")
-  const uDark = u("u_dark")
-  const uDither = u("u_dither")
-  const uPixel = u("u_pixel")
-  const uPointer = u("u_pointer")
-  const uMouse = u("u_mouse")
-  const uStops = [u("u_c0"), u("u_c1"), u("u_c2")]
-  const uBase = u("u_base")
-
-  // Flame edges are crisp, so render a bit past 1x — but not a full 2x,
+  // Flame edges are crisp, so render a bit past 1x, but not a full 2x,
   // which would quadruple the fbm work on retina screens.
   let dpr = 1
   const resize = () => {
@@ -393,7 +418,7 @@ export function createShaderAnimeFire(
     canvas.height = Math.max(1, Math.floor(h * dpr))
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
-    gl.viewport(0, 0, canvas.width, canvas.height)
+    if (!lost) gl.viewport(0, 0, canvas.width, canvas.height)
     wake()
   }
 
@@ -416,6 +441,9 @@ export function createShaderAnimeFire(
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
   let onScreen = true
   let raf = 0
+  let destroyed = false
+  // Set while the browser has taken the WebGL context away.
+  let lost = false
   let last = 0
   let clock = 0
   // Seconds since the fire first caught; drives the ignite.
@@ -425,7 +453,8 @@ export function createShaderAnimeFire(
     onScreen && !mqReduce.matches && document.visibilityState !== "hidden"
 
   function wake() {
-    if (raf) return
+    // An observer callback can still arrive after destroy.
+    if (raf || destroyed || lost) return
     last = performance.now()
     raf = requestAnimationFrame(tick)
   }
@@ -433,6 +462,7 @@ export function createShaderAnimeFire(
   // An arrow, not a declaration, so TypeScript keeps `gl` narrowed inside.
   const tick = (now: number) => {
     raf = 0
+    if (lost) return
     const dt = Math.min(0.05, Math.max(0, (now - last) / 1000))
     last = now
     const live = moving()
@@ -518,6 +548,25 @@ export function createShaderAnimeFire(
   }
   window.addEventListener("pointermove", onMove, { passive: true })
 
+  // GPU resets, backgrounded tabs and the live-context cap can take the
+  // context away. preventDefault asks the browser to hand it back; then
+  // rebuild everything and draw again.
+  const onLost = (e: Event) => {
+    e.preventDefault()
+    lost = true
+    cancelAnimationFrame(raf)
+    raf = 0
+  }
+  const onRestored = () => {
+    if (destroyed || !initGl()) return
+    lost = false
+    colorsKey = ""
+    resize()
+    wake()
+  }
+  canvas.addEventListener("webglcontextlost", onLost)
+  canvas.addEventListener("webglcontextrestored", onRestored)
+
   resize()
   wake()
 
@@ -528,6 +577,7 @@ export function createShaderAnimeFire(
       wake()
     },
     destroy() {
+      destroyed = true
       cancelAnimationFrame(raf)
       raf = 0
       ro.disconnect()
@@ -537,10 +587,19 @@ export function createShaderAnimeFire(
       mqReduce.removeEventListener("change", onReduce)
       mqDark.removeEventListener("change", syncTheme)
       window.removeEventListener("pointermove", onMove)
+      canvas.removeEventListener("webglcontextlost", onLost)
+      canvas.removeEventListener("webglcontextrestored", onRestored)
       gl.deleteProgram(program)
       gl.deleteShader(vs)
       gl.deleteShader(fs)
       gl.deleteBuffer(buf)
+      // Free the GPU context once the canvas has left the page; browsers cap
+      // live contexts at about 16. A canvas still in the page (a React
+      // Strict Mode replay) keeps it, so a new engine can reuse it.
+      const lose = gl.getExtension("WEBGL_lose_context")
+      queueMicrotask(() => {
+        if (!canvas.isConnected && !gl.isContextLost()) lose?.loseContext()
+      })
     },
   }
 }

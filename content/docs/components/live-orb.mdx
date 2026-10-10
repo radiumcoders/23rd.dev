@@ -1,11 +1,9 @@
 ---
 title: Live Orb
-description: An evenly lit sphere with two capsule eyes that follow the pointer — white, black, webgl, and custom variants.
+description: A flat-lit sphere with two pill eyes that follow the pointer.
 ---
 
-import { LiveOrbDemo } from "@/registry/live-orb/live-orb-demo"
-
-A still orb. Two pill eyes ride the curve and look at the cursor. The ball is fully lit — no shade, rim, or highlight. White is the default. Black inverts it. WebGL keeps the same face on an unlit color wash. Custom takes your hex.
+import { LiveOrbDemo } from "@/components/demos"
 
 ## Preview
 
@@ -15,7 +13,7 @@ A still orb. Two pill eyes ride the curve and look at the cursor. The ball is fu
 
 <CliCommand item="live-orb" />
 
-Or install straight from the public GitHub source registry:
+Or from the public GitHub registry:
 
 <CliCommand item="live-orb" github />
 
@@ -44,7 +42,7 @@ export function Mascot() {
   </FrameworkSvelte>
 </FrameworkCode>
 
-Named variants set the fill. `custom` reads `color` and `eyeColor`. `webgl` can take an optional three-stop `colors` palette.
+`custom` uses `color` and `eyeColor`; `webgl` takes an optional three-stop `colors`.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -67,8 +65,6 @@ Named variants set the fill. `custom` reads `color` and `eyeColor`. `webgl` can 
   </FrameworkSvelte>
 </FrameworkCode>
 
-The orb does not follow the pointer — only the eyes do. Pass `interactive={false}` to park the gaze.
-
 ## Props
 
 | Prop          | Type                                        | Default                   |
@@ -82,5 +78,3 @@ The orb does not follow the pointer — only the eyes do. Pass `interactive={fal
 | `blink`       | `boolean`                                   | `true`                    |
 | `className`   | `string`                                    | React only                |
 | `class`       | `string`                                    | Svelte only               |
-
-`color` and `eyeColor` apply only when `variant="custom"`. `colors` applies only when `variant="webgl"`.

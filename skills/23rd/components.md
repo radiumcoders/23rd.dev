@@ -46,7 +46,7 @@ Best fit: a music, broadcast, or terminal hero that should feel like a CRT score
 
 Not this: fire (`shader-anime-fire`), sky (`shader-sky`), a footer.
 
-Deps: none. Key props: `color`, `glow` (50, range 0–100), `speed` (1.35 beats/s), `density` (1), `sway` (true), `seed` (23), `theme`.
+Deps: none. Key props: `color`, `glow` (50, range 0–100), `speed` (1.35 beats/s), `density` (1), `sway` (true), `seed` (23), `rotateX` / `rotateY` (0°, range -70–70), `rotateZ` (0°), `theme`.
 
 ```tsx
 "use client"
@@ -61,7 +61,7 @@ export function Score() {
 }
 ```
 
-Pitfalls: omit `color` so theme can swap (dark `#4DFF6A`, light `#147A3A`). The canvas is transparent in both themes; the parent paints the background. Issue [#28](https://github.com/radiumcoders/23rd.dev/issues/28) is that square edge. The docs sentence “Press d to toggle” is not implemented on the component or the demo. Do not add a `d` shortcut.
+Pitfalls: omit `color` so theme can swap (dark `#4DFF6A`, light `#147A3A`). The canvas is transparent in both themes; the parent paints the background. Issue [#28](https://github.com/radiumcoders/23rd.dev/issues/28) is that square edge. The docs sentence “Press d to toggle the theme” is the docs site's own shortcut (`components/theme-provider.tsx`), not part of the component or the demo. Do not add a `d` shortcut.
 
 ## radiant-lines
 
@@ -119,13 +119,13 @@ Pitfalls: default charset is the long sparse-to-dense ramp exported as `DEFAULT_
 
 ## shader-gradient
 
-Shader. Quiet wash. Up to four stops, order sky / sage / cream / lavender.
+Shader. Quiet grainy wash. Up to four stops, cycled in order.
 
 Best fit: the default landing hero, an empty state, a marketing band that should stay out of the way.
 
 Not this: a color picker, a fire, a sky with clouds, a footer.
 
-Deps: none. Key props: `colors`, `speed` (0.14), `blur` (0.7), `intensity` (0.95), `interactive` (true), `theme`.
+Deps: none. Key props: `colors`, `speed` (0.14), `blur` (0.7), `intensity` (0.95), `grain` (0.35), `interactive` (true), `theme`.
 
 ```tsx
 "use client"
@@ -141,7 +141,7 @@ export function Hero() {
 }
 ```
 
-Pitfalls: custom `colors` stick; they do not cross-fade into the dark palette. Stock light `#7CB4E0 #B4D8C4 #EFE4BC #D2D7EC`. Stock dark `#3A6FA0 #2F6B52 #8A6B32 #4A4D7A`. If WebGL fails, a CSS `LIGHT_FALLBACK` / `DARK_FALLBACK` radial stack is used. `interactive` eases the wash toward the pointer.
+Pitfalls: custom `colors` stick; they do not cross-fade into the dark palette. Stock light `#F7A48B #F9D78E #9FCBF0 #BBA9EE`. Stock dark `#3D52F2 #9150F2 #E0479F #FF7B60`. If WebGL fails, a CSS `LIGHT_FALLBACK` / `DARK_FALLBACK` radial stack is used. `interactive` swirls the flow gently around the pointer. `grain={0}` turns the film grain off.
 
 ## shader-anime-fire
 
@@ -203,7 +203,7 @@ Best fit: an outdoor or weather hero. Glass is a texture, not a modal.
 
 Not this: `shader-gradient` when you want an abstract wash with no clouds.
 
-Deps: none. Key props: `colors` (zenith, horizon, cloud, shade), `speed` (0.1), `coverage` (0.5), `intensity` (0.9), `amount` (0.5), `scale` (0.4), `variation` (0.7), `interactive` (false), `glass` (false), `glassSize` (7), `theme`.
+Deps: none. Key props: `colors` (zenith, horizon, cloud, shade), `speed` (0.1), `coverage` (0.5), `intensity` (0.9), `amount` (0.5), `scale` (0.4), `variation` (0.7), `interactive` (false), `lightning` (false), `glass` (false), `glassSize` (7), `theme`.
 
 ```tsx
 "use client"
@@ -221,6 +221,32 @@ export function Sky() {
 
 Pitfalls: `interactive` defaults false (unlike gradient and fire). Custom `colors` stay put. Light `#2478C8 #8ECBF2 #F7FBFF #C5D8EC`. Dark `#9AA3AD #C8CED4 #5C6570 #3F4750`.
 
+## shader-metal
+
+Shader. Polished metal ribbons that twist through a studio light rig: a softbox, strip lights, and a crisp horizon reflect in each brushed strip. Bright product-shoot lighting in light mode, a black stage in dark. The key light follows the pointer and the ribbons lean toward it.
+
+Best fit: a premium or hardware hero, a launch page, a pricing header.
+
+Not this: `shader-gradient` for a soft color wash; this is a material.
+
+Deps: none. Key props: `metal` (`chrome`), `color`, `ribbons` (3), `speed` (0.3), `iridescence` (0.2), `interactive` (true), `theme`.
+
+```tsx
+"use client"
+import { ShaderMetal } from "@/components/ui/shader-metal"
+
+export function Launch() {
+  return (
+    <section className="relative isolate min-h-svh overflow-hidden bg-background">
+      <ShaderMetal metal="gold" />
+      <div className="relative z-10 p-10">Your content</div>
+    </section>
+  )
+}
+```
+
+Pitfalls: the canvas is transparent; the parent needs a background. The ribbons run corner to corner through the middle, so centered copy collides with them. `color` overrides `metal`.
+
 ## stretchy-footer
 
 Footer behavior. Overscroll past the bottom stretches an aurora and lifts the page, then snaps back.
@@ -229,7 +255,7 @@ Best fit: a Dia-like end of a long page. The component can be the scroller, or a
 
 Not this: tilting the page (`folio`).
 
-Deps: React needs `motion`. Svelte uses `stretchy-footer-spring-vanilla.ts` and declares no npm deps. Key props: `children`, `scrollRef` / Svelte `scrollEl`, `windowScroll` (false), `contentSelector` (`[data-stretchy-page]`), `maxStretch` (280), `colors`, `stiffness` (380), `damping` (32), `columns` (48), `blur` (14), `glow` (0.22), `label`, `demoId`.
+Deps: none. Key props: `children`, `scrollRef` / Svelte `scrollEl`, `windowScroll` (false), `contentSelector` (`[data-stretchy-page]`), `maxStretch` (280), `colors`, `stiffness` (380), `damping` (32), `columns` (9), `blur` (16), `glow` (0), `flip` (false), `rotate` (0 or 180), `label`, `demoId`.
 
 ```tsx
 "use client"
@@ -253,7 +279,7 @@ Window mode:
 <StretchyFooter windowScroll />
 ```
 
-Pitfalls: with `scrollRef` or `windowScroll`, `children` are ignored and the component only paints the overlay. Content must be long enough to hit the end. Stock `colors` are the 10-stop spectrum in `DEFAULT_COLORS` (`#FF3B30` through `#FF2D55`). React exports `playStretchyFooterDemo` and `STRETCHY_FOOTER_PLAY` (`"stretchy-footer:play"`) for demos. Do not ship a page that only plays that helper.
+Pitfalls: with `scrollRef` or `windowScroll`, `children` are ignored and the component only paints the overlay. Content must be long enough to hit the end. Stock `colors` are the 9-stop gradient in `DEFAULT_COLORS` (magenta `#FF1AE6` through navy `#1C2566`). React exports `playStretchyFooterDemo` and `STRETCHY_FOOTER_PLAY` (`"stretchy-footer:play"`) for demos. Do not ship a page that only plays that helper.
 
 ## live-orb
 
@@ -380,11 +406,11 @@ export function Picker() {
 }
 ```
 
-Controlled when `value` is not `undefined`. Otherwise uncontrolled, seeded from `defaultValue`, then from `value` only as the initial parse, then `DEFAULT_COLOR` `{ h: 320, s: 90, l: 58, a: 1 }`. The docs table that lists `{ h: 210, s: 90, l: 55, a: 1 }` as the default is the usage example, not `parseColor(undefined)`.
+Controlled when `value` is not `undefined`. Otherwise uncontrolled, seeded from `defaultValue`, then from `value` only as the initial parse, then `DEFAULT_COLOR` `{ h: 320, s: 90, l: 58, a: 1 }`. The `{ h: 210, s: 90, l: 55, a: 1 }` in the usage examples is an explicit `defaultValue`, not the default.
 
 `GooeyColor` is `{ h: 0–360, s: 0–100, l: 0–100, a: 0–1 }`. Strings accept hex (`#RGB`, `#RGBA`, `#RRGGBB`, `#RRGGBBAA`) and `hsl` / `hsla`. `onChange` second arg is `hsla(...)` from `toCss`. EyeDropper appears only when `window.EyeDropper` exists; it is not a prop.
 
-Pitfalls: the panel overflows the trigger. Do not put it in `overflow-hidden`. React also exports `parseColor`. No `className` on Svelte — use `class`.
+Pitfalls: the panel overflows the trigger. Do not put it in `overflow-hidden`. React also exports `parseColor`. No `className` on Svelte; use `class`.
 
 ## typewriter
 

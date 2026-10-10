@@ -12,7 +12,7 @@ function valuesEqual(a: unknown, b: unknown): boolean {
   return false
 }
 
-/** Prop state for live docs demos — tracks dirty state for Reset. */
+/** Prop state for live docs demos; tracks dirty state for Reset. */
 export function usePreviewProps<T extends Record<string, unknown>>(
   defaults: T
 ) {

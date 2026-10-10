@@ -5,9 +5,9 @@ import { getGithubRepoUrl } from "@/lib/github"
 export const SITE_URL = "https://23rd.dev"
 export const SITE_NAME = "23rd"
 export const SITE_TAGLINE = "Opinionated UI components for shippers"
-export const SITE_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`
+export const SITE_TITLE = `${SITE_NAME}: ${SITE_TAGLINE}`
 export const SITE_DESCRIPTION =
-  "A shadcn/ui registry of opinionated React and Svelte components — shaders, backgrounds, footers, and interactive UI. Install with the CLI, own the source, and ship."
+  "A shadcn/ui registry of opinionated React and Svelte components: shaders, backgrounds, footers, and interactive UI. Install with the CLI, own the source, and ship."
 
 export const SITE_KEYWORDS = [
   "23rd",
@@ -152,7 +152,7 @@ export function softwareJsonLd() {
       price: "0",
       priceCurrency: "USD",
     },
-    url: absoluteUrl("/docs"),
+    url: SITE_URL,
     description: SITE_DESCRIPTION,
     author: {
       "@type": "Person",
@@ -233,7 +233,7 @@ export function docsJsonLd({
 
 function docsBreadcrumbs(slug: string[] | undefined, title: string) {
   const crumbs: { name: string; path: string }[] = [
-    { name: SITE_NAME, path: "/docs" },
+    { name: SITE_NAME, path: "/" },
   ]
 
   if (isDocsIndex(slug)) return crumbs
