@@ -2,6 +2,7 @@
 
 import { useMemo } from "react"
 
+import { Button } from "@/components/ui/button"
 import {
   ComponentControls,
   ControlSlider,
@@ -34,7 +35,13 @@ function card(body: string) {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
-const text = (x: number, y: number, size: number, value: string, weight = 400) =>
+const text = (
+  x: number,
+  y: number,
+  size: number,
+  value: string,
+  weight = 400
+) =>
   `<text x="${x}" y="${y}" font-size="${size}" font-weight="${weight}" fill="${INK}" stroke="none">${value}</text>`
 
 const lines = (x: number, y: number, widths: number[]) =>
@@ -42,7 +49,21 @@ const lines = (x: number, y: number, widths: number[]) =>
     .map((w, i) => `<path d="M${x} ${y + i * 26}h${w}" stroke-opacity=".55"/>`)
     .join("")
 
-const DEMO_IMAGES = [
+const PHOTOS = [
+  "1506905925346-21bda4d32df4",
+  "1501785888041-af3ef285b470",
+  "1441974231531-c6227db76b6e",
+  "1470071459604-3b5ec3a7fe05",
+  "1507525428034-b723cf961d3e",
+  "1472214103451-9374bd1c798e",
+  "1433086966358-54859d0ed716",
+  "1469474968028-56623f02e42e",
+].map(
+  (id) =>
+    `https://images.unsplash.com/photo-${id}?w=1200&h=800&fit=crop&q=75&auto=format`
+)
+
+const CARDS = [
   card(
     text(56, 150, 40, "Ship the sharper default", 500) +
       lines(56, 196, [500, 470, 380]) +
@@ -98,6 +119,14 @@ const DEMO_IMAGES = [
   ),
 ]
 
+type Source = "photos" | "cards" | "none"
+
+const SOURCES: { id: Source; label: string; images?: string[] }[] = [
+  { id: "photos", label: "Photos", images: PHOTOS },
+  { id: "cards", label: "Cards", images: CARDS },
+  { id: "none", label: "None" },
+]
+
 export function RingTowerDemo() {
   const defaults = useMemo(
     () => ({
@@ -106,7 +135,7 @@ export function RingTowerDemo() {
       parallax: DEFAULT_PARALLAX,
       backface: DEFAULT_BACKFACE,
       draggable: true,
-      images: true,
+      source: "photos" as Source,
     }),
     []
   )
@@ -114,7 +143,7 @@ export function RingTowerDemo() {
   const { props, updateProp, resetProps, hasChanges } =
     usePreviewProps(defaults)
 
-  const images = props.images ? DEMO_IMAGES : undefined
+  const images = SOURCES.find((s) => s.id === props.source)?.images
 
   return (
     <>
@@ -135,6 +164,16 @@ export function RingTowerDemo() {
             aria-hidden
             className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black via-black/60 to-transparent"
           />
+          {props.source === "photos" ? (
+            <a
+              href="https://unsplash.com"
+              target="_blank"
+              rel="noreferrer"
+              className="absolute right-3 bottom-3 text-xs text-white/50 transition-colors hover:text-white"
+            >
+              Photos from Unsplash
+            </a>
+          ) : null}
         </div>
       </ComponentPreview>
 
@@ -143,9 +182,10 @@ export function RingTowerDemo() {
         onReset={resetProps}
         component="RingTower"
         snippetProps={{
-          images: props.images
-            ? ["/bands/0.jpg", "/bands/1.jpg", "/bands/2.jpg"]
-            : undefined,
+          images:
+            props.source === "none"
+              ? undefined
+              : ["/bands/0.jpg", "/bands/1.jpg", "/bands/2.jpg"],
           rings: props.rings === DEFAULT_RINGS ? undefined : props.rings,
           speed: props.speed === DEFAULT_SPEED ? undefined : props.speed,
           parallax:
@@ -155,6 +195,23 @@ export function RingTowerDemo() {
           draggable: props.draggable ? undefined : false,
         }}
       >
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-sm text-foreground/85">Images</span>
+          <div className="flex flex-wrap gap-1">
+            {SOURCES.map((item) => (
+              <Button
+                key={item.id}
+                type="button"
+                size="xs"
+                variant={props.source === item.id ? "default" : "outline"}
+                aria-pressed={props.source === item.id}
+                onClick={() => updateProp("source", item.id)}
+              >
+                {item.label}
+              </Button>
+            ))}
+          </div>
+        </div>
         <ControlSlider
           label="Rings"
           value={props.rings}
@@ -192,12 +249,6 @@ export function RingTowerDemo() {
           description="Drag a band to spin the tower"
           checked={props.draggable}
           onChange={(v) => updateProp("draggable", v)}
-        />
-        <ControlSwitch
-          label="Images"
-          description="Off shows the built-in grid band"
-          checked={props.images}
-          onChange={(v) => updateProp("images", v)}
         />
       </ComponentControls>
     </>
