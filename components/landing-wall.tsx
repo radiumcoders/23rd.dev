@@ -150,7 +150,11 @@ function Card({
         style={{ ...screenTokens, backgroundImage: preview?.tint }}
         className="relative isolate flex-1 overflow-hidden rounded-[1rem] bg-background [clip-path:inset(0_round_1rem)] after:pointer-events-none after:absolute after:inset-0 after:z-50 after:rounded-[inherit] after:ring-1 after:ring-border after:ring-inset"
       >
-        {live && preview ? <LivePreview>{preview.render()}</LivePreview> : null}
+        {live && preview ? (
+          // Keyed by slug: a card that switches component remounts this, so
+          // the old preview's WebGL context is freed, not left for GC.
+          <LivePreview key={item.slug}>{preview.render()}</LivePreview>
+        ) : null}
       </div>
       <div className="flex h-9 shrink-0 items-center justify-between px-2.5 text-[13px]">
         <span className="font-medium">{item.title}</span>
@@ -523,13 +527,23 @@ function Column({
  * sides; "middle" is the three columns that rise under the hero.
  */
 export function LandingWall({
-  items,
+  items: featured,
   layer,
 }: {
   items: WallItem[]
   layer: "edges" | "middle"
 }) {
-  const opening = useMemo(() => openingLayout(items), [items])
+  // Only components with a preview here; a slug without one would be a
+  // blank card.
+  const items = useMemo(
+    () => featured.filter((item) => item.slug in PREVIEWS),
+    [featured]
+  )
+  const opening = useMemo(
+    () => (items.length > 0 ? openingLayout(items) : null),
+    [items]
+  )
+  if (!opening) return null
 
   return (
     <div
