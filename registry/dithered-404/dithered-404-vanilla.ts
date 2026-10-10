@@ -832,6 +832,10 @@ export function createDithered404(
           }
         }
       }
+    } else {
+      // No simulation under reduced motion, but the ink still follows the
+      // theme and the color prop.
+      for (const p of particles) if (p.state === SOLID) p.fill = ink
     }
 
     ctx.clearRect(0, 0, cssW, cssH)
