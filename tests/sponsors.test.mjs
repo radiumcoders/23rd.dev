@@ -162,10 +162,6 @@ test("sponsors prices, terms, privacy, and support email match the shadscan layo
     join(ROOT, "components/docs-shell.tsx"),
     "utf8"
   )
-  const sponsorLink = readFileSync(
-    join(ROOT, "components/github-sponsor.tsx"),
-    "utf8"
-  )
   const legal = readFileSync(join(ROOT, "lib/legal.ts"), "utf8")
   const site = readFileSync(join(ROOT, "lib/site.ts"), "utf8")
   const nextConfig = readFileSync(join(ROOT, "next.config.mjs"), "utf8")
@@ -190,9 +186,10 @@ test("sponsors prices, terms, privacy, and support email match the shadscan layo
   assert.match(footer, /SUPPORT_EMAIL/)
   assert.match(docsShell, /FOOTER_LINKS/)
   assert.match(docsShell, /SUPPORT_EMAIL/)
-  assert.match(sponsorLink, /href="\/sponsors"/)
-  assert.match(sponsorLink, />Sponsor</)
-  assert.doesNotMatch(sponsorLink, /github\.com\/sponsors/)
+  // The sidebar's sponsor link goes to the Creem board, not GitHub Sponsors.
+  assert.match(docsShell, /href="\/sponsors"/)
+  assert.match(docsShell, /^\s*Sponsor$/m)
+  assert.doesNotMatch(docsShell, /github\.com\/sponsors/)
   assert.match(nextConfig, /source: "\/pricing"/)
   assert.match(nextConfig, /destination: "\/sponsors"/)
 })
