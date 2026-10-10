@@ -1,0 +1,89 @@
+---
+title: Ring Tower
+description: A tower of tilted bands wrapped in your images. Drag to spin it; the pointer turns neighboring bands opposite ways.
+---
+
+import { RingTowerDemo } from "@/components/demos"
+
+## Preview
+
+<RingTowerDemo />
+
+## Installation
+
+<CliCommand item="ring-tower" />
+
+Or from the public GitHub registry:
+
+<CliCommand item="ring-tower" github />
+
+Installs `three` alongside the component.
+
+## Usage
+
+Pin it inside a relatively positioned section with a height. The canvas is transparent, so give the section a background. Each band leans a quarter turn from the last, so the stack zig-zags past the edges of the frame.
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+"use client"
+
+import { RingTower } from "@/components/ui/ring-tower"
+
+const bands = ["/bands/0.jpg", "/bands/1.jpg", "/bands/2.jpg"]
+
+export function Hero() {
+  return (
+    <section className="relative isolate h-svh overflow-hidden bg-black">
+      <RingTower images={bands} />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black to-transparent" />
+    </section>
+  )
+}
+```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import RingTower from "$lib/components/ui/ring-tower.svelte"
+
+  const bands = ["/bands/0.jpg", "/bands/1.jpg", "/bands/2.jpg"]
+</script>
+
+<section class="relative isolate h-svh overflow-hidden bg-black">
+  <RingTower images={bands} />
+  <div class="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black to-transparent"></div>
+</section>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+Images are drawn side by side at one height and repeated in whole tiles around each band, then cropped top and bottom to keep their proportions. Images on another origin need CORS headers, or they are skipped. With no images, or if none load, the bands show a plain green grid.
+
+Every band in step, like the original:
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+<RingTower images={bands} parallax={0} />
+```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<RingTower images={bands} parallax={0} />
+```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+## Props
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `images` | `string[]` | none, draws a grid band |
+| `rings` | `number` | `12`, 1–24 |
+| `speed` | `number` | `1`, 0–4 crawl speed |
+| `draggable` | `boolean` | `true` |
+| `parallax` | `number` | `24`, degrees, 0–90 |
+| `backface` | `number` | `0.86`, inside darkness, 0–1 |
+| `className` | `string` | React only |
+| `class` | `string` | Svelte only |
