@@ -95,34 +95,10 @@ const PREVIEWS: Record<string, { render: () => ReactNode; tint: string }> = {
 /** Inside a card, `bg-background` is the screen, not the sheet. */
 const screenTokens = { "--background": "var(--screen)" } as CSSProperties
 
-/**
- * Mounts a running preview, and frees its WebGL context when it goes. The
- * engines only stop drawing on destroy, and browsers cap live contexts at
- * about 16, so a wall that swaps cards every few seconds would soon have
- * the browser dropping the oldest ones, visible previews included.
- */
+/** A running preview, faded in over its tint. */
 function LivePreview({ children }: { children: ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const el = ref.current
-    return () => {
-      // Still in the page means React is only replaying effects (Strict
-      // Mode), not unmounting. On a real unmount React detaches this node
-      // but leaves its subtree, so the canvases are still inside it.
-      if (!el || el.isConnected) return
-      el.querySelectorAll("canvas").forEach((canvas) => {
-        const gl = canvas.getContext("webgl") ?? canvas.getContext("webgl2")
-        gl?.getExtension("WEBGL_lose_context")?.loseContext()
-      })
-    }
-  }, [])
-
   return (
-    <div
-      ref={ref}
-      className="absolute inset-0 animate-in rounded-[inherit] bg-background duration-700 fade-in"
-    >
+    <div className="absolute inset-0 animate-in rounded-[inherit] bg-background duration-700 fade-in">
       {children}
     </div>
   )
@@ -151,8 +127,8 @@ function Card({
         className="relative isolate flex-1 overflow-hidden rounded-[1rem] bg-background [clip-path:inset(0_round_1rem)] after:pointer-events-none after:absolute after:inset-0 after:z-50 after:rounded-[inherit] after:ring-1 after:ring-border after:ring-inset"
       >
         {live && preview ? (
-          // Keyed by slug: a card that switches component remounts this, so
-          // the old preview's WebGL context is freed, not left for GC.
+          // Keyed by slug, so a card that switches component remounts its
+          // preview, and the old engine is destroyed and frees its context.
           <LivePreview key={item.slug}>{preview.render()}</LivePreview>
         ) : null}
       </div>

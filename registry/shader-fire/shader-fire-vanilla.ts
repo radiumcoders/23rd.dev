@@ -478,6 +478,13 @@ export function createShaderFire(
       gl.deleteShader(vs)
       gl.deleteShader(fs)
       gl.deleteBuffer(buf)
+      // Free the GPU context once the canvas has left the page; browsers cap
+      // live contexts at about 16. A canvas still in the page (a React
+      // Strict Mode replay) keeps it, so a new engine can reuse it.
+      const lose = gl.getExtension("WEBGL_lose_context")
+      queueMicrotask(() => {
+        if (!canvas.isConnected && !gl.isContextLost()) lose?.loseContext()
+      })
     },
   }
 }
