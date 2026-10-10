@@ -2,7 +2,7 @@
 </script>
 
 <script lang="ts">
-  import { onMount } from "svelte"
+  import { onMount, untrack } from "svelte"
   import {
     CLOSE_PATHS,
     clamp,
@@ -45,8 +45,11 @@
   let wheelEl: HTMLDivElement | undefined = $state()
   let alphaEl: HTMLDivElement | undefined = $state()
   let open = $state(false)
-  let uncontrolled = $state(parseColor(defaultValue ?? value))
-  let hexDraft = $state(toHex(parseColor(defaultValue ?? value)))
+  // Seeded once from the initial props; later `value` changes go through
+  // `color` below.
+  const initial = untrack(() => parseColor(defaultValue ?? value))
+  let uncontrolled = $state(initial)
+  let hexDraft = $state(toHex(initial))
   let hexFocused = false
   let supportsEyeDropper = $state(false)
 
