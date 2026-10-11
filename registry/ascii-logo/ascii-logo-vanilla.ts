@@ -313,6 +313,8 @@ export function createAsciiLogo(
   let cells: AsciiCell[] = []
   let phase: AsciiLogoPhase = "logo"
   let lastKey = ""
+  // The assemble flight plays when the source changes, not on a resize.
+  let lastSource: string | null = null
   let lastW = -1
   let lastH = -1
   let lastDpr = -1
@@ -547,7 +549,11 @@ export function createAsciiLogo(
     cursor.y = -999
     readFont()
 
-    if (p.assemble && p.interactive && !reduce && cells.length > 0) {
+    const source = `${snapshot.src ?? ""}|${snapshot.text}`
+    const fresh = source !== lastSource
+    lastSource = source
+
+    if (fresh && p.assemble && p.interactive && !reduce && cells.length > 0) {
       flingOffStage(cells, cols, rows)
       staggerCells(cells, p.staggerFrames * 2)
       phase = "logo"
@@ -793,9 +799,10 @@ export function createAsciiLogo(
   void rebuild()
   raf = requestAnimationFrame(tick)
 
+  // The observer also fires once right after `observe`; only a real size
+  // change rebuilds, so it doesn't cut the first assemble flight short.
   const ro = new ResizeObserver(() => {
-    lastW = -1
-    lastH = -1
+    if (root.clientWidth === lastW && root.clientHeight === lastH) return
     lastKey = ""
     void rebuild()
   })
