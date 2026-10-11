@@ -92,7 +92,8 @@ type PhosphorScoreProps = {
 
 ```ts
 type RadiantLinesProps = {
-  colors?: string[]
+  colors?: string[] // omit → theme palette
+  theme?: "light" | "dark" | "auto" // "auto"
   starCount?: number // 420
   displacement?: number // 1, values < 0 clamp to 0
   containerRef?: RefObject<HTMLElement | null> // omit → window
@@ -100,7 +101,7 @@ type RadiantLinesProps = {
 }
 ```
 
-`DEFAULT_COLORS`: `#FF6B4A`, `#2DD4BF`, `#FBBF24`, `#60A5FA`, `#F472B6`, `#A3E635`, `#94A3B8`.
+`DEFAULT_COLORS` (dark pages): `#FF6B4A`, `#2DD4BF`, `#FBBF24`, `#60A5FA`, `#F472B6`, `#A3E635`, `#94A3B8`. `LIGHT_COLORS` (light pages): the same hues, deeper. A set `colors` wins in both themes.
 
 Instance: `{ setOptions, destroy }`.
 
@@ -289,7 +290,8 @@ type StretchyFooterPlayDetail = {
 type LiveOrbVariant = "white" | "black" | "webgl" | "custom"
 
 type LiveOrbProps = {
-  variant?: LiveOrbVariant // "white"
+  variant?: LiveOrbVariant // omit → "white" on dark pages, "black" on light
+  theme?: "light" | "dark" | "auto" // "auto"
   color?: string // custom body, default #7C5CFF
   eyeColor?: string // custom eyes, default #FAFAFA
   colors?: string[] // webgl stops

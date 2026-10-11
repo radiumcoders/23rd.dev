@@ -71,7 +71,7 @@ Best fit: a long scrolling page that should feel like hyperspace. Not a static p
 
 Not this: `logo-burst` (one-shot explosion), `shader-gradient` (no scroll coupling).
 
-Deps: none. Key props: `colors`, `starCount` (420), `displacement` (1), `containerRef` / Svelte `container`.
+Deps: none. Key props: `colors` (omit it and the palette follows the theme), `theme`, `starCount` (420), `displacement` (1), `containerRef` / Svelte `container`.
 
 ```tsx
 "use client"
@@ -288,7 +288,7 @@ Best fit: a mascot, an empty state, a corner presence.
 
 Not this: a full-bleed background. It is `size` pixels square (default 280).
 
-Deps: none. The only `variant` in the registry: `"white"` (default), `"black"`, `"webgl"`, `"custom"`. Also `size`, `color`, `eyeColor`, `colors`, `interactive` (true), `blink` (true).
+Deps: none. The only `variant` in the registry: `"white"`, `"black"`, `"webgl"`, `"custom"`. Omit it and the orb follows the theme (white on dark pages, black on light). Also `theme`, `size`, `color`, `eyeColor`, `colors`, `interactive` (true), `blink` (true).
 
 ```tsx
 "use client"

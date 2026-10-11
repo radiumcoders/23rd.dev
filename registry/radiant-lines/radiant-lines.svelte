@@ -5,7 +5,6 @@
   import { onMount } from "svelte"
   import {
     createRadiantLines,
-    DEFAULT_COLORS,
     type RadiantLinesInstance,
     type RadiantLinesOptions,
   } from "./radiant-lines-vanilla"
@@ -21,9 +20,10 @@
 
   let {
     class: className = "",
-    colors = DEFAULT_COLORS,
+    colors,
     starCount = 420,
     displacement = 1,
+    theme = "auto",
     container,
   }: Props = $props()
 
@@ -36,6 +36,7 @@
       colors,
       starCount,
       displacement,
+      theme,
       container: container ?? null,
     })
     return () => {
@@ -49,6 +50,7 @@
       colors,
       starCount,
       displacement,
+      theme,
       container: container ?? null,
     })
   })

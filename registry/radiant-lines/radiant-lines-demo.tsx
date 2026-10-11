@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef } from "react"
+import { useLayoutEffect, useMemo, useRef } from "react"
 
 import {
   ComponentControls,
@@ -8,21 +8,27 @@ import {
   ControlSlider,
 } from "@/components/component-controls"
 import { ComponentPreview } from "@/components/component-preview"
+import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { usePreviewProps } from "@/hooks/use-preview-props"
-import { RadiantLines } from "@/registry/radiant-lines/radiant-lines"
+import {
+  DEFAULT_COLORS,
+  LIGHT_COLORS,
+  RadiantLines,
+} from "@/registry/radiant-lines/radiant-lines"
 
-const DEFAULTS = {
-  starCount: 420,
-  displacement: 1,
-  colors: [
-    "#FF6B4A",
-    "#2DD4BF",
-    "#FBBF24",
-    "#60A5FA",
-    "#F472B6",
-    "#A3E635",
-    "#94A3B8",
-  ],
+function norm(hex: string) {
+  return hex.trim().toUpperCase()
+}
+
+function colorsEqual(a: string[], b: string[]) {
+  return (
+    a.length === b.length && a.every((color, i) => norm(color) === norm(b[i]!))
+  )
+}
+
+/** The stock palettes swap with the theme; a custom one stays put. */
+function isStockPalette(colors: string[]) {
+  return colorsEqual(colors, DEFAULT_COLORS) || colorsEqual(colors, LIGHT_COLORS)
 }
 
 const PAGES = [
@@ -45,8 +51,24 @@ const PAGES = [
 
 export function RadiantLinesDemo() {
   const scrollerRef = useRef<HTMLDivElement>(null)
-  const { props, updateProp, resetProps, hasChanges } =
-    usePreviewProps(DEFAULTS)
+  const theme = useHydratedTheme()
+  const palette = theme === "dark" ? DEFAULT_COLORS : LIGHT_COLORS
+  const defaults = useMemo(
+    () => ({ starCount: 420, displacement: 1, colors: palette }),
+    [palette]
+  )
+  const { props, updateProp, resetProps, hasChanges, setProps } =
+    usePreviewProps(defaults)
+
+  useLayoutEffect(() => {
+    setProps((prev) => {
+      if (!isStockPalette(prev.colors)) return prev
+      if (colorsEqual(prev.colors, palette)) return prev
+      return { ...prev, colors: palette }
+    })
+  }, [palette, setProps])
+
+  const stock = isStockPalette(props.colors)
 
   return (
     <>
@@ -63,7 +85,7 @@ export function RadiantLinesDemo() {
               containerRef={scrollerRef}
               starCount={props.starCount}
               displacement={props.displacement}
-              colors={props.colors}
+              colors={stock ? undefined : props.colors}
             />
           </div>
 
@@ -97,14 +119,14 @@ export function RadiantLinesDemo() {
         snippetProps={{
           starCount: props.starCount,
           displacement: props.displacement,
-          colors: props.colors,
+          colors: stock ? undefined : props.colors,
         }}
       >
         <ControlColors
           label="Colors"
           colors={props.colors}
           palettes={[
-            DEFAULTS.colors,
+            palette,
             [
               "#F97316",
               "#FACC15",
