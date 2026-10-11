@@ -7,13 +7,17 @@ import { cn } from "@/lib/utils"
 import {
   createAsciiLogo,
   DEFAULT_CHARSET,
+  EDGE_CHARSET,
   clampAsciiLogoText,
   type AsciiLogoInstance,
   type AsciiLogoOptions,
 } from "./ascii-logo-vanilla"
 
 export {
+  DARK_INK,
   DEFAULT_CHARSET,
+  EDGE_CHARSET,
+  LIGHT_INK,
   MAX_TEXT_LETTERS,
   clampAsciiLogoText,
 } from "./ascii-logo-vanilla"
@@ -31,8 +35,9 @@ export type AsciiLogoProps = AsciiLogoOptions & {
 }
 
 /**
- * Interactive ASCII wordmark: glyphs shove away from the cursor, then
- * click-cycle through scatter, gravity drop, and reassemble. Zero deps.
+ * Interactive ASCII wordmark: glyphs assemble on load, shove away from the
+ * cursor, then click-cycle through scatter, gravity drop, and reassemble.
+ * Transparent, so it sits on any surface in light and dark. Zero deps.
  */
 export function AsciiLogo({
   className,
@@ -42,10 +47,13 @@ export function AsciiLogo({
   cellSize = 11,
   cellGap = 2,
   charset = DEFAULT_CHARSET,
+  edgeCharset = EDGE_CHARSET,
   threshold = 0.2,
   invert,
   color,
   backgroundColor,
+  font,
+  assemble = true,
   hoverRadius = 7,
   hoverPush = 2.6,
   hoverEase = 0.18,
@@ -75,10 +83,13 @@ export function AsciiLogo({
       cellSize,
       cellGap,
       charset,
+      edgeCharset,
       threshold,
       invert,
       color,
       backgroundColor,
+      font,
+      assemble,
       hoverRadius,
       hoverPush,
       hoverEase,
@@ -108,10 +119,13 @@ export function AsciiLogo({
       cellSize,
       cellGap,
       charset,
+      edgeCharset,
       threshold,
       invert,
       color,
       backgroundColor,
+      font,
+      assemble,
       hoverRadius,
       hoverPush,
       hoverEase,
@@ -132,10 +146,13 @@ export function AsciiLogo({
     cellSize,
     cellGap,
     charset,
+    edgeCharset,
     threshold,
     invert,
     color,
     backgroundColor,
+    font,
+    assemble,
     hoverRadius,
     hoverPush,
     hoverEase,
@@ -160,7 +177,7 @@ export function AsciiLogo({
       aria-label={aria}
       tabIndex={interactive ? 0 : undefined}
       className={cn(
-        "relative size-full overflow-hidden",
+        "relative size-full overflow-hidden font-mono",
         interactive &&
           "cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none",
         className

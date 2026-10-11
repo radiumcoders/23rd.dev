@@ -15,51 +15,38 @@ import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { usePreviewProps } from "@/hooks/use-preview-props"
 import {
   AsciiLogo,
+  DARK_INK,
+  LIGHT_INK,
   MAX_TEXT_LETTERS,
   clampAsciiLogoText,
   type AsciiLogoPhase,
 } from "@/registry/ascii-logo/ascii-logo"
 
-const LIGHT = { color: "#3F3F46", backgroundColor: "#FAFAFA" }
-const DARK = { color: "#A1A1AA", backgroundColor: "#09090B" }
-
-type ThemePalette = { color: string; backgroundColor: string }
 type SourceMode = "text" | "mark"
 
 const HINT: Record<AsciiLogoPhase, string> = {
-  logo: "Move around it · click to scatter",
+  logo: "Move around it, click to scatter",
   scattered: "Click to drop",
   fallen: "Click to gather",
-  returning: "Gathering…",
+  returning: "Gathering",
 }
 
 function norm(hex: string) {
   return hex.trim().toUpperCase()
 }
 
-function matchesPalette(
-  color: string,
-  backgroundColor: string,
-  palette: ThemePalette
-) {
-  return (
-    norm(color) === norm(palette.color) &&
-    norm(backgroundColor) === norm(palette.backgroundColor)
-  )
-}
-
-function isStockThemePalette(color: string, backgroundColor: string) {
-  return (
-    matchesPalette(color, backgroundColor, LIGHT) ||
-    matchesPalette(color, backgroundColor, DARK)
-  )
+/** The stock inks swap with the theme; a custom one stays put. */
+function isStockInk(color: string) {
+  return norm(color) === norm(LIGHT_INK) || norm(color) === norm(DARK_INK)
 }
 
 export function AsciiLogoDemo() {
   const theme = useHydratedTheme()
-  const palette: ThemePalette = theme === "dark" ? DARK : LIGHT
+  const ink = theme === "dark" ? DARK_INK : LIGHT_INK
   const [phase, setPhase] = useState<AsciiLogoPhase>("logo")
   const [source, setSource] = useState<SourceMode>("text")
+  // Remounts the logo so the assemble flight plays again.
+  const [take, setTake] = useState(0)
 
   const defaults = useMemo(
     () => ({
@@ -69,10 +56,9 @@ export function AsciiLogoDemo() {
       gravity: 0.14,
       bounce: 0.28,
       interactive: true,
-      color: palette.color,
-      backgroundColor: palette.backgroundColor,
+      color: ink,
     }),
-    [palette.color, palette.backgroundColor]
+    [ink]
   )
 
   const { props, updateProp, resetProps, hasChanges, setProps } =
@@ -80,17 +66,12 @@ export function AsciiLogoDemo() {
 
   useLayoutEffect(() => {
     setProps((prev) => {
-      if (!isStockThemePalette(prev.color, prev.backgroundColor)) return prev
-      if (matchesPalette(prev.color, prev.backgroundColor, palette)) return prev
-      return {
-        ...prev,
-        color: palette.color,
-        backgroundColor: palette.backgroundColor,
-      }
+      if (!isStockInk(prev.color) || norm(prev.color) === norm(ink)) return prev
+      return { ...prev, color: ink }
     })
-  }, [palette, setProps])
+  }, [ink, setProps])
 
-  const useAutoTheme = isStockThemePalette(props.color, props.backgroundColor)
+  const stockInk = isStockInk(props.color)
 
   return (
     <>
@@ -100,6 +81,7 @@ export function AsciiLogoDemo() {
       >
         <div className="relative h-[56svh] w-full overflow-hidden rounded-[inherit] bg-background">
           <AsciiLogo
+            key={take}
             className="absolute inset-0"
             text={props.text}
             src={source === "mark" ? "/logo-mark.png" : undefined}
@@ -108,14 +90,21 @@ export function AsciiLogoDemo() {
             gravity={props.gravity}
             bounce={props.bounce}
             interactive={props.interactive}
-            color={useAutoTheme ? undefined : props.color}
-            backgroundColor={useAutoTheme ? undefined : props.backgroundColor}
-            theme="auto"
+            color={stockInk ? undefined : props.color}
             onPhaseChange={setPhase}
           />
-          <p className="pointer-events-none absolute inset-x-0 bottom-3 text-center text-xs text-muted-foreground">
-            {props.interactive ? HINT[phase] : "Interaction off"}
-          </p>
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 flex items-center justify-center gap-3 text-xs text-muted-foreground">
+            <span>{props.interactive ? HINT[phase] : "Interaction off"}</span>
+            <Button
+              type="button"
+              size="xs"
+              variant="outline"
+              className="pointer-events-auto"
+              onClick={() => setTake((n) => n + 1)}
+            >
+              Replay
+            </Button>
+          </div>
         </div>
       </ComponentPreview>
 
@@ -135,8 +124,7 @@ export function AsciiLogoDemo() {
           gravity: props.gravity,
           bounce: props.bounce,
           interactive: props.interactive ? undefined : false,
-          color: useAutoTheme ? undefined : props.color,
-          backgroundColor: useAutoTheme ? undefined : props.backgroundColor,
+          color: stockInk ? undefined : props.color,
         }}
       >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -196,11 +184,6 @@ export function AsciiLogoDemo() {
           label="Ink"
           value={props.color}
           onChange={(v) => updateProp("color", v)}
-        />
-        <ControlColor
-          label="Paper"
-          value={props.backgroundColor}
-          onChange={(v) => updateProp("backgroundColor", v)}
         />
         <ControlSlider
           label="Cell size"

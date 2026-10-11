@@ -29,10 +29,15 @@ export type AsciiLogoOptions = {
   cellSize?: number
   /** Gap between cells in CSS pixels. Default `2` */
   cellGap?: number
-  /** Pool of glyphs. One is picked at random per cell. */
+  /** Pool of glyphs for cells inside the shape. One is picked per cell. */
   charset?: string
   /**
-   * Brightness (0–1) a sample must clear to become a glyph.
+   * Pool of light glyphs for cells on the edge of the shape, where the
+   * source only partly covers the cell. Default `EDGE_CHARSET`
+   */
+  edgeCharset?: string
+  /**
+   * Coverage (0–1) a cell must reach to become a glyph.
    * Default `0.2`
    */
   threshold?: number
@@ -41,10 +46,20 @@ export type AsciiLogoOptions = {
    * `false` for text (white ink on a black sampler).
    */
   invert?: boolean
-  /** Glyph color (hex). Default follows theme. */
+  /** Glyph color. Default follows theme. */
   color?: string
-  /** Stage color (hex). Pass `"transparent"` to skip the fill. */
+  /**
+   * Stage fill. Default `"transparent"`: the parent paints the background,
+   * so the logo sits on any surface in both themes.
+   */
   backgroundColor?: string
+  /**
+   * Glyph font family. Default: the root element's computed font, so a
+   * `font-mono` class on it is enough; falls back to the system mono stack.
+   */
+  font?: string
+  /** Glyphs fly in from off stage when the logo (re)builds. Default `true` */
+  assemble?: boolean
   /** Cursor repulsion radius in grid cells. Default `7` */
   hoverRadius?: number
   /** How far glyphs shove away from the cursor. Default `2.6` */
@@ -66,8 +81,9 @@ export type AsciiLogoOptions = {
   /** Pointer hover + click cycle. Default `true` */
   interactive?: boolean
   /**
-   * Palette mode. Default `auto` follows shadcn / next-themes
-   * (`html.dark` class).
+   * Palette mode. `auto` (the default) reads `html.dark` / `html.light`,
+   * then `data-theme`, then `prefers-color-scheme`, and keeps up with
+   * changes.
    */
   theme?: AsciiLogoTheme
   /** Fires after each phase change (including the auto-return to `logo`). */
@@ -83,24 +99,44 @@ type AsciiCell = {
   col: number
   row: number
   char: string
+  /** How much of the cell the source covers (0–1); drives ink weight. */
+  weight: number
   offsetX: number
   offsetY: number
   scatterX: number
   scatterY: number
   fallSpeed: number
+  /** Row offset where the glyph lands in the `fallen` phase. */
+  landing: number
+  /** Radians; glyphs tumble while they fall and settle flat again. */
+  spin: number
+  spinSpeed: number
+  /** Brief brightening after a glyph swap under the cursor (0–1). */
+  flash: number
   wait: number
 }
 
 export const DEFAULT_CHARSET =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*"
 
-const LIGHT = { ink: "#3f3f46", paper: "#fafafa" }
-const DARK = { ink: "#a1a1aa", paper: "#09090b" }
+/** Light marks for the rim of the shape. */
+export const EDGE_CHARSET = ".:;-=+*~'`,"
+
+/** Stock ink per theme; a set `color` replaces it. */
+export const LIGHT_INK = "#2b2c2f"
+export const DARK_INK = "#cfcfca"
+
+/** Sampler pixels per cell edge; coverage averages a 4x4 block. */
+const SUPERSAMPLE = 4
+/** Below this coverage a cell takes a light edge glyph. */
+const EDGE_WEIGHT = 0.5
 
 const TEXT_FONT =
   '900 1px "Arial Black", Impact, Arial, ui-sans-serif, system-ui, sans-serif'
+const MONO_FALLBACK =
+  'ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace'
 
-function isDarkTheme(): boolean {
+export function isDarkTheme(): boolean {
   if (typeof document === "undefined") return false
   const root = document.documentElement
   if (root.classList.contains("dark")) return true
@@ -111,15 +147,40 @@ function isDarkTheme(): boolean {
   return window.matchMedia("(prefers-color-scheme: dark)").matches
 }
 
-function resolveDark(theme: AsciiLogoTheme): boolean {
+export function resolveDark(theme: AsciiLogoTheme = "auto"): boolean {
   if (theme === "dark") return true
   if (theme === "light") return false
   return isDarkTheme()
 }
 
-function pickChar(charset: string) {
-  const pool = charset.length > 0 ? charset : DEFAULT_CHARSET
-  return pool[Math.floor(Math.random() * pool.length)] ?? "#"
+/**
+ * Calls `onChange` whenever the page theme may have changed (the `html`
+ * class, `data-theme` or `style`, or the system preference). Returns the
+ * unsubscribe.
+ */
+export function watchTheme(onChange: () => void): () => void {
+  if (typeof document === "undefined") return () => {}
+  const mo = new MutationObserver(onChange)
+  mo.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class", "data-theme", "style"],
+  })
+  const mq = window.matchMedia("(prefers-color-scheme: dark)")
+  mq.addEventListener("change", onChange)
+  return () => {
+    mo.disconnect()
+    mq.removeEventListener("change", onChange)
+  }
+}
+
+function pickChar(pool: string, fallback: string) {
+  const chars = pool.length > 0 ? pool : fallback
+  return chars[Math.floor(Math.random() * chars.length)] ?? "#"
+}
+
+function charFor(weight: number, charset: string, edgeCharset: string) {
+  if (weight < EDGE_WEIGHT) return pickChar(edgeCharset, EDGE_CHARSET)
+  return pickChar(charset, DEFAULT_CHARSET)
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -158,9 +219,35 @@ function staggerCells(cells: AsciiCell[], staggerFrames: number) {
   }
 }
 
+/** Glyphs start off stage, spread around the frame, and ease home. */
+function flingOffStage(cells: AsciiCell[], cols: number, rows: number) {
+  for (const cell of cells) {
+    const side = Math.random()
+    if (side < 0.5) {
+      // Above or below the frame, anywhere across.
+      cell.offsetX = (Math.random() * 2 - 1) * cols * 0.6
+      cell.offsetY =
+        side < 0.25
+          ? -(cell.row + Math.random() * rows)
+          : rows + Math.random() * rows * 0.5
+    } else {
+      // Left or right of the frame.
+      cell.offsetX =
+        side < 0.75
+          ? -(cell.col + Math.random() * cols)
+          : cols + Math.random() * cols * 0.5
+      cell.offsetY = (Math.random() * 2 - 1) * rows * 0.6
+    }
+    cell.spin = (Math.random() * 2 - 1) * Math.PI
+    cell.spinSpeed = 0
+    cell.fallSpeed = 0
+  }
+}
+
 /**
- * Interactive ASCII wordmark: glyphs shove away from the cursor, then
- * click-cycle through scatter, gravity drop, and reassemble. Zero deps.
+ * Interactive ASCII wordmark: glyphs assemble on load, shove away from the
+ * cursor, then click-cycle through scatter, gravity drop, and reassemble.
+ * Transparent, so it sits on any surface in light and dark. Zero deps.
  */
 export function createAsciiLogo(
   root: HTMLElement,
@@ -175,7 +262,9 @@ export function createAsciiLogo(
       | "cellSize"
       | "cellGap"
       | "charset"
+      | "edgeCharset"
       | "threshold"
+      | "assemble"
       | "hoverRadius"
       | "hoverPush"
       | "hoverEase"
@@ -195,7 +284,9 @@ export function createAsciiLogo(
     cellSize: 11,
     cellGap: 2,
     charset: DEFAULT_CHARSET,
+    edgeCharset: EDGE_CHARSET,
     threshold: 0.2,
+    assemble: true,
     hoverRadius: 7,
     hoverPush: 2.6,
     hoverEase: 0.18,
@@ -217,6 +308,7 @@ export function createAsciiLogo(
   let raf = 0
   let running = true
   let last = performance.now()
+  let gridCols = 0
   let gridRows = 0
   let cells: AsciiCell[] = []
   let phase: AsciiLogoPhase = "logo"
@@ -226,6 +318,8 @@ export function createAsciiLogo(
   let lastDpr = -1
   let loadId = 0
   let reduce = false
+  let dark = resolveDark(options.theme)
+  let fontFamily = ""
   const cursor = { x: -999, y: -999 }
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -234,6 +328,20 @@ export function createAsciiLogo(
   }
   onReduce()
   mqReduce.addEventListener("change", onReduce)
+
+  const syncTheme = () => {
+    dark = resolveDark(options.theme)
+  }
+  const unwatchTheme = watchTheme(syncTheme)
+
+  const readFont = () => {
+    if (options.font) {
+      fontFamily = options.font
+      return
+    }
+    const computed = getComputedStyle(root).fontFamily
+    fontFamily = computed && computed !== "" ? computed : MONO_FALLBACK
+  }
 
   const setPhase = (next: AsciiLogoPhase) => {
     if (phase === next) return
@@ -258,24 +366,25 @@ export function createAsciiLogo(
     return { w, h }
   }
 
+  /** Paints the source onto a sampler `SUPERSAMPLE` times finer than the grid. */
   const sampleSource = (
     sampler: CanvasRenderingContext2D,
-    cols: number,
-    rows: number,
+    sw: number,
+    sh: number,
     image: HTMLImageElement | null,
     p: typeof options
   ) => {
     sampler.fillStyle = "#000"
-    sampler.fillRect(0, 0, cols, rows)
+    sampler.fillRect(0, 0, sw, sh)
 
     const cover = Math.min(1, Math.max(0.2, p.fit))
     if (image && image.width > 0 && image.height > 0) {
-      const maxW = cols * cover
-      const maxH = rows * cover
+      const maxW = sw * cover
+      const maxH = sh * cover
       const scale = Math.min(maxW / image.width, maxH / image.height)
       const dw = image.width * scale
       const dh = image.height * scale
-      sampler.drawImage(image, (cols - dw) / 2, (rows - dh) / 2, dw, dh)
+      sampler.drawImage(image, (sw - dw) / 2, (sh - dh) / 2, dw, dh)
       return
     }
 
@@ -284,17 +393,25 @@ export function createAsciiLogo(
     sampler.fillStyle = "#fff"
     sampler.textAlign = "center"
     sampler.textBaseline = "middle"
-    let fontSize = rows * 0.52
+    let fontSize = sh * 0.52
     sampler.font = TEXT_FONT.replace("1px", `${fontSize}px`)
     const width = sampler.measureText(word).width
-    const maxW = cols * cover
+    const maxW = sw * cover
     if (width > maxW && width > 0) {
       fontSize *= maxW / width
       sampler.font = TEXT_FONT.replace("1px", `${fontSize}px`)
     }
-    sampler.fillText(word, cols / 2, rows / 2 + fontSize * 0.04)
+    const x = sw / 2
+    const y = sh / 2 + fontSize * 0.04
+    sampler.fillText(word, x, y)
+    // Fatten the strokes by about a cell so thin counters still read.
+    sampler.strokeStyle = "#fff"
+    sampler.lineJoin = "round"
+    sampler.lineWidth = SUPERSAMPLE * 0.9
+    sampler.strokeText(word, x, y)
   }
 
+  /** Averages each cell's block of sampler pixels into a coverage weight. */
   const buildFromImageData = (
     data: ImageData,
     cols: number,
@@ -302,39 +419,46 @@ export function createAsciiLogo(
     p: typeof options
   ) => {
     const shouldInvert = p.invert ?? Boolean(p.src)
-    const lit = new Set<string>()
     const pixels = data.data
+    const sw = cols * SUPERSAMPLE
+    const next: AsciiCell[] = []
+    const block = SUPERSAMPLE * SUPERSAMPLE
+
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
-        const i = (row * cols + col) * 4
-        const r = pixels[i] ?? 0
-        const g = pixels[i + 1] ?? 0
-        const b = pixels[i + 2] ?? 0
-        const a = (pixels[i + 3] ?? 0) / 255
-        const luma = (r * 0.299 + g * 0.587 + b * 0.114) / 255
-        const value = (shouldInvert ? 1 - luma : luma) * a
-        if (value < p.threshold) continue
-        lit.add(`${col},${row}`)
-        if (col + 1 < cols) lit.add(`${col + 1},${row}`)
+        let sum = 0
+        for (let sy = 0; sy < SUPERSAMPLE; sy++) {
+          const y = row * SUPERSAMPLE + sy
+          for (let sx = 0; sx < SUPERSAMPLE; sx++) {
+            const x = col * SUPERSAMPLE + sx
+            const i = (y * sw + x) * 4
+            const r = pixels[i] ?? 0
+            const g = pixels[i + 1] ?? 0
+            const b = pixels[i + 2] ?? 0
+            const a = (pixels[i + 3] ?? 0) / 255
+            const luma = (r * 0.299 + g * 0.587 + b * 0.114) / 255
+            sum += (shouldInvert ? 1 - luma : luma) * a
+          }
+        }
+        const weight = sum / block
+        if (weight < p.threshold) continue
+        next.push({
+          col,
+          row,
+          char: charFor(weight, p.charset, p.edgeCharset),
+          weight,
+          offsetX: 0,
+          offsetY: 0,
+          scatterX: 0,
+          scatterY: 0,
+          fallSpeed: 0,
+          landing: 0,
+          spin: 0,
+          spinSpeed: 0,
+          flash: 0,
+          wait: 0,
+        })
       }
-    }
-
-    const next: AsciiCell[] = []
-    for (const key of lit) {
-      const [colStr, rowStr] = key.split(",")
-      const col = Number(colStr)
-      const row = Number(rowStr)
-      next.push({
-        col,
-        row,
-        char: pickChar(p.charset),
-        offsetX: 0,
-        offsetY: 0,
-        scatterX: 0,
-        scatterY: 0,
-        fallSpeed: 0,
-        wait: 0,
-      })
     }
     return next
   }
@@ -354,6 +478,7 @@ export function createAsciiLogo(
       p.cellSize,
       p.cellGap,
       p.charset,
+      p.edgeCharset,
       p.threshold,
       String(p.invert ?? ""),
       cols,
@@ -383,29 +508,29 @@ export function createAsciiLogo(
       if (id !== loadId || !running) return
     }
 
+    const sw = cols * SUPERSAMPLE
+    const sh = rows * SUPERSAMPLE
     const sampler = document.createElement("canvas")
-    sampler.width = cols
-    sampler.height = rows
+    sampler.width = sw
+    sampler.height = sh
     const samplerCtx = sampler.getContext("2d", { willReadFrequently: true })
     if (!samplerCtx) return
     const snapshot = {
       ...options,
       src: image ? options.src : undefined,
     }
-    sampleSource(samplerCtx, cols, rows, image, snapshot)
+    sampleSource(samplerCtx, sw, sh, image, snapshot)
     let data: ImageData | null = null
     try {
-      data = samplerCtx.getImageData(0, 0, cols, rows)
+      data = samplerCtx.getImageData(0, 0, sw, sh)
     } catch {
       data = null
     }
     if (!data && image) {
-      sampleSource(samplerCtx, cols, rows, null, {
-        ...snapshot,
-        src: undefined,
-      })
+      // A tainted cross-origin image blocks reads; fall back to the text.
+      sampleSource(samplerCtx, sw, sh, null, { ...snapshot, src: undefined })
       try {
-        data = samplerCtx.getImageData(0, 0, cols, rows)
+        data = samplerCtx.getImageData(0, 0, sw, sh)
       } catch {
         lastKey = ""
         return
@@ -416,10 +541,20 @@ export function createAsciiLogo(
       return
     }
     cells = buildFromImageData(data, cols, rows, snapshot)
+    gridCols = cols
     gridRows = rows
-    setPhase("logo")
     cursor.x = -999
     cursor.y = -999
+    readFont()
+
+    if (p.assemble && p.interactive && !reduce && cells.length > 0) {
+      flingOffStage(cells, cols, rows)
+      staggerCells(cells, p.staggerFrames * 2)
+      phase = "logo"
+      setPhase("returning")
+    } else {
+      setPhase("logo")
+    }
   }
 
   const cyclePhase = () => {
@@ -432,13 +567,29 @@ export function createAsciiLogo(
         cell.scatterX = (Math.random() * 2 - 1) * range
         cell.scatterY = Math.min((Math.random() * 2 - 1) * range, floor * 0.72)
         cell.fallSpeed = 0
+        cell.spinSpeed = (Math.random() * 2 - 1) * 0.05
       }
       staggerCells(cells, p.staggerFrames)
       setPhase("scattered")
       return
     }
     if (phase === "scattered") {
-      for (const cell of cells) cell.fallSpeed = 0
+      // Glyphs heap up column by column, lowest ones landing first, so the
+      // drop ends in drifts rather than one flat line.
+      const pile = new Array<number>(Math.max(1, gridCols)).fill(0)
+      const order = [...cells].sort(
+        (a, b) => b.row + b.offsetY - (a.row + a.offsetY)
+      )
+      for (const cell of order) {
+        const col = Math.min(
+          gridCols - 1,
+          Math.max(0, Math.round(cell.col + cell.offsetX))
+        )
+        const stack = pile[col]!++
+        cell.landing = Math.max(-cell.row, gridRows - 1 - stack - cell.row)
+        cell.fallSpeed = 0
+        cell.spinSpeed = (Math.random() * 2 - 1) * 0.22
+      }
       setPhase("fallen")
       return
     }
@@ -454,6 +605,8 @@ export function createAsciiLogo(
     let everyoneHome = phase === "returning"
 
     for (const cell of cells) {
+      if (cell.flash > 0) cell.flash = Math.max(0, cell.flash - 0.06 * frames)
+
       if (cell.wait > 0) {
         cell.wait -= frames
         if (phase === "returning") everyoneHome = false
@@ -463,6 +616,7 @@ export function createAsciiLogo(
       if (reduced || !p.interactive) {
         cell.offsetX = 0
         cell.offsetY = 0
+        cell.spin = 0
         continue
       }
 
@@ -473,24 +627,40 @@ export function createAsciiLogo(
           cell.scatterY,
           frameEase(p.scatterEase, frames)
         )
+        cell.spin += cell.spinSpeed * frames
+        cell.spinSpeed *= Math.pow(0.97, frames)
         continue
       }
 
       if (phase === "fallen") {
-        const floor = Math.max(0, gridRows - 1 - cell.row)
+        const floor = cell.landing
         cell.fallSpeed += p.gravity * frames
         cell.offsetY += cell.fallSpeed * frames
+        cell.spin += cell.spinSpeed * frames
         if (cell.offsetY >= floor) {
           cell.offsetY = floor
           cell.fallSpeed *= -Math.min(0.95, Math.max(0, p.bounce))
           if (Math.abs(cell.fallSpeed) < 0.12) cell.fallSpeed = 0
+          // Each landing bleeds off most of the tumble; glyphs come to rest
+          // on a flat side rather than balancing on a corner.
+          cell.spinSpeed *= 0.35
+          if (cell.fallSpeed === 0) {
+            cell.spinSpeed = 0
+            const rest = Math.round(cell.spin / (Math.PI / 2)) * (Math.PI / 2)
+            cell.spin += (rest - cell.spin) * frameEase(0.3, frames)
+          }
         }
         continue
       }
 
       if (phase === "returning") {
         easeToward(cell, 0, 0, frameEase(p.resetEase, frames))
-        if (Math.abs(cell.offsetX) > 0.04 || Math.abs(cell.offsetY) > 0.04) {
+        cell.spin += (0 - cell.spin) * frameEase(p.resetEase, frames)
+        if (
+          Math.abs(cell.offsetX) > 0.04 ||
+          Math.abs(cell.offsetY) > 0.04 ||
+          Math.abs(cell.spin) > 0.01
+        ) {
           everyoneHome = false
         }
         continue
@@ -513,23 +683,30 @@ export function createAsciiLogo(
           )
         }
         if (Math.random() < 0.06 * frames) {
-          cell.char = pickChar(p.charset)
+          cell.char = charFor(cell.weight, p.charset, p.edgeCharset)
+          cell.flash = 1
         }
       } else {
         easeToward(cell, 0, 0, frameEase(p.hoverEase, frames))
       }
     }
 
-    if (everyoneHome) setPhase("logo")
+    if (everyoneHome) {
+      for (const cell of cells) {
+        cell.offsetX = 0
+        cell.offsetY = 0
+        cell.spin = 0
+      }
+      setPhase("logo")
+    }
   }
 
   const draw = () => {
     const p = options
     const w = root.clientWidth
     const h = root.clientHeight
-    const dark = resolveDark(p.theme)
-    const ink = p.color ?? (dark ? DARK.ink : LIGHT.ink)
-    const paper = p.backgroundColor ?? (dark ? DARK.paper : LIGHT.paper)
+    const ink = p.color ?? (dark ? DARK_INK : LIGHT_INK)
+    const paper = p.backgroundColor ?? "transparent"
     const step = Math.max(4, p.cellSize + p.cellGap)
 
     if (paper === "transparent") {
@@ -539,7 +716,7 @@ export function createAsciiLogo(
       ctx.fillRect(0, 0, w, h)
     }
 
-    ctx.font = `${Math.max(6, p.cellSize)}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`
+    ctx.font = `${Math.max(6, p.cellSize)}px ${fontFamily || MONO_FALLBACK}`
     ctx.textAlign = "center"
     ctx.textBaseline = "middle"
     ctx.fillStyle = ink
@@ -547,8 +724,21 @@ export function createAsciiLogo(
     for (const cell of cells) {
       const x = (cell.col + cell.offsetX) * step + step * 0.5
       const y = (cell.row + cell.offsetY) * step + step * 0.5
-      ctx.fillText(cell.char, x, y)
+      // Full ink inside the shape, lighter toward its rim, and a brief
+      // brightening on a swapped glyph.
+      const base = 0.4 + 0.6 * Math.min(1, cell.weight / 0.85)
+      ctx.globalAlpha = Math.min(1, base + cell.flash * 0.6)
+      if (Math.abs(cell.spin) > 0.001) {
+        ctx.save()
+        ctx.translate(x, y)
+        ctx.rotate(cell.spin)
+        ctx.fillText(cell.char, 0, 0)
+        ctx.restore()
+      } else {
+        ctx.fillText(cell.char, x, y)
+      }
     }
+    ctx.globalAlpha = 1
   }
 
   const tick = (now: number) => {
@@ -599,6 +789,7 @@ export function createAsciiLogo(
     cyclePhase()
   }
 
+  readFont()
   void rebuild()
   raf = requestAnimationFrame(tick)
 
@@ -621,6 +812,8 @@ export function createAsciiLogo(
       if (typeof next.text === "string") {
         options.text = clampAsciiLogoText(next.text)
       }
+      dark = resolveDark(options.theme)
+      if ("font" in next) readFont()
     },
     destroy() {
       running = false
@@ -628,6 +821,7 @@ export function createAsciiLogo(
       cancelAnimationFrame(raf)
       ro.disconnect()
       mqReduce.removeEventListener("change", onReduce)
+      unwatchTheme()
       window.removeEventListener("pointermove", onPointerMove)
       root.removeEventListener("pointerleave", onPointerLeave)
       root.removeEventListener("pointerdown", onPointerDown)

@@ -317,11 +317,14 @@ type AsciiLogoProps = {
   fit?: number // 0.82
   cellSize?: number // 11
   cellGap?: number // 2
-  charset?: string // DEFAULT_CHARSET
-  threshold?: number // 0.2
+  charset?: string // DEFAULT_CHARSET, cells inside the shape
+  edgeCharset?: string // EDGE_CHARSET, light marks on the rim
+  threshold?: number // 0.2, coverage a cell needs
   invert?: boolean // true if src set, else false
-  color?: string
-  backgroundColor?: string // "transparent" skips fill
+  color?: string // omit → LIGHT_INK / DARK_INK by theme
+  backgroundColor?: string // "transparent"
+  font?: string // omit → root's computed font; wrapper sets font-mono
+  assemble?: boolean // true, glyphs fly in on build
   hoverRadius?: number // 7
   hoverPush?: number // 2.6
   hoverEase?: number // 0.18

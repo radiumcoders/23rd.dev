@@ -303,13 +303,13 @@ Pitfalls: `color` / `eyeColor` apply only for `variant="custom"` (defaults `#7C5
 
 ## ascii-logo
 
-Character. Glyphs sample `text` or `src`. Hover shoves them in the `logo` phase. Clicks cycle `logo → scattered → fallen → returning → logo`.
+Character. Glyphs sample `text` or `src` (4x supersampled, so rim cells get light marks and fade). They fly in on build, hover shoves them in the `logo` phase, and clicks cycle `logo → scattered → fallen → returning → logo`. The stage is transparent; ink follows the theme.
 
 Best fit: an interactive wordmark (max 5 letters) or a sampled mark.
 
 Not this: mouse-trail fluid (`ascii-fluid`).
 
-Deps: none. Key props: `text` (`"23rd"`), `src`, `fit` (0.82), `cellSize` (11), `cellGap` (2), `charset`, `threshold` (0.2), `invert`, `color`, `backgroundColor`, hover/scatter/gravity props, `interactive` (true), `theme`, `label`, `onPhaseChange`.
+Deps: none. Key props: `text` (`"23rd"`), `src`, `fit` (0.82), `cellSize` (11), `cellGap` (2), `charset`, `edgeCharset`, `threshold` (0.2), `invert`, `color`, `backgroundColor` (transparent), `font`, `assemble` (true), hover/scatter/gravity props, `interactive` (true), `theme`, `label`, `onPhaseChange`.
 
 ```tsx
 "use client"
