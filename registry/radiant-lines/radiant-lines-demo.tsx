@@ -28,7 +28,9 @@ function colorsEqual(a: string[], b: string[]) {
 
 /** The stock palettes swap with the theme; a custom one stays put. */
 function isStockPalette(colors: string[]) {
-  return colorsEqual(colors, DEFAULT_COLORS) || colorsEqual(colors, LIGHT_COLORS)
+  return (
+    colorsEqual(colors, DEFAULT_COLORS) || colorsEqual(colors, LIGHT_COLORS)
+  )
 }
 
 const PAGES = [

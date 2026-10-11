@@ -414,7 +414,7 @@ export function GooeyColorPicker({
           aria-valuemax={100}
           aria-valuenow={Math.round(color.a * 100)}
           className={cn(
-            "relative mt-3 h-9 w-full shrink-0 touch-none overflow-hidden rounded-xl outline-none ring-1 ring-foreground/10",
+            "relative mt-3 h-9 w-full shrink-0 touch-none overflow-hidden rounded-xl ring-1 ring-foreground/10 outline-none",
             "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover"
           )}
           style={{
