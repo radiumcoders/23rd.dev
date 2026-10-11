@@ -42,7 +42,7 @@ export function Mascot() {
   </FrameworkSvelte>
 </FrameworkCode>
 
-`custom` uses `color` and `eyeColor`; `webgl` takes an optional three-stop `colors`.
+Without a `variant` the orb is white on dark pages and black on light ones. `custom` uses `color` and `eyeColor`; `webgl` takes an optional three-stop `colors`.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -69,12 +69,13 @@ export function Mascot() {
 
 | Prop          | Type                                        | Default                   |
 | ------------- | ------------------------------------------- | ------------------------- |
-| `variant`     | `"white" \| "black" \| "webgl" \| "custom"` | `"white"`                 |
+| `variant`     | `"white" \| "black" \| "webgl" \| "custom"` | follows theme             |
 | `size`        | `number`                                    | `280`                     |
 | `color`       | `string`                                    | `"#7C5CFF"`               |
 | `eyeColor`    | `string`                                    | `"#FAFAFA"`               |
 | `colors`      | `string[]`                                  | violet / foam / dust-rose |
 | `interactive` | `boolean`                                   | `true`                    |
 | `blink`       | `boolean`                                   | `true`                    |
+| `theme`       | `"light" \| "dark" \| "auto"`               | `"auto"`                  |
 | `className`   | `string`                                    | React only                |
 | `class`       | `string`                                    | Svelte only               |

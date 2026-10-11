@@ -6,7 +6,9 @@
   import {
     createLiveOrb,
     fallbackFaceStyle,
+    resolveDark,
     resolveVariant,
+    watchTheme,
     type LiveOrbInstance,
     type LiveOrbOptions,
   } from "./live-orb-vanilla"
@@ -24,16 +26,20 @@
   let {
     class: className = "",
     size = 280,
-    variant = "white",
+    variant,
     color,
     eyeColor,
     colors,
     interactive = true,
     blink = true,
+    theme = "auto",
   }: Props = $props()
 
   let canvas: HTMLCanvasElement | undefined = $state()
   let hasGl = $state(false)
+  // The CSS fallback face needs the theme too; it starts light on the
+  // server and corrects itself right after mount.
+  let dark = $state(false)
   let instance: LiveOrbInstance | null = null
 
   onMount(() => {
@@ -45,6 +51,7 @@
       colors,
       interactive,
       blink,
+      theme,
       onHasGl: (ok) => {
         hasGl = ok
       },
@@ -56,6 +63,14 @@
   })
 
   $effect(() => {
+    const sync = () => {
+      dark = resolveDark(theme)
+    }
+    sync()
+    return watchTheme(sync)
+  })
+
+  $effect(() => {
     instance?.setOptions({
       variant,
       color,
@@ -63,10 +78,13 @@
       colors,
       interactive,
       blink,
+      theme,
     })
   })
 
-  const resolved = $derived(resolveVariant(variant, color, eyeColor, colors))
+  const resolved = $derived(
+    resolveVariant(variant, color, eyeColor, colors, dark)
+  )
   const face = $derived(fallbackFaceStyle(resolved))
 </script>
 
