@@ -234,7 +234,7 @@
   <div
     data-gcp-panel
     aria-hidden={!open}
-    class="absolute bottom-15 left-1/2 z-10 flex w-48 flex-col items-center overflow-hidden border border-white/15 bg-black p-3 shadow-[0_18px_50px_-20px_rgba(0,0,0,0.65)]"
+    class="absolute bottom-15 left-1/2 z-10 flex w-48 flex-col items-center overflow-hidden border border-border bg-popover p-3 text-popover-foreground shadow-[0_18px_50px_-20px_rgba(0,0,0,0.65)]"
     style="border-radius: 6rem 6rem 1.35rem 1.35rem; transform-origin: bottom center; translate: -50% {open
       ? 0
       : 12}px; scale: {open
@@ -254,7 +254,7 @@
       aria-valuetext="hue {Math.round(color.h)}, saturation {Math.round(color.s)}"
       class={cn(
         "relative size-40 shrink-0 touch-none rounded-full outline-none",
-        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover"
       )}
       style="background: radial-gradient(circle at center, #fff 0%, transparent 62%), conic-gradient(from 0deg, hsl(0 100% 50%), hsl(60 100% 50%), hsl(120 100% 50%), hsl(180 100% 50%), hsl(240 100% 50%), hsl(300 100% 50%), hsl(360 100% 50%));"
       onpointerdown={bindDrag((x, y) => updateWheelFromPointer(x, y))}
@@ -275,8 +275,8 @@
       aria-valuemax={100}
       aria-valuenow={Math.round(color.a * 100)}
       class={cn(
-        "relative mt-3 h-9 w-full shrink-0 touch-none overflow-hidden rounded-xl outline-none ring-1 ring-white/10",
-        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+        "relative mt-3 h-9 w-full shrink-0 touch-none overflow-hidden rounded-xl outline-none ring-1 ring-foreground/10",
+        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover"
       )}
       style="background: linear-gradient(to right, transparent, {opaque});"
       onpointerdown={bindDrag((x) => updateAlphaFromPointer(x))}
@@ -289,10 +289,10 @@
     </div>
 
     <div
-      class="mt-3 flex w-full items-center gap-2 rounded-xl bg-white/5 px-3 py-2 ring-1 ring-white/10"
+      class="mt-3 flex w-full items-center gap-2 rounded-xl bg-foreground/5 px-3 py-2 ring-1 ring-foreground/10"
     >
       <span
-        class="size-3.5 shrink-0 rounded-full ring-1 ring-white/25"
+        class="size-3.5 shrink-0 rounded-full ring-1 ring-foreground/25"
         style="background: {css};"
         aria-hidden="true"
       ></span>
@@ -310,7 +310,7 @@
           commitHex(hexDraft)
         }}
         onkeydown={onHexKeyDown}
-        class="min-w-0 flex-1 bg-transparent font-mono text-sm text-white outline-none placeholder:text-white/40"
+        class="min-w-0 flex-1 bg-transparent font-mono text-sm text-popover-foreground outline-none placeholder:text-muted-foreground"
       />
       {#if supportsEyeDropper}
         <button
@@ -319,8 +319,8 @@
           tabindex={open ? 0 : -1}
           onclick={pickWithEyeDropper}
           class={cn(
-            "-mr-1 flex size-6 shrink-0 items-center justify-center rounded-md text-white/60 outline-none",
-            "transition-colors hover:bg-white/10 hover:text-white",
+            "-mr-1 flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none",
+            "transition-colors hover:bg-foreground/10 hover:text-popover-foreground",
             "focus-visible:ring-2 focus-visible:ring-ring"
           )}
         >
@@ -351,7 +351,7 @@
     aria-expanded={open}
     aria-haspopup="dialog"
     class={cn(
-      "relative z-20 flex size-12 items-center justify-center rounded-full border border-white/20 bg-black text-white outline-none",
+      "relative z-20 flex size-12 items-center justify-center rounded-full border border-border bg-popover text-popover-foreground outline-none",
       "transition-transform active:scale-[0.94]",
       "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     )}
