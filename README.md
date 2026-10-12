@@ -1,4 +1,4 @@
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/e586e4ae-414e-460b-a29e-d3f91e827c10" />
+<img width="1896" height="1030" alt="image" src="https://github.com/user-attachments/assets/efdf6ac9-ed4e-4579-906f-f59939ce1e68" />
 
 <p align="center">  
   <a href="https://23rd.dev"> 
