@@ -3,7 +3,6 @@
   "pages": [
     "---Background---",
     "logo-burst",
-    "phosphor-score",
     "radiant-lines",
     "ascii-fluid",
     "ring-tower",
@@ -24,6 +23,8 @@
     "folio",
     "---Components---",
     "gooey-color-picker",
+    "---Experiments---",
+    "phosphor-score",
     "typewriter"
   ]
 }
