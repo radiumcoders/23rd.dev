@@ -36,6 +36,12 @@ export const Dithered404Demo = lazyDemo(() =>
   )
 )
 
+export const DitherScanDemo = lazyDemo(() =>
+  import("@/registry/dither-scan/dither-scan-demo").then(
+    (m) => m.DitherScanDemo
+  )
+)
+
 export const FolioDemo = lazyDemo(() =>
   import("@/registry/folio/folio-demo").then((m) => m.FolioDemo)
 )

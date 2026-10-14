@@ -72,6 +72,7 @@ flowchart TD
   pick -->|Pick or edit a color| gooey[gooey-color-picker]
   pick -->|Atmosphere behind a hero| atmo{Mood}
   pick -->|Footer or page-end| foot{Treatment}
+  pick -->|Reveal an image from a dither| ds[dither-scan]
   pick -->|Full page 404| d404[dithered-404]
   pick -->|Scroll makes the page lean| folio[folio]
   pick -->|Character or wordmark| mark{Which}
@@ -100,6 +101,7 @@ Disambiguation that agents get wrong:
 | Soft gradient behind a headline | `shader-gradient` | `gooey-color-picker` |
 | Fire, heat under a hero | `shader-anime-fire` | `dithered-404` unless the page is a 404 |
 | 404 that burns under the cursor | `dithered-404` | `shader-anime-fire` |
+| Image that un-dithers, scan line, enhance or processing reveal | `dither-scan` | `dithered-404` (a 404 glyph, not your image) |
 | Overscroll rubber band, aurora at the bottom | `stretchy-footer` | `folio` |
 | Page leans while scrolling | `folio` | `stretchy-footer` (that one stretches, it does not tilt) |
 | Stars that speed up when you scroll | `radiant-lines` | `logo-burst` |
@@ -182,6 +184,7 @@ Categories match `content/docs/components/meta.json`.
 | `gooey-color-picker` | Components | Swatch opens into hue, alpha, and hex under an SVG goo filter |
 | `typewriter` | Components | A real typewriter in SVG: keys press, typebars strike, the carriage steps |
 | `mech-keyboard` | Components | Isometric 75% keyboard illustration; presses with yours and records shortcuts |
+| `dither-scan` | Components | 1-bit dithered image a diagonal scan line clears in N passes |
 
 ## Minimal installs that must be right
 

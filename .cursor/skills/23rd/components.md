@@ -382,6 +382,34 @@ export function NotFound() {
 
 Pitfalls: `interactive` hides the system cursor while the fireball is active (`onHideCursor` exists on the vanilla options; the React wrapper owns that state and does not expose the callback as a prop). Ink follows theme: `#18181B` light, `#E4E4E7` dark. The glyph string is the 404 itself; there is no `text` prop.
 
+## dither-scan
+
+Component. An image that starts as a 1-bit ordered dither in theme ink and paper. A diagonal scan line sweeps it `passes` times; each pass shrinks the cells and brings back tones and color, and the last leaves the source image.
+
+Best fit: a cover image, product shot, or case-study hero that should feel processed or "enhanced" as it arrives. One per view.
+
+Not this: a 404 page (`dithered-404`), a background wash (`shader-gradient`), or an image gallery. It plays once per scroll into view unless `loop` is set.
+
+Deps: none. Key props: `src`, `alt`, `passes` (4), `duration` (1400), `angle` (45), `alternate` (true), `pixelSize` (6), `blur` (6), `autoPlay` (true), `loop` (false), `replayKey`, `onPass`, `onComplete`.
+
+```tsx
+"use client"
+import { DitherScan } from "@/components/ui/dither-scan"
+
+export function Cover() {
+  return (
+    <DitherScan
+      src="/cover.jpg"
+      alt="The studio at dusk"
+      passes={5}
+      className="mx-auto max-w-2xl rounded-xl"
+    />
+  )
+}
+```
+
+Pitfalls: remote images must send CORS headers; an unreadable image is shown clean with no scan. The frame takes the image's aspect ratio and full width; set height and width in `className` to crop instead (`fit` picks cover or contain). Reduced motion shows the clean image immediately.
+
 ## folio
 
 Section. The sheet tips one way on scroll down, the other on scroll up, blur on the traveling edge, then springs flat. Peak tilt is an internal 16°.

@@ -19,8 +19,6 @@ Swap `shader-gradient` for any item name.
 
 Put it in a relatively positioned container, with your content in a later stacking context.
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -35,20 +33,6 @@ export function Hero() {
   )
 }
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import ShaderGradient from "$lib/components/ui/shader-gradient.svelte"
-</script>
-
-<section class="relative isolate min-h-svh overflow-hidden bg-background">
-  <ShaderGradient />
-  <div class="relative z-10 p-10">Your content</div>
-</section>
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 ## Browse
 
@@ -60,5 +44,5 @@ export function Hero() {
 | Characters  | [Live Orb](/docs/components/live-orb), [ASCII Logo](/docs/components/ascii-logo)                                                                                                                                                |
 | Pages       | [Dithered 404](/docs/components/dithered-404)                                                                                                                                                                                   |
 | Sections    | [Folio](/docs/components/folio)                                                                                                                                                                                                 |
-| Components  | [Gooey Color Picker](/docs/components/gooey-color-picker)                                                                                                                                                                       |
+| Components  | [Dither Scan](/docs/components/dither-scan), [Gooey Color Picker](/docs/components/gooey-color-picker)                                                                                                                          |
 | Experiments | [Phosphor Score](/docs/components/phosphor-score), [Typewriter](/docs/components/typewriter)                                                                                                                                    |

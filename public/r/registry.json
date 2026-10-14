@@ -30,6 +30,19 @@
       "type": "registry:ui"
     },
     {
+      "name": "dither-scan",
+      "title": "Dither Scan",
+      "description": "An image that starts as a 1-bit ordered dither. A diagonal scan line sweeps it a set number of times, and each pass sharpens the cells and brings back tone and color until the source is clean.",
+      "files": [
+        {
+          "path": "registry/dither-scan/dither-scan.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/dither-scan.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "dithered-404",
       "title": "Dithered 404",
       "description": "Bayer-pixel 404 section: a fireball cursor scorches the glyph, burns it into embers and smoke, then reforms. Optional soft realistic fire.",
