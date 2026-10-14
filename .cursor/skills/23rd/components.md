@@ -38,6 +38,34 @@ export function Mark() {
 
 Pitfalls: `color` overrides theme ink. Light filament is `#3F3F46`, dark is `#D6D2CA`. `DEFAULT_COLOR` is deprecated (it is the dark color). Reduced motion draws the settled field and skips the explosion. Click replays unless `replayOnClick={false}`.
 
+## iso-lattice
+
+Background. A fixed lattice of isometric diamond tiles lights up solid figures (cube, steps, pillars, coil) on a faint floor grid, and builds each one over the last from the floor up. A level glint rises through the figure, the pointer lights the lattice like a lamp. Transparent canvas.
+
+Best fit: an infrastructure or developer-tool hero that wants one luminous object under the headline; a section divider with a figure that changes.
+
+Not this: hair-line explosion (`logo-burst`), scroll starfield (`radiant-lines`), images on a tower (`ring-tower`).
+
+Deps: none (WebGL). Key props: `shapes` (`["cube", "steps", "pillars", "coil"]`), `interval` (4s), `color`, `theme` (`auto`), `size` (0.6), `spacing` (8px), `glow` (0.6), `speed` (1), `floor` (true), `interactive` (true).
+
+```tsx
+"use client"
+import { IsoLattice } from "@/components/ui/iso-lattice"
+
+export function Hero() {
+  return (
+    <section className="relative isolate flex min-h-svh flex-col overflow-hidden bg-background">
+      <h1 className="relative z-10 pt-24 text-center text-4xl font-medium">Ship the build</h1>
+      <div className="relative min-h-[420px] flex-1">
+        <IsoLattice />
+      </div>
+    </section>
+  )
+}
+```
+
+Pitfalls: the figure is centered in the canvas, so give the lattice its own box below the copy instead of centering copy over it. `color` overrides the theme amber; light is `#C2560C`, dark `#FFB25B`. Unknown names in `shapes` are dropped; an empty list falls back to all four. Reduced motion holds the first figure with no build, glint or lamp. Without WebGL the canvas stays empty.
+
 ## phosphor-score
 
 Background. Two vertical staves. Notes fall, bloom at the playhead, then flare. Not a piano roll.

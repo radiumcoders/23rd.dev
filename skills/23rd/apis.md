@@ -68,6 +68,31 @@ Constants: `LIGHT_COLOR` `#3F3F46`, `DARK_COLOR` `#D6D2CA`. `DEFAULT_COLOR` is d
 
 Vanilla `LogoBurstInstance`: `{ setOptions, replay, destroy }`. Not returned to app code by the React component.
 
+## iso-lattice
+
+```ts
+type IsoLatticeTheme = "light" | "dark" | "auto"
+type IsoLatticeShape = "cube" | "steps" | "pillars" | "coil"
+
+type IsoLatticeProps = {
+  shapes?: IsoLatticeShape[] // ["cube", "steps", "pillars", "coil"]; one item holds still
+  interval?: number // 4 seconds per figure
+  color?: string
+  size?: number // 0.6 of the shorter side, 0.2–1
+  spacing?: number // 8 CSS px between tiles, 4–24
+  glow?: number // 0.6, 0–1
+  speed?: number // 1, glint and shimmer only
+  floor?: boolean // true
+  interactive?: boolean // true
+  theme?: IsoLatticeTheme // "auto"
+  className?: string
+}
+```
+
+Constants: `LIGHT_COLOR` `#C2560C`, `DARK_COLOR` `#FFB25B`, `SHAPES`. Each build takes a fixed 1.6 s; it is not a prop.
+
+Vanilla `IsoLatticeInstance`: `{ setOptions, destroy }`. Not returned to app code by the React component.
+
 ## phosphor-score
 
 ```ts
