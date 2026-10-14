@@ -166,6 +166,7 @@ Categories match `content/docs/components/meta.json`.
 
 | Name | Category | One line |
 | --- | --- | --- |
+| `dither-scan` | AI Components | 1-bit dithered image a diagonal scan line clears in N passes |
 | `logo-burst` | Background | Hair-line tentacles explode from center, then breathe |
 | `phosphor-score` | Background | Vertical CRT score; notes fall, bloom, flare |
 | `radiant-lines` | Background | Hyperspace streaks; warp follows scroll |
@@ -184,7 +185,6 @@ Categories match `content/docs/components/meta.json`.
 | `gooey-color-picker` | Components | Swatch opens into hue, alpha, and hex under an SVG goo filter |
 | `typewriter` | Components | A real typewriter in SVG: keys press, typebars strike, the carriage steps |
 | `mech-keyboard` | Components | Isometric 75% keyboard illustration; presses with yours and records shortcuts |
-| `dither-scan` | AI Components | 1-bit dithered image a diagonal scan line clears in N passes |
 
 ## Minimal installs that must be right
 

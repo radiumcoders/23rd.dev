@@ -1,6 +1,8 @@
 {
   "title": "Components",
   "pages": [
+    "---AI Components---",
+    "dither-scan",
     "---Background---",
     "logo-burst",
     "radiant-lines",
@@ -24,8 +26,6 @@
     "---Components---",
     "gooey-color-picker",
     "mech-keyboard",
-    "---AI Components---",
-    "dither-scan",
     "---Experiments---",
     "phosphor-score",
     "typewriter"
