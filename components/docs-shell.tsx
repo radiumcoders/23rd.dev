@@ -3,7 +3,6 @@
 import {
   useLayoutEffect,
   useRef,
-  useState,
   type CSSProperties,
   type ReactNode,
 } from "react"
@@ -120,24 +119,47 @@ function SidebarBody({
 
 /** The sidebar's width in px; `w-60`. */
 const SIDEBAR_WIDTH = 240
-const SLIDE = {
-  duration: 320,
-  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-}
+/** Release the preview this long after a toggle if `transitionend` never comes. */
+const SLIDE_FALLBACK_MS = 1000
 
-type Phase = "open" | "closing" | "closed" | "opening"
+/**
+ * Holds the live preview at one width while the sidebar slides, centred in
+ * the stage, which clips it. The stage itself eases with the layout, but
+ * the component inside is resized once, when the slide ends, instead of on
+ * every frame (each resize redraws or re-lays out the component, and a
+ * canvas clears until its next frame). Returns the release.
+ */
+function holdPreview(main: HTMLElement, opening: boolean) {
+  const screen = main.querySelector<HTMLElement>(
+    '[data-slot="docs-stage-screen"]'
+  )
+  if (!screen) return () => {}
+  // The stage gains or loses the sidebar's width; hold the wider of the
+  // two so the preview never comes up short of its frame.
+  const width = screen.clientWidth + (opening ? 0 : SIDEBAR_WIDTH)
+  const held = Array.from(screen.children) as HTMLElement[]
+  for (const el of held) {
+    el.style.width = `${width}px`
+    el.style.maxWidth = "none"
+    el.style.marginLeft = `calc(50% - ${width / 2}px)`
+  }
+  return () => {
+    for (const el of held) {
+      el.style.width = ""
+      el.style.maxWidth = ""
+      el.style.marginLeft = ""
+    }
+  }
+}
 
 /**
  * From `md` up the page tree sits at the left, and its toggle (or Ctrl+B)
  * folds it away entirely, leaving a floating button over the corner of
  * the page so a component's stage can take the full width.
  *
- * Folding never eases the width: that would resize the live preview on
- * every frame, and each resize redraws (or re-lays out) the component.
- * Instead the width changes once and the page glides by transform. Closing
- * snaps the width first and slides the page back from where it was;
- * opening slides the page aside first and snaps the width as it lands.
- * Either way the preview is resized once, while it is moving.
+ * The aside's width eases and the panel inside rides its right edge, so the
+ * page reflows smoothly beside it; only the live preview is held still
+ * until the slide lands (`holdPreview`).
  */
 function DesktopFrame({
   tree,
@@ -149,63 +171,40 @@ function DesktopFrame({
   children: ReactNode
 }) {
   const { open, isMobile } = useSidebar()
-  // Below `md` the frame is hidden and the mobile sheet takes over.
-  const instant = (useReducedMotion() ?? false) || isMobile
-  const [phase, setPhase] = useState<Phase>(open ? "open" : "closed")
-  const panelRef = useRef<HTMLDivElement>(null)
+  const reduce = useReducedMotion() ?? false
+  const asideRef = useRef<HTMLElement>(null)
   const mainRef = useRef<HTMLElement>(null)
-
-  // Follow the toggle during render, so the first frame is already right.
-  if (open && (phase === "closed" || phase === "closing")) {
-    setPhase(instant ? "open" : "opening")
-  } else if (!open && (phase === "open" || phase === "opening")) {
-    setPhase(instant ? "closed" : "closing")
-  }
+  const wasOpen = useRef(open)
 
   useLayoutEffect(() => {
-    const panel = panelRef.current
+    if (wasOpen.current === open) return
+    wasOpen.current = open
+    const aside = asideRef.current
     const main = mainRef.current
-    if (!panel || !main) return
-    // A toggle mid-slide starts the new slide from rest.
-    for (const el of [panel, main]) {
-      for (const a of el.getAnimations()) a.cancel()
+    if (!aside || !main || reduce || isMobile) return
+    const release = holdPreview(main, open)
+    const done = (e: TransitionEvent) => {
+      if (e.target === aside && e.propertyName === "width") release()
     }
-    const shift = `translateX(${SIDEBAR_WIDTH}px)`
-    if (phase === "opening") {
-      panel.animate(
-        [{ transform: "translateX(-100%)" }, { transform: "none" }],
-        SLIDE
-      )
-      const slide = main.animate(
-        [{ transform: "none" }, { transform: shift }],
-        {
-          ...SLIDE,
-          fill: "forwards",
-        }
-      )
-      slide.onfinish = () => setPhase("open")
-    } else if (phase === "closing") {
-      main.animate([{ transform: shift }, { transform: "none" }], SLIDE)
-      const slide = panel.animate(
-        [{ transform: "none" }, { transform: "translateX(-100%)" }],
-        { ...SLIDE, fill: "forwards" }
-      )
-      slide.onfinish = () => setPhase("closed")
+    aside.addEventListener("transitionend", done)
+    const id = window.setTimeout(release, SLIDE_FALLBACK_MS)
+    return () => {
+      aside.removeEventListener("transitionend", done)
+      window.clearTimeout(id)
+      release()
     }
-  }, [phase])
-
-  const panelShown = phase !== "closed"
+  }, [open, reduce, isMobile])
 
   return (
-    // `clip`, not `hidden`: it trims the page while it slides past the
-    // right edge without becoming a scroll box, so `sticky` keeps working.
-    <div className="flex w-full items-start overflow-x-clip">
+    <div className="flex w-full items-start">
       <aside
+        ref={asideRef}
         aria-label="Documentation"
         data-state={open ? "expanded" : "collapsed"}
         className={cn(
           "sticky top-0 z-20 hidden h-svh shrink-0 [contain:layout] md:block",
-          phase === "open" ? "w-60" : "w-0"
+          "transition-[width] duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+          open ? "w-60" : "w-0"
         )}
       >
         {/*
@@ -214,24 +213,23 @@ function DesktopFrame({
          * a sticky sidebar's marker would fly in from off-screen. A
          * `layoutScroll` fixed box is a scroll root it measures in the
          * viewport instead; `contain: layout` pins that box to the aside.
+         * Pinned to the aside's right edge, it slides out as the aside
+         * narrows rather than being squeezed.
          */}
         <motion.div
-          ref={panelRef}
           layoutScroll
           inert={!open}
-          className={cn(
-            "fixed inset-y-0 left-0 flex w-60 flex-col overflow-hidden bg-background",
-            !panelShown && "invisible"
-          )}
+          className="fixed inset-y-0 right-0 flex w-60 flex-col overflow-hidden bg-background"
         >
           <SidebarBody tree={tree} githubStars={githubStars} />
         </motion.div>
       </aside>
-      {phase === "closed" ? (
-        <div className="fixed top-5 left-5 z-30 hidden animate-in duration-200 zoom-in-90 fade-in md:block">
+      {open ? null : (
+        // Waits for the sidebar to leave before it shows.
+        <div className="fixed top-5 left-5 z-30 hidden animate-in delay-200 duration-200 fill-mode-backwards zoom-in-90 fade-in motion-reduce:animate-none md:block">
           <DocsSidebarTrigger className="bg-background/85 shadow-sm ring-1 ring-border backdrop-blur-md hover:bg-background" />
         </div>
-      ) : null}
+      )}
       <main ref={mainRef} className="flex min-w-0 flex-1 flex-col">
         {children}
       </main>

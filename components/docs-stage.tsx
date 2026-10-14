@@ -38,7 +38,8 @@ export function DocsStage({ children }: { children: ReactNode }) {
         <div className="h-[max(20rem,calc(100svh-4rem))] md:h-[calc(100svh-1.5rem)] xl:h-auto xl:min-w-0 xl:flex-1">
           <div
             ref={setSlot}
-            className="size-full rounded-[1.25rem] bg-screen"
+            data-slot="docs-stage-screen"
+            className="relative size-full overflow-hidden rounded-[1.25rem] bg-screen"
           />
         </div>
         <aside
