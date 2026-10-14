@@ -285,25 +285,37 @@ export function createLogoBurst(
   let dark = resolveDark(themeOf(options.theme))
   options.onThemeChange?.(dark)
 
+  /** Returns whether the backing size changed (which clears the canvas). */
   const resize = () => {
     const parent = canvas.parentElement
-    if (!parent) return
+    if (!parent) return false
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     const w = parent.clientWidth
     const h = parent.clientHeight
     size.w = w
     size.h = h
-    canvas.width = Math.floor(w * dpr)
-    canvas.height = Math.floor(h * dpr)
+    const width = Math.floor(w * dpr)
+    const height = Math.floor(h * dpr)
+    const changed = width !== canvas.width || height !== canvas.height
+    if (changed) {
+      canvas.width = width
+      canvas.height = height
+    }
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    // Resizing clears the canvas, and a reduced-motion burst isn't looping.
-    paintStill()
+    return changed
   }
 
   resize()
-  const ro = new ResizeObserver(resize)
+  // Resizing cleared the canvas; paint now, or it shows blank for a frame.
+  // `paint` reads the clock rather than a step, so painting early is safe,
+  // and it only queues the next frame when the burst is looping.
+  const ro = new ResizeObserver(() => {
+    if (!resize() || !running) return
+    cancelAnimationFrame(raf)
+    paint(performance.now())
+  })
   if (canvas.parentElement) ro.observe(canvas.parentElement)
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")

@@ -20,14 +20,46 @@ import {
 
 export type RingTowerTheme = "light" | "dark" | "auto"
 
+/** One ring's own settings. Anything left out follows the tower. */
+export type RingTowerRing = {
+  /** Images for this ring alone. Default: the tower's `images`. */
+  images?: string[]
+  /**
+   * Which way the ring leans, in degrees around the tower. Default `i * 90`,
+   * a quarter turn from the ring below, so the stack zig-zags.
+   */
+  rotation?: number
+  /** How far the ring leans, in degrees, -45 to 45. Default `14`. */
+  tilt?: number
+  /**
+   * Degrees per second the ring turns around the tower, -180 to 180, so its
+   * lean sweeps round. Default `0`.
+   */
+  spin?: number
+  /**
+   * Crawl speed for this ring, -4 to 4; negative crawls the other way.
+   * Default: the tower's `speed`.
+   */
+  speed?: number
+  /**
+   * Degrees the pointer turns this ring, -90 to 90; the sign picks the
+   * direction. Default: the tower's `parallax`, alternating direction.
+   */
+  parallax?: number
+}
+
 export type RingTowerOptions = {
   /**
    * Image URLs drawn side by side around every band. Cross-origin images
    * need CORS headers. Empty draws a plain grid band.
    */
   images?: string[]
-  /** Number of stacked bands. Default `12`, 1 to 24. */
-  rings?: number
+  /**
+   * Number of stacked rings, 1 to 5. Default `5`. Or one settings object per
+   * ring, from the bottom up, to set each ring's rotation, tilt, spin,
+   * speed, parallax or images; the array's length is the count.
+   */
+  rings?: number | RingTowerRing[]
   /** How fast the images crawl around the bands. Default `1`, 0 to 4. */
   speed?: number
   /** Drag a band to spin the tower, with inertia. Default `true`. */
@@ -51,19 +83,22 @@ export type RingTowerInstance = {
   destroy: () => void
 }
 
-export const DEFAULT_RINGS = 12
+export const DEFAULT_RINGS = 5
+export const MAX_RINGS = 5
 export const DEFAULT_SPEED = 1
 export const DEFAULT_PARALLAX = 24
 export const DEFAULT_BACKFACE = 0.86
+export const DEFAULT_TILT = 14
+export const DEFAULT_SPIN = 0
 
 const RADIUS = 4
 const BAND_HEIGHT = 2
 const SPACING = 3.5
-const TILT = 0.25
 const SEGMENTS = 100
 const STRIP_HEIGHT = 512
 const CRAWL = 0.012
 const START_ANGLE = 0.5
+const DEG = Math.PI / 180
 /** Lean cycle per ring; signs alternate so neighbors counter-turn. */
 const PARALLAX_FACTORS = [1, -0.75, 1.25, -0.9]
 
@@ -74,6 +109,41 @@ function clamp(value: number, min: number, max: number) {
 function numberOr(value: unknown, fallback: number, min: number, max: number) {
   if (typeof value !== "number" || !Number.isFinite(value)) return fallback
   return clamp(value, min, max)
+}
+
+/** Default rotation for ring `i`: a quarter turn from the one below. */
+export function defaultRotation(i: number) {
+  return (i * 90) % 360
+}
+
+/** Default parallax for ring `i`: neighbors turn opposite ways. */
+export function defaultParallax(i: number, parallax = DEFAULT_PARALLAX) {
+  return parallax * PARALLAX_FACTORS[i % PARALLAX_FACTORS.length]!
+}
+
+/** The ring count and each ring's own settings (empty where unset). */
+function ringsOf(value: RingTowerOptions["rings"]): RingTowerRing[] {
+  if (Array.isArray(value) && value.length > 0) {
+    return value
+      .slice(0, MAX_RINGS)
+      .map((ring) => (ring && typeof ring === "object" ? ring : {}))
+  }
+  const count = Math.round(
+    numberOr(
+      Array.isArray(value) ? undefined : value,
+      DEFAULT_RINGS,
+      1,
+      MAX_RINGS
+    )
+  )
+  return Array.from({ length: count }, () => ({}))
+}
+
+function urlsOf(images: unknown): string[] {
+  if (!Array.isArray(images)) return []
+  return images.filter(
+    (url): url is string => typeof url === "string" && url.length > 0
+  )
 }
 
 /** Resolves shadcn / next-themes dark mode (`attribute="class"` → `html.dark`). */
@@ -219,11 +289,22 @@ export function createRingTower(
   let darkMix = dark ? 1 : 0
   const backColor = { value: new Color().setScalar(1 - darkMix) }
 
-  type Band = { mesh: Mesh; material: MeshBasicMaterial; texture: Texture }
+  type Band = {
+    index: number
+    mesh: Mesh
+    material: MeshBasicMaterial
+    texture: Texture
+    tiles: number
+  }
   let bands: Band[] = []
-  let strip: Strip | null = null
-  let base: CanvasTexture | null = null
-  let tiles = 1
+  // One strip per distinct image list, shared by every ring that shows it.
+  // `base` is null while the images load.
+  type Entry = { base: CanvasTexture | null; tiles: number; token: number }
+  const strips = new Map<string, Entry>()
+  let rings = ringsOf(options.rings)
+  // Kept across rebuilds, so a strip arriving never snaps a ring back.
+  const crawls: number[] = []
+  const turns: number[] = []
 
   const makeMaterial = (map: Texture) => {
     const material = new MeshBasicMaterial({
@@ -255,51 +336,51 @@ export function createRingTower(
     for (const band of bands) {
       tower.remove(band.mesh)
       band.material.dispose()
-      if (band.texture !== base) band.texture.dispose()
+      band.texture.dispose()
     }
     bands = []
   }
 
   // Whole tiles around the band keep the seam invisible; the strip is then
-  // cropped top and bottom to hold its proportions.
+  // cropped top and bottom to hold its proportions. Returns the tile count.
   const fit = (texture: Texture, aspect: number) => {
     const around = (2 * Math.PI * RADIUS) / BAND_HEIGHT
     const whole = Math.floor(around / aspect)
     if (whole >= 1) {
-      tiles = whole
       texture.repeat.set(whole, Math.min(1, (aspect * whole) / around))
       texture.offset.y = (1 - texture.repeat.y) / 2
-    } else {
-      tiles = around / aspect
-      texture.repeat.set(tiles, 1)
-      texture.offset.y = 0
+      return whole
     }
+    texture.repeat.set(around / aspect, 1)
+    texture.offset.y = 0
+    return around / aspect
   }
+
+  const imagesFor = (ring: RingTowerRing) =>
+    urlsOf(ring.images).length ? urlsOf(ring.images) : urlsOf(options.images)
+  const keyFor = (ring: RingTowerRing) => imagesFor(ring).join("\n")
 
   const buildBands = () => {
     clearBands()
-    if (!base) return
-    const count = Math.round(numberOr(options.rings, DEFAULT_RINGS, 1, 24))
-    const middle = Math.ceil(count / 2) - 1
-    for (let i = 0; i < count; i++) {
-      // Clones share the image source, so the strip uploads once.
-      const texture = i === 0 ? base : base.clone()
+    const middle = Math.ceil(rings.length / 2) - 1
+    rings.forEach((ring, i) => {
+      const entry = strips.get(keyFor(ring))
+      if (!entry?.base) return
+      // Clones share the image source, so each strip uploads once.
+      const texture = entry.base.clone()
       const material = makeMaterial(texture)
       const mesh = new Mesh(geometry, material)
-      mesh.rotation.set(0, i * Math.PI * 0.5, TILT)
       mesh.position.set(0, (i - middle) * SPACING, 0)
       tower.add(mesh)
-      bands.push({ mesh, material, texture })
-    }
+      bands.push({ index: i, mesh, material, texture, tiles: entry.tiles })
+    })
+    pose()
   }
 
-  const setStrip = (next: Strip | null) => {
-    clearBands()
-    base?.dispose()
-    base = null
-    strip = next
-    if (!strip) return
-    const texture = new CanvasTexture(strip.canvas)
+  const setStrip = (key: string, next: Strip | null) => {
+    const entry = strips.get(key)
+    if (!entry || !next) return
+    const texture = new CanvasTexture(next.canvas)
     texture.wrapS = RepeatWrapping
     texture.wrapT = ClampToEdgeWrapping
     texture.generateMipmaps = false
@@ -307,48 +388,86 @@ export function createRingTower(
     texture.magFilter = LinearFilter
     texture.colorSpace = SRGBColorSpace
     texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy())
-    fit(texture, strip.aspect)
-    base = texture
+    entry.tiles = fit(texture, next.aspect)
+    entry.base = texture
     buildBands()
     wake()
   }
 
   let loadToken = 0
-  let imagesKey = ""
+  let layoutKey = ""
+  // Loads any image list a ring now needs, drops the ones none show, and
+  // rebuilds the rings when their count or images change.
   const loadImages = () => {
-    const urls = (options.images ?? []).filter(
-      (url) => typeof url === "string" && url.length > 0
-    )
-    const key = urls.join("\n")
-    if (key === imagesKey && strip) return
-    imagesKey = key
-    const token = ++loadToken
-    if (urls.length === 0) {
-      setStrip(gridStrip())
-      return
+    const needed = new Map(rings.map((ring) => [keyFor(ring), imagesFor(ring)]))
+    for (const [key, entry] of strips) {
+      if (needed.has(key)) continue
+      entry.base?.dispose()
+      strips.delete(key)
     }
-    void Promise.allSettled(urls.map(loadImage)).then((results) => {
-      if (token !== loadToken || destroyed) return
-      const loaded = results.flatMap((r) =>
-        r.status === "fulfilled" ? [r.value] : []
+    for (const [key, urls] of needed) {
+      if (strips.has(key)) continue
+      const token = ++loadToken
+      strips.set(key, { base: null, tiles: 1, token })
+      if (urls.length === 0) {
+        setStrip(key, gridStrip())
+        continue
+      }
+      void Promise.allSettled(urls.map(loadImage)).then((results) => {
+        if (destroyed || strips.get(key)?.token !== token) return
+        const loaded = results.flatMap((r) =>
+          r.status === "fulfilled" ? [r.value] : []
+        )
+        const next = loaded.length
+          ? stitch(loaded, renderer.capabilities.maxTextureSize)
+          : null
+        setStrip(key, next ?? gridStrip())
+      })
+    }
+    const nextLayout = rings.map(keyFor).join("\0")
+    if (nextLayout !== layoutKey) {
+      layoutKey = nextLayout
+      buildBands()
+    }
+  }
+
+  // Each ring's lean, heading and spin, read live so sliders need no rebuild.
+  const pose = () => {
+    for (const band of bands) {
+      const ring = rings[band.index] ?? {}
+      const rotation = numberOr(
+        ring.rotation,
+        defaultRotation(band.index),
+        -3600,
+        3600
       )
-      const next = loaded.length
-        ? stitch(loaded, renderer.capabilities.maxTextureSize)
-        : null
-      setStrip(next ?? gridStrip())
-    })
+      const tilt = numberOr(ring.tilt, DEFAULT_TILT, -45, 45)
+      band.mesh.rotation.set(
+        0,
+        rotation * DEG + (turns[band.index] ?? 0),
+        tilt * DEG
+      )
+    }
   }
 
   const size = { width: 0, height: 0 }
+  const current = new Vector2()
+  /**
+   * Sizes the renderer to the root; true when the canvas changed. Setting
+   * the same size still clears the canvas, so it only sets a real change.
+   */
   const resize = () => {
     const { width, height } = root.getBoundingClientRect()
     size.width = width
     size.height = height
-    if (width <= 0 || height <= 0) return
+    if (width <= 0 || height <= 0) return false
+    renderer.getSize(current)
+    if (current.x === width && current.y === height) return false
     renderer.setSize(width, height)
     camera.aspect = width / height
     camera.updateProjectionMatrix()
     wake()
+    return true
   }
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -357,7 +476,6 @@ export function createRingTower(
   let destroyed = false
   let lost = false
   let last = 0
-  let crawl = 0
   let angle = START_ANGLE
   let velocity = 0
   let dragging = false
@@ -381,11 +499,25 @@ export function createRingTower(
     if (!visible()) return
     const still = mqReduce.matches
 
+    const towerSpeed = numberOr(options.speed, DEFAULT_SPEED, 0, 4)
+    const towerParallax = numberOr(options.parallax, DEFAULT_PARALLAX, 0, 90)
+    let spinning = false
     if (!still) {
-      // In texture units, so wrapping at 1 never shows a jump.
-      crawl += dt * CRAWL * tiles * numberOr(options.speed, DEFAULT_SPEED, 0, 4)
-      crawl %= 1
+      for (const band of bands) {
+        const ring = rings[band.index] ?? {}
+        const i = band.index
+        const speed = numberOr(ring.speed, towerSpeed, -4, 4)
+        // In texture units, so wrapping at 1 never shows a jump.
+        const crawl = (crawls[i] ?? 0) + dt * CRAWL * band.tiles * speed
+        crawls[i] = crawl - Math.floor(crawl)
+        const spin = numberOr(ring.spin, DEFAULT_SPIN, -180, 180)
+        if (spin !== 0) {
+          turns[i] = ((turns[i] ?? 0) + spin * DEG * dt) % (Math.PI * 2)
+          spinning = true
+        }
+      }
     }
+    pose()
     if (!dragging) {
       if (still) velocity = 0
       angle += velocity * dt
@@ -397,12 +529,17 @@ export function createRingTower(
     const ease = 1 - Math.exp(-dt * 4)
     const target = still ? 0 : pointerTarget
     pointerX += (target - pointerX) * ease
-    const reach =
-      (numberOr(options.parallax, DEFAULT_PARALLAX, 0, 90) / 360) * tiles
-    bands.forEach((band, i) => {
-      const factor = PARALLAX_FACTORS[i % PARALLAX_FACTORS.length]!
-      band.texture.offset.x = crawl + pointerX * reach * factor
-    })
+    for (const band of bands) {
+      const ring = rings[band.index] ?? {}
+      const parallax = numberOr(
+        ring.parallax,
+        defaultParallax(band.index, towerParallax),
+        -90,
+        90
+      )
+      band.texture.offset.x =
+        (crawls[band.index] ?? 0) + (pointerX * parallax * band.tiles) / 360
+    }
 
     darkMix += ((dark ? 1 : 0) - darkMix) * (1 - Math.exp(-dt * 6))
     if (Math.abs((dark ? 1 : 0) - darkMix) < 1e-3) darkMix = dark ? 1 : 0
@@ -411,7 +548,8 @@ export function createRingTower(
     if (size.width > 0 && size.height > 0) renderer.render(scene, camera)
 
     const moving =
-      !still ||
+      (!still &&
+        (towerSpeed !== 0 || spinning || rings.some((r) => r.speed))) ||
       dragging ||
       velocity !== 0 ||
       Math.abs(target - pointerX) > 1e-4 ||
@@ -485,7 +623,11 @@ export function createRingTower(
   canvas.addEventListener("pointercancel", onUp)
   canvas.addEventListener("pointerleave", onLeave)
 
-  const ro = new ResizeObserver(resize)
+  // Resizing cleared the canvas; draw the current pose now, or it shows
+  // blank for a frame.
+  const ro = new ResizeObserver(() => {
+    if (resize() && !destroyed && !lost) renderer.render(scene, camera)
+  })
   ro.observe(root)
   const io = new IntersectionObserver(([entry]) => {
     onScreen = entry?.isIntersecting ?? true
@@ -506,7 +648,7 @@ export function createRingTower(
   const onRestored = () => {
     if (destroyed) return
     lost = false
-    if (base) base.needsUpdate = true
+    for (const { base } of strips.values()) if (base) base.needsUpdate = true
     wake()
   }
   canvas.addEventListener("webglcontextlost", onLost)
@@ -537,14 +679,13 @@ export function createRingTower(
 
   return {
     setOptions(next) {
-      const prevRings = options.rings
       options = { ...options, ...next }
+      rings = ringsOf(options.rings)
       applyBackface()
       if (options.draggable === false) {
         dragging = false
         setCursor("")
       }
-      if (options.rings !== prevRings) buildBands()
       loadImages()
       syncTheme()
       wake()
@@ -568,7 +709,8 @@ export function createRingTower(
       canvas.removeEventListener("webglcontextlost", onLost)
       canvas.removeEventListener("webglcontextrestored", onRestored)
       clearBands()
-      base?.dispose()
+      for (const { base } of strips.values()) base?.dispose()
+      strips.clear()
       geometry.dispose()
       renderer.dispose()
       renderer.forceContextLoss()

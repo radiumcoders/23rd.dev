@@ -10,10 +10,11 @@ import {
   type RadiantLinesOptions,
 } from "./radiant-lines-vanilla"
 
-export { DEFAULT_COLORS } from "./radiant-lines-vanilla"
+export { DEFAULT_COLORS, LIGHT_COLORS } from "./radiant-lines-vanilla"
 export type {
   RadiantLinesInstance,
   RadiantLinesOptions,
+  RadiantLinesTheme,
 } from "./radiant-lines-vanilla"
 
 export type RadiantLinesProps = Omit<RadiantLinesOptions, "container"> & {
@@ -27,13 +28,15 @@ export type RadiantLinesProps = Omit<RadiantLinesOptions, "container"> & {
 
 /**
  * Hyperspace starfield: colored streaks radiate from the center.
- * Transparent canvas over `bg-background` (shadcn theme).
+ * Transparent canvas over `bg-background` (shadcn theme); the stock palette
+ * follows the theme.
  */
 export function RadiantLines({
   className,
   colors,
   starCount = 420,
   displacement = 1,
+  theme = "auto",
   containerRef,
 }: RadiantLinesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -46,6 +49,7 @@ export function RadiantLines({
       colors,
       starCount,
       displacement,
+      theme,
       container: containerRef?.current ?? null,
     })
     return () => {
@@ -61,9 +65,10 @@ export function RadiantLines({
       colors,
       starCount,
       displacement,
+      theme,
       container: containerRef?.current ?? null,
     })
-  }, [colors, starCount, displacement, containerRef])
+  }, [colors, starCount, displacement, theme, containerRef])
 
   return (
     <div

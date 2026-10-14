@@ -19,7 +19,10 @@ import {
   type LiveOrbVariant,
 } from "@/registry/live-orb/live-orb"
 
-const VARIANTS: { id: LiveOrbVariant; label: string }[] = [
+type DemoVariant = "auto" | LiveOrbVariant
+
+const VARIANTS: { id: DemoVariant; label: string }[] = [
+  { id: "auto", label: "Auto" },
   { id: "white", label: "White" },
   { id: "black", label: "Black" },
   { id: "webgl", label: "WebGL" },
@@ -36,33 +39,10 @@ function colorsEqual(a: string[], b: string[]) {
   )
 }
 
-function hexLum(hex: string) {
-  const h = hex.replace("#", "").trim()
-  const full =
-    h.length === 3
-      ? h
-          .split("")
-          .map((c) => c + c)
-          .join("")
-      : h.padEnd(6, "0").slice(0, 6)
-  const n = Number.parseInt(full, 16)
-  if (Number.isNaN(n)) return 1
-  const r = ((n >> 16) & 255) / 255
-  const g = ((n >> 8) & 255) / 255
-  const b = (n & 255) / 255
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b
-}
-
-function stageBackground(variant: LiveOrbVariant, color: string) {
-  if (variant === "black") return "#E4E4E7"
-  if (variant === "custom") return hexLum(color) > 0.55 ? "#0A0A0B" : "#E4E4E7"
-  return "#0A0A0B"
-}
-
 export function LiveOrbDemo() {
   const defaults = useMemo(
     () => ({
-      variant: "white" as LiveOrbVariant,
+      variant: "auto" as DemoVariant,
       size: 280,
       interactive: true,
       blink: true,
@@ -76,7 +56,7 @@ export function LiveOrbDemo() {
   const { props, updateProp, resetProps, hasChanges } =
     usePreviewProps(defaults)
 
-  const stage = stageBackground(props.variant, props.color)
+  const variant = props.variant === "auto" ? undefined : props.variant
 
   return (
     <>
@@ -84,13 +64,10 @@ export function LiveOrbDemo() {
         title="Live Orb"
         stageClassName="min-h-0 overflow-hidden p-0"
       >
-        <div
-          className="flex h-[56svh] w-full items-center justify-center transition-colors duration-300"
-          style={{ backgroundColor: stage }}
-        >
+        <div className="flex h-[var(--preview-h,56svh)] w-full items-center justify-center bg-background">
           <LiveOrb
             size={props.size}
-            variant={props.variant}
+            variant={variant}
             interactive={props.interactive}
             blink={props.blink}
             color={props.variant === "custom" ? props.color : undefined}
@@ -110,7 +87,7 @@ export function LiveOrbDemo() {
         onReset={resetProps}
         component="LiveOrb"
         snippetProps={{
-          variant: props.variant === "white" ? undefined : props.variant,
+          variant,
           size: props.size === 280 ? undefined : props.size,
           interactive: props.interactive ? undefined : false,
           blink: props.blink ? undefined : false,

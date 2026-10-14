@@ -1,0 +1,31 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "items": [
+    {
+      "name": "iso-lattice",
+      "type": "registry:ui",
+      "title": "Iso Lattice",
+      "description": "A hex lattice of glowing tiles that builds solid isometric figures, one over the last, from the floor up. Follows light and dark.",
+      "files": [
+        {
+          "path": "iso-lattice.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/iso-lattice.tsx"
+        }
+      ]
+    },
+    {
+      "name": "iso-lattice-svelte",
+      "type": "registry:ui",
+      "title": "Iso Lattice",
+      "description": "A hex lattice of glowing tiles that builds solid isometric figures, one over the last, from the floor up. Follows light and dark.",
+      "files": [
+        {
+          "path": "iso-lattice.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/iso-lattice.svelte"
+        }
+      ]
+    }
+  ]
+}

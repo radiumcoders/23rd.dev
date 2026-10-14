@@ -1,6 +1,14 @@
+export type RadiantLinesTheme = "light" | "dark" | "auto"
+
 export type RadiantLinesOptions = {
-  /** Star / streak colors */
+  /** Star / streak colors. Default follows the theme. */
   colors?: string[]
+  /**
+   * Palette mode when `colors` is unset. `auto` (the default) reads
+   * `html.dark` / `html.light`, then `data-theme`, then
+   * `prefers-color-scheme`, and keeps up with changes.
+   */
+  theme?: RadiantLinesTheme
   /** How many stars. Default 420 */
   starCount?: number
   /**
@@ -21,6 +29,7 @@ export type RadiantLinesInstance = {
   destroy: () => void
 }
 
+/** Dark-page palette: bright streaks on black. */
 export const DEFAULT_COLORS = [
   "#FF6B4A",
   "#2DD4BF",
@@ -30,6 +39,54 @@ export const DEFAULT_COLORS = [
   "#A3E635",
   "#94A3B8",
 ]
+
+/** Light-page palette: the same hues, deep enough to read on white. */
+export const LIGHT_COLORS = [
+  "#E0472A",
+  "#0E9484",
+  "#C98A00",
+  "#2A66D1",
+  "#D2347F",
+  "#5E8F0B",
+  "#5B6B80",
+]
+
+export function isDarkTheme(): boolean {
+  if (typeof document === "undefined") return false
+  const root = document.documentElement
+  if (root.classList.contains("dark")) return true
+  if (root.classList.contains("light")) return false
+  const dataTheme = root.getAttribute("data-theme")
+  if (dataTheme === "dark") return true
+  if (dataTheme === "light") return false
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+}
+
+export function resolveDark(theme: RadiantLinesTheme = "auto"): boolean {
+  if (theme === "dark") return true
+  if (theme === "light") return false
+  return isDarkTheme()
+}
+
+/**
+ * Calls `onChange` whenever the page theme may have changed (the `html`
+ * class, `data-theme` or `style`, or the system preference). Returns the
+ * unsubscribe.
+ */
+export function watchTheme(onChange: () => void): () => void {
+  if (typeof document === "undefined") return () => {}
+  const mo = new MutationObserver(onChange)
+  mo.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class", "data-theme", "style"],
+  })
+  const mq = window.matchMedia("(prefers-color-scheme: dark)")
+  mq.addEventListener("change", onChange)
+  return () => {
+    mo.disconnect()
+    mq.removeEventListener("change", onChange)
+  }
+}
 
 const DEPTH = 1000
 const STIFFNESS = 70
@@ -48,8 +105,9 @@ type Star = {
   color: string
 }
 
-function paletteOf(colors?: string[]) {
-  return colors && colors.length > 0 ? colors : DEFAULT_COLORS
+function paletteOf(colors: string[] | undefined, dark: boolean) {
+  if (colors && colors.length > 0) return colors
+  return dark ? DEFAULT_COLORS : LIGHT_COLORS
 }
 
 function displacementOf(value?: number) {
@@ -86,16 +144,29 @@ export function createRadiantLines(
 ): RadiantLinesInstance | null {
   let options: RadiantLinesOptions = {
     starCount: 420,
-    colors: DEFAULT_COLORS,
     displacement: 1,
     container: null,
+    theme: "auto",
     ...initial,
   }
 
   const ctx = canvas.getContext("2d", { alpha: true })
   if (!ctx) return null
 
-  let stars = createStars(options.starCount ?? 420, paletteOf(options.colors))
+  let dark = resolveDark(options.theme)
+  let stars = createStars(
+    options.starCount ?? 420,
+    paletteOf(options.colors, dark)
+  )
+
+  // Theme or palette changes recolor the field in place, so the stars keep
+  // flying instead of jumping to new positions.
+  const recolor = () => {
+    const colors = paletteOf(options.colors, dark)
+    for (let i = 0; i < stars.length; i++) {
+      stars[i]!.color = colors[i % colors.length]!
+    }
+  }
   const size = { w: 0, h: 0 }
   let speed = 0.28
   let speedVel = 0
@@ -110,21 +181,29 @@ export function createRadiantLines(
   let lastScrollT = performance.now()
   let attached: Window | HTMLElement | null = null
 
+  /**
+   * Sizes the canvas to its parent; true when the backing store changed.
+   * Assigning the same size still clears the canvas, so it only assigns on
+   * a real change.
+   */
   const resize = () => {
     const parent = canvas.parentElement
-    if (!parent) return
+    if (!parent) return false
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     const w = parent.clientWidth
     const h = parent.clientHeight
     size.w = w
     size.h = h
-    canvas.width = Math.floor(w * dpr)
-    canvas.height = Math.floor(h * dpr)
+    const width = Math.floor(w * dpr)
+    const height = Math.floor(h * dpr)
+    if (canvas.width === width && canvas.height === height) return false
+    canvas.width = width
+    canvas.height = height
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    // Resizing clears the canvas, so a paused field needs a fresh frame.
     wake()
+    return true
   }
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -193,6 +272,15 @@ export function createRadiantLines(
     raf = requestAnimationFrame(tick)
   }
 
+  /** Draws in place now, without advancing; the tick carries on if live. */
+  function redraw() {
+    if (destroyed) return
+    cancelAnimationFrame(raf)
+    raf = 0
+    lastFrame = performance.now()
+    tick(lastFrame)
+  }
+
   // An arrow, not a declaration, so TypeScript keeps `ctx` narrowed inside.
   const tick = (now: number) => {
     raf = 0
@@ -223,7 +311,7 @@ export function createRadiantLines(
     // Reduced motion: no travel and no streaks, just still points.
     const warp = reduce ? 0 : speed
     const focal = Math.max(w, h) * 0.5
-    const colors = paletteOf(options.colors)
+    const colors = paletteOf(options.colors, dark)
     const travel = warp * TRAVEL_PER_SEC * displacementOf(options.displacement)
 
     ctx.clearRect(0, 0, w, h)
@@ -270,8 +358,10 @@ export function createRadiantLines(
       }
 
       const near = 1 - star.z / DEPTH
-      const lineW = Math.max(0.8, near * (1.8 + warp * 0.12))
-      const alpha = 0.35 + near * 0.65
+      // Thin pale streaks vanish on white, so light pages get a higher
+      // floor on both width and opacity.
+      const lineW = Math.max(dark ? 0.8 : 1, near * (1.8 + warp * 0.12))
+      const alpha = dark ? 0.35 + near * 0.65 : 0.55 + near * 0.45
 
       ctx.beginPath()
       ctx.moveTo(px, py)
@@ -295,7 +385,10 @@ export function createRadiantLines(
   }
 
   resize()
-  const ro = new ResizeObserver(resize)
+  // Resizing cleared the canvas; draw now, or it shows blank for a frame.
+  const ro = new ResizeObserver(() => {
+    if (resize()) redraw()
+  })
   if (canvas.parentElement) ro.observe(canvas.parentElement)
   const io = new IntersectionObserver(([entry]) => {
     onScreen = entry?.isIntersecting ?? true
@@ -306,18 +399,29 @@ export function createRadiantLines(
   document.addEventListener("visibilitychange", onVisibility)
   onReduce()
   mqReduce.addEventListener("change", onReduce)
+  const syncTheme = () => {
+    const next = resolveDark(options.theme)
+    if (next === dark) return
+    dark = next
+    recolor()
+    wake()
+  }
+  const unwatchTheme = watchTheme(syncTheme)
 
   wake()
 
   return {
     setOptions(next) {
       const prevCount = options.starCount ?? 420
-      const prevColors = paletteOf(options.colors).join(",")
+      const prevColors = paletteOf(options.colors, dark).join(",")
       options = { ...options, ...next }
+      dark = resolveDark(options.theme)
       const nextCount = options.starCount ?? 420
-      const nextColors = paletteOf(options.colors).join(",")
-      if (nextCount !== prevCount || nextColors !== prevColors) {
-        stars = createStars(nextCount, paletteOf(options.colors))
+      const nextColors = paletteOf(options.colors, dark).join(",")
+      if (nextCount !== prevCount) {
+        stars = createStars(nextCount, paletteOf(options.colors, dark))
+      } else if (nextColors !== prevColors) {
+        recolor()
       }
       bindScroll()
       wake()
@@ -331,6 +435,7 @@ export function createRadiantLines(
       unbindScroll()
       document.removeEventListener("visibilitychange", onVisibility)
       mqReduce.removeEventListener("change", onReduce)
+      unwatchTheme()
     },
   }
 }

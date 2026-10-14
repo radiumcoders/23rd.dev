@@ -393,19 +393,25 @@ export function createShaderGradient(
   // The gradient is soft enough that one sample per CSS pixel is plenty;
   // it also keeps the grain the same size on every screen.
   let pixel = 1
+  /** Sizes the canvas to its parent; true when the backing store changed. */
   const resize = () => {
     const parent = canvas.parentElement
-    if (!parent) return
+    if (!parent) return false
     const w = parent.clientWidth
     const h = parent.clientHeight
-    if (w <= 0 || h <= 0) return
+    if (w <= 0 || h <= 0) return false
     pixel = Math.min(window.devicePixelRatio || 1, 1)
-    canvas.width = Math.max(1, Math.floor(w * pixel))
-    canvas.height = Math.max(1, Math.floor(h * pixel))
+    const width = Math.max(1, Math.floor(w * pixel))
+    const height = Math.max(1, Math.floor(h * pixel))
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
-    gl.viewport(0, 0, canvas.width, canvas.height)
     wake()
+    // Assigning a size clears the canvas, even the same size.
+    if (width === canvas.width && height === canvas.height) return false
+    canvas.width = width
+    canvas.height = height
+    gl.viewport(0, 0, canvas.width, canvas.height)
+    return true
   }
 
   let colorsKey = ""
@@ -475,6 +481,18 @@ export function createShaderGradient(
     if (live) raf = requestAnimationFrame(tick)
   }
 
+  /**
+   * Draws now: resizing cleared the canvas, and waiting for the next frame
+   * would show it blank for one.
+   */
+  const redraw = () => {
+    if (destroyed || lost) return
+    cancelAnimationFrame(raf)
+    raf = 0
+    last = performance.now()
+    tick(last)
+  }
+
   // A GPU reset, a driver update or too many live contexts can drop ours.
   // preventDefault asks the browser to restore it; until then gl is off limits.
   const onLost = (e: Event) => {
@@ -494,7 +512,9 @@ export function createShaderGradient(
   canvas.addEventListener("webglcontextlost", onLost)
   canvas.addEventListener("webglcontextrestored", onRestored)
 
-  const ro = new ResizeObserver(resize)
+  const ro = new ResizeObserver(() => {
+    if (resize()) redraw()
+  })
   if (canvas.parentElement) ro.observe(canvas.parentElement)
   const io = new IntersectionObserver(([entry]) => {
     onScreen = entry?.isIntersecting ?? true

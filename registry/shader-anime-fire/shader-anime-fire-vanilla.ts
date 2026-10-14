@@ -407,19 +407,28 @@ export function createShaderAnimeFire(
   // Flame edges are crisp, so render a bit past 1x, but not a full 2x,
   // which would quadruple the fbm work on retina screens.
   let dpr = 1
+  /**
+   * Sizes the canvas to its parent; true when the backing store changed.
+   * Assigning the same size still clears the canvas, so it only assigns on
+   * a real change.
+   */
   const resize = () => {
     const parent = canvas.parentElement
-    if (!parent) return
+    if (!parent) return false
     const w = parent.clientWidth
     const h = parent.clientHeight
-    if (w <= 0 || h <= 0) return
+    if (w <= 0 || h <= 0) return false
     dpr = Math.min(window.devicePixelRatio || 1, 1.5)
-    canvas.width = Math.max(1, Math.floor(w * dpr))
-    canvas.height = Math.max(1, Math.floor(h * dpr))
+    const width = Math.max(1, Math.floor(w * dpr))
+    const height = Math.max(1, Math.floor(h * dpr))
+    if (canvas.width === width && canvas.height === height) return false
+    canvas.width = width
+    canvas.height = height
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
     if (!lost) gl.viewport(0, 0, canvas.width, canvas.height)
     wake()
+    return true
   }
 
   let colorsKey = ""
@@ -457,6 +466,15 @@ export function createShaderAnimeFire(
     if (raf || destroyed || lost) return
     last = performance.now()
     raf = requestAnimationFrame(tick)
+  }
+
+  /** Draws in place now, without advancing; the tick carries on if live. */
+  function redraw() {
+    if (destroyed || lost) return
+    cancelAnimationFrame(raf)
+    raf = 0
+    last = performance.now()
+    tick(last)
   }
 
   // An arrow, not a declaration, so TypeScript keeps `gl` narrowed inside.
@@ -505,7 +523,10 @@ export function createShaderAnimeFire(
     }
   }
 
-  const ro = new ResizeObserver(resize)
+  // Resizing cleared the canvas; draw now, or it shows blank for a frame.
+  const ro = new ResizeObserver(() => {
+    if (resize()) redraw()
+  })
   if (canvas.parentElement) ro.observe(canvas.parentElement)
   const io = new IntersectionObserver(([entry]) => {
     onScreen = entry?.isIntersecting ?? true

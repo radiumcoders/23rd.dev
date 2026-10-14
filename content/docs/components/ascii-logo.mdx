@@ -1,11 +1,9 @@
 ---
 title: ASCII Logo
-description: An ASCII wordmark that dodges the cursor and scatters, falls, and regroups on click.
+description: An ASCII wordmark that assembles on load, dodges the cursor, and scatters, falls, and regroups on click.
 ---
 
 import { AsciiLogoDemo } from "@/components/demos"
-
-## Preview
 
 <AsciiLogoDemo />
 
@@ -19,7 +17,7 @@ Or from the public GitHub registry:
 
 ## Usage
 
-Give the parent a size; the canvas fills it.
+Give the parent a size; the canvas fills it. The stage is transparent and the ink follows the theme.
 
 <FrameworkCode>
   <FrameworkReact>
@@ -77,10 +75,13 @@ Clicks cycle `logo → scattered → fallen → returning → logo`.
 | `cellSize`        | `number`                      | `11`                            |
 | `cellGap`         | `number`                      | `2`                             |
 | `charset`         | `string`                      | letters, numbers, a few symbols |
+| `edgeCharset`     | `string`                      | `.:;-=+*~` for the rim          |
 | `threshold`       | `number`                      | `0.2`                           |
 | `invert`          | `boolean`                     | `true` when `src` is set        |
 | `color`           | `string`                      | theme ink                       |
-| `backgroundColor` | `string`                      | theme paper                     |
+| `backgroundColor` | `string`                      | `"transparent"`                 |
+| `font`            | `string`                      | the root's font (`font-mono`)   |
+| `assemble`        | `boolean`                     | `true`, fly in on build         |
 | `hoverRadius`     | `number`                      | `7`                             |
 | `hoverPush`       | `number`                      | `2.6`                           |
 | `hoverEase`       | `number`                      | `0.18`                          |

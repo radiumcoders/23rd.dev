@@ -100,6 +100,8 @@ Demos:
 - `*-demo.tsx` is for the docs site only. It is not a registry file.
 - Demo stages and docs examples use theme tokens (`bg-background`, `from-background`, `text-foreground`), never a hard-coded black or white stage. Check the demo in both themes before shipping.
 - Use `ComponentPreview`, `ComponentControls`, and `usePreviewProps` the way `shader-gradient-demo.tsx` does.
+- One `ComponentPreview` per page. On a component page it moves into the full-height stage at the top of the docs, and the controls into the props panel beside it. Size the demo's root with `h-[var(--preview-h,56svh)]` so it fills the stage there and keeps 56svh anywhere else.
+- Do not put a `## Preview` heading above the demo; the preview is not in the page flow.
 - `gooey-color-picker` has no demo file; the MDX renders `<GooeyColorPicker />` inside `ComponentPreview`. Either pattern is acceptable. Do not publish the demo.
 
 ## Docs

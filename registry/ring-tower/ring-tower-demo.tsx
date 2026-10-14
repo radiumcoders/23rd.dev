@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -15,7 +15,13 @@ import {
   DEFAULT_PARALLAX,
   DEFAULT_RINGS,
   DEFAULT_SPEED,
+  DEFAULT_SPIN,
+  DEFAULT_TILT,
+  MAX_RINGS,
+  defaultParallax,
+  defaultRotation,
   RingTower,
+  type RingTowerRing,
 } from "@/registry/ring-tower/ring-tower"
 
 const W = 624
@@ -121,6 +127,15 @@ const CARDS = [
 
 type Source = "photos" | "cards" | "none"
 
+type RingKey = Exclude<keyof RingTowerRing, "images">
+
+const NO_OVERRIDES: RingTowerRing[] = Array.from(
+  { length: MAX_RINGS },
+  () => ({})
+)
+
+const degrees = (v: number) => `${v}°`
+
 const SOURCES: { id: Source; label: string; images?: string[] }[] = [
   { id: "photos", label: "Photos", images: PHOTOS },
   { id: "cards", label: "Cards", images: CARDS },
@@ -136,14 +151,39 @@ export function RingTowerDemo() {
       backface: DEFAULT_BACKFACE,
       draggable: true,
       source: "photos" as Source,
+      // Per-ring overrides, bottom ring first; `{}` follows the tower.
+      overrides: NO_OVERRIDES,
     }),
     []
   )
 
   const { props, updateProp, resetProps, hasChanges } =
     usePreviewProps(defaults)
+  const [picked, setPicked] = useState(Math.floor(DEFAULT_RINGS / 2))
 
   const images = SOURCES.find((s) => s.id === props.source)?.images
+  const ring = Math.min(picked, props.rings - 1)
+  const override = props.overrides[ring] ?? {}
+
+  // Only the rings someone changed need the array form.
+  const rings = useMemo(() => {
+    const list = props.overrides.slice(0, props.rings)
+    return list.some((r) => Object.keys(r).length) ? list : props.rings
+  }, [props.overrides, props.rings])
+
+  const setRing = (key: RingKey, value: number) => {
+    const next = props.overrides.slice()
+    next[ring] = { ...next[ring], [key]: value }
+    updateProp("overrides", next)
+  }
+
+  const ringValue: Record<RingKey, number> = {
+    rotation: override.rotation ?? defaultRotation(ring),
+    tilt: override.tilt ?? DEFAULT_TILT,
+    spin: override.spin ?? DEFAULT_SPIN,
+    speed: override.speed ?? props.speed,
+    parallax: override.parallax ?? defaultParallax(ring, props.parallax),
+  }
 
   return (
     <>
@@ -151,10 +191,10 @@ export function RingTowerDemo() {
         title="Ring Tower"
         stageClassName="min-h-0 overflow-hidden p-0"
       >
-        <div className="relative h-[64svh] w-full overflow-hidden rounded-[inherit] bg-background">
+        <div className="relative h-[var(--preview-h,64svh)] w-full overflow-hidden rounded-[inherit] bg-background">
           <RingTower
             images={images}
-            rings={props.rings}
+            rings={rings}
             speed={props.speed}
             parallax={props.parallax}
             backface={props.backface}
@@ -186,7 +226,7 @@ export function RingTowerDemo() {
             props.source === "none"
               ? undefined
               : ["/bands/0.jpg", "/bands/1.jpg", "/bands/2.jpg"],
-          rings: props.rings === DEFAULT_RINGS ? undefined : props.rings,
+          rings: rings === DEFAULT_RINGS ? undefined : rings,
           speed: props.speed === DEFAULT_SPEED ? undefined : props.speed,
           parallax:
             props.parallax === DEFAULT_PARALLAX ? undefined : props.parallax,
@@ -216,7 +256,7 @@ export function RingTowerDemo() {
           label="Rings"
           value={props.rings}
           min={1}
-          max={24}
+          max={MAX_RINGS}
           step={1}
           onChange={(v) => updateProp("rings", v)}
         />
@@ -243,6 +283,68 @@ export function RingTowerDemo() {
           max={1}
           step={0.01}
           onChange={(v) => updateProp("backface", v)}
+        />
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-sm text-foreground/85">Ring</span>
+          <div className="flex flex-wrap gap-1">
+            {Array.from({ length: props.rings }, (_, i) => (
+              <Button
+                key={i}
+                type="button"
+                size="xs"
+                variant={ring === i ? "default" : "outline"}
+                aria-pressed={ring === i}
+                aria-label={`Ring ${i + 1} from the bottom`}
+                onClick={() => setPicked(i)}
+              >
+                {i + 1}
+              </Button>
+            ))}
+          </div>
+        </div>
+        <ControlSlider
+          label="Rotation"
+          value={ringValue.rotation}
+          min={0}
+          max={360}
+          step={1}
+          format={degrees}
+          onChange={(v) => setRing("rotation", v)}
+        />
+        <ControlSlider
+          label="Tilt"
+          value={ringValue.tilt}
+          min={-45}
+          max={45}
+          step={1}
+          format={degrees}
+          onChange={(v) => setRing("tilt", v)}
+        />
+        <ControlSlider
+          label="Spin"
+          value={ringValue.spin}
+          min={-180}
+          max={180}
+          step={1}
+          format={(v) => `${v}°/s`}
+          onChange={(v) => setRing("spin", v)}
+        />
+        <ControlSlider
+          label="Ring speed"
+          value={ringValue.speed}
+          min={-4}
+          max={4}
+          step={0.1}
+          onChange={(v) => setRing("speed", v)}
+        />
+        <ControlSlider
+          label="Ring parallax"
+          value={ringValue.parallax}
+          min={-90}
+          max={90}
+          step={1}
+          format={degrees}
+          onChange={(v) => setRing("parallax", v)}
         />
         <ControlSwitch
           label="Draggable"

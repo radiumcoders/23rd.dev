@@ -46,6 +46,12 @@ export const GooeyColorPicker = lazyDemo(() =>
   )
 )
 
+export const IsoLatticeDemo = lazyDemo(() =>
+  import("@/registry/iso-lattice/iso-lattice-demo").then(
+    (m) => m.IsoLatticeDemo
+  )
+)
+
 export const LiveOrbDemo = lazyDemo(() =>
   import("@/registry/live-orb/live-orb-demo").then((m) => m.LiveOrbDemo)
 )

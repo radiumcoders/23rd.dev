@@ -101,6 +101,7 @@ flowchart TD
   atmo -->|Screenshots on a spinning tower| rt[ring-tower]
   atmo -->|Hyperspace streaks, scroll warp| rl[radiant-lines]
   atmo -->|Hair-line explosion| lb[logo-burst]
+  atmo -->|Isometric figures built from tiles| il[iso-lattice]
   atmo -->|Falling sheet music| ps[phosphor-score]
   foot -->|Rubber overscroll aurora| st[stretchy-footer]
   mark -->|Eyes that track the pointer| orb[live-orb]
@@ -119,6 +120,7 @@ Disambiguation that agents get wrong:
 | Page leans while scrolling | `folio` | `stretchy-footer` (that one stretches, it does not tilt) |
 | Stars that speed up when you scroll | `radiant-lines` | `logo-burst` |
 | Logo explodes into lines | `logo-burst` | `ascii-logo` |
+| Isometric cube, stairs, bar chart, pixel-tile figure | `iso-lattice` | `logo-burst` (lines, not a figure) |
 | ASCII letters that shove, scatter, and fall | `ascii-logo` | `ascii-fluid` (trails, not a wordmark) |
 | CRT notation, phosphor, staves | `phosphor-score` | `shader-sky` |
 | Chrome, liquid metal, gold ribbons | `shader-metal` | `shader-gradient` (a color wash, not a material) |
@@ -139,7 +141,7 @@ Backgrounds and shaders fill the parent. They do not create a page.
 </section>
 ```
 
-Same shell for `ShaderAnimeFire`, `ShaderFire`, `ShaderSky`, `AsciiFluid`, `LogoBurst`, `PhosphorScore`, and `Dithered404`. Give the parent a height. Put UI in a later stacking context (`relative z-10`).
+Same shell for `ShaderAnimeFire`, `ShaderFire`, `ShaderSky`, `AsciiFluid`, `LogoBurst`, `PhosphorScore`, `IsoLattice`, and `Dithered404`. Give the parent a height. Put UI in a later stacking context (`relative z-10`).
 
 `ShaderMetal` uses the same shell but is transparent: the ribbons and their shadows sit on the parent's background, so set one (`bg-background`). The ribbons cross the middle; put copy top-left.
 
@@ -181,6 +183,7 @@ Categories match `content/docs/components/meta.json`.
 | `phosphor-score` | Background | Vertical CRT score; notes fall, bloom, flare | React + Svelte |
 | `radiant-lines` | Background | Hyperspace streaks; warp follows scroll | React + Svelte |
 | `ascii-fluid` | Background | Pointer trails quantized to an ASCII brightness ramp | React + Svelte |
+| `iso-lattice` | Background | Isometric tiles build solid figures from the floor up | React + Svelte |
 | `ring-tower` | Background | three.js tower of tilted image bands; drag to spin, neighbors counter-turn | React + Svelte |
 | `shader-gradient` | Shaders | Quiet WebGL wash behind heroes and empty states | React + Svelte |
 | `shader-anime-fire` | Shaders | Cel-shaded flames licking up from the bottom | React + Svelte |

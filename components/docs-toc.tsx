@@ -3,14 +3,27 @@ import Link from "next/link"
 import { RiArrowRightUpLine, RiHeartFill } from "@remixicon/react"
 
 import { DocsTocOutline } from "@/components/docs-toc-outline"
+import { cn } from "@/lib/utils"
 
 /**
- * Right rail on the bench, outside the page sheet: the animated page outline
- * (no scroll tracking), with the sponsor slot underneath.
+ * Right rail: the animated page outline (no scroll tracking), with the
+ * sponsor slot underneath. On the bench beside the sheet, or inside it on a
+ * component page.
  */
-export function DocsToc({ items }: { items: TOCItemType[] }) {
+export function DocsToc({
+  items,
+  className,
+}: {
+  items: TOCItemType[]
+  className?: string
+}) {
   return (
-    <aside className="sticky top-3 hidden w-56 shrink-0 flex-col gap-6 pt-14 xl:flex">
+    <aside
+      className={cn(
+        "sticky top-3 hidden w-56 shrink-0 flex-col gap-6 pt-14 xl:flex",
+        className
+      )}
+    >
       {items.length > 0 ? <DocsTocOutline items={items} /> : null}
 
       <Link

@@ -600,20 +600,26 @@ export function createShaderSky(
 
   // Device pixels per CSS pixel actually rendered (after the pixel cap).
   let pixelScale = 1
+  /** Sizes the canvas to its parent; true when the backing store changed. */
   const resize = () => {
     const parent = canvas.parentElement
-    if (!parent) return
+    if (!parent) return false
     const w = parent.clientWidth
     const h = parent.clientHeight
-    if (w <= 0 || h <= 0) return
+    if (w <= 0 || h <= 0) return false
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     pixelScale = Math.min(dpr, Math.sqrt(MAX_PIXELS / (w * h)))
-    canvas.width = Math.max(1, Math.floor(w * pixelScale))
-    canvas.height = Math.max(1, Math.floor(h * pixelScale))
+    const width = Math.max(1, Math.floor(w * pixelScale))
+    const height = Math.max(1, Math.floor(h * pixelScale))
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
-    if (!lost) gl.viewport(0, 0, canvas.width, canvas.height)
     wake()
+    // Assigning a size clears the canvas, even the same size.
+    if (width === canvas.width && height === canvas.height) return false
+    canvas.width = width
+    canvas.height = height
+    if (!lost) gl.viewport(0, 0, canvas.width, canvas.height)
+    return true
   }
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -703,9 +709,23 @@ export function createShaderSky(
     if (live || (easing && shown())) raf = requestAnimationFrame(tick)
   }
 
+  /**
+   * Draws now: resizing cleared the canvas, and waiting for the next frame
+   * would show it blank for one.
+   */
+  const redraw = () => {
+    if (destroyed || lost) return
+    cancelAnimationFrame(raf)
+    raf = 0
+    last = performance.now()
+    tick(last)
+  }
+
   // Run after `tick` exists, since both can wake the loop.
   resize()
-  const ro = new ResizeObserver(resize)
+  const ro = new ResizeObserver(() => {
+    if (resize()) redraw()
+  })
   if (canvas.parentElement) ro.observe(canvas.parentElement)
   onReduce()
   const io = new IntersectionObserver(([entry]) => {

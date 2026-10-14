@@ -5,8 +5,6 @@ description: A hyperspace starfield background where scroll speed drives the war
 
 import { RadiantLinesDemo } from "@/components/demos"
 
-## Preview
-
 <RadiantLinesDemo />
 
 ## Installation
@@ -61,7 +59,8 @@ export function Hero() {
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `colors` | `string[]` | coral / teal / amber / blue / pink / lime / slate |
+| `colors` | `string[]` | coral / teal / amber / blue / pink / lime / slate, deeper on light pages |
+| `theme` | `"light" \| "dark" \| "auto"` | `"auto"` |
 | `starCount` | `number` | `420` |
 | `displacement` | `number` | `1`, star jump on warp |
 | `containerRef` | `RefObject<HTMLElement \| null>` | React: window scroll |

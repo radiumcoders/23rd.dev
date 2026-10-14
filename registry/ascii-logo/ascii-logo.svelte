@@ -6,6 +6,7 @@
   import {
     createAsciiLogo,
     DEFAULT_CHARSET,
+    EDGE_CHARSET,
     clampAsciiLogoText,
     type AsciiLogoInstance,
     type AsciiLogoOptions,
@@ -29,10 +30,13 @@
     cellSize = 11,
     cellGap = 2,
     charset = DEFAULT_CHARSET,
+    edgeCharset = EDGE_CHARSET,
     threshold = 0.2,
     invert,
     color,
     backgroundColor,
+    font,
+    assemble = true,
     hoverRadius = 7,
     hoverPush = 2.6,
     hoverEase = 0.18,
@@ -61,10 +65,13 @@
       cellSize,
       cellGap,
       charset,
+      edgeCharset,
       threshold,
       invert,
       color,
       backgroundColor,
+      font,
+      assemble,
       hoverRadius,
       hoverPush,
       hoverEase,
@@ -92,10 +99,13 @@
       cellSize,
       cellGap,
       charset,
+      edgeCharset,
       threshold,
       invert,
       color,
       backgroundColor,
+      font,
+      assemble,
       hoverRadius,
       hoverPush,
       hoverEase,
@@ -121,7 +131,7 @@
   aria-label={aria}
   tabindex={interactive ? 0 : undefined}
   class={cn(
-    "relative size-full overflow-hidden",
+    "relative size-full overflow-hidden font-mono",
     interactive &&
       "cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none",
     className

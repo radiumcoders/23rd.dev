@@ -38,6 +38,34 @@ export function Mark() {
 
 Pitfalls: `color` overrides theme ink. Light filament is `#3F3F46`, dark is `#D6D2CA`. `DEFAULT_COLOR` is deprecated (it is the dark color). Reduced motion draws the settled field and skips the explosion. Click replays unless `replayOnClick={false}`.
 
+## iso-lattice
+
+Background. A fixed lattice of isometric diamond tiles lights up solid figures (cube, steps, pillars, coil) on a faint floor grid, and builds each one over the last from the floor up. A level glint rises through the figure, the pointer lights the lattice like a lamp. Transparent canvas.
+
+Best fit: an infrastructure or developer-tool hero that wants one luminous object under the headline; a section divider with a figure that changes.
+
+Not this: hair-line explosion (`logo-burst`), scroll starfield (`radiant-lines`), images on a tower (`ring-tower`).
+
+Deps: none (WebGL). Key props: `shapes` (`["cube", "steps", "pillars", "coil"]`), `interval` (4s), `color`, `theme` (`auto`), `size` (0.6), `spacing` (8px), `glow` (0.6), `speed` (1), `floor` (true), `interactive` (true).
+
+```tsx
+"use client"
+import { IsoLattice } from "@/components/ui/iso-lattice"
+
+export function Hero() {
+  return (
+    <section className="relative isolate flex min-h-svh flex-col overflow-hidden bg-background">
+      <h1 className="relative z-10 pt-24 text-center text-4xl font-medium">Ship the build</h1>
+      <div className="relative min-h-[420px] flex-1">
+        <IsoLattice />
+      </div>
+    </section>
+  )
+}
+```
+
+Pitfalls: the figure is centered in the canvas, so give the lattice its own box below the copy instead of centering copy over it. `color` overrides the theme amber; light is `#C2560C`, dark `#FFB25B`. Unknown names in `shapes` are dropped; an empty list falls back to all four. Reduced motion holds the first figure with no build, glint or lamp. Without WebGL the canvas stays empty.
+
 ## phosphor-score
 
 Background. Two vertical staves. Notes fall, bloom at the playhead, then flare. Not a piano roll.
@@ -71,7 +99,7 @@ Best fit: a long scrolling page that should feel like hyperspace. Not a static p
 
 Not this: `logo-burst` (one-shot explosion), `shader-gradient` (no scroll coupling).
 
-Deps: none. Key props: `colors`, `starCount` (420), `displacement` (1), `containerRef` / Svelte `container`.
+Deps: none. Key props: `colors` (omit it and the palette follows the theme), `theme`, `starCount` (420), `displacement` (1), `containerRef` / Svelte `container`.
 
 ```tsx
 "use client"
@@ -288,7 +316,7 @@ Best fit: a mascot, an empty state, a corner presence.
 
 Not this: a full-bleed background. It is `size` pixels square (default 280).
 
-Deps: none. The only `variant` in the registry: `"white"` (default), `"black"`, `"webgl"`, `"custom"`. Also `size`, `color`, `eyeColor`, `colors`, `interactive` (true), `blink` (true).
+Deps: none. The only `variant` in the registry: `"white"`, `"black"`, `"webgl"`, `"custom"`. Omit it and the orb follows the theme (white on dark pages, black on light). Also `theme`, `size`, `color`, `eyeColor`, `colors`, `interactive` (true), `blink` (true).
 
 ```tsx
 "use client"
@@ -303,13 +331,13 @@ Pitfalls: `color` / `eyeColor` apply only for `variant="custom"` (defaults `#7C5
 
 ## ascii-logo
 
-Character. Glyphs sample `text` or `src`. Hover shoves them in the `logo` phase. Clicks cycle `logo → scattered → fallen → returning → logo`.
+Character. Glyphs sample `text` or `src` (4x supersampled, so rim cells get light marks and fade). They fly in on build, hover shoves them in the `logo` phase, and clicks cycle `logo → scattered → fallen → returning → logo`. The stage is transparent; ink follows the theme.
 
 Best fit: an interactive wordmark (max 5 letters) or a sampled mark.
 
 Not this: mouse-trail fluid (`ascii-fluid`).
 
-Deps: none. Key props: `text` (`"23rd"`), `src`, `fit` (0.82), `cellSize` (11), `cellGap` (2), `charset`, `threshold` (0.2), `invert`, `color`, `backgroundColor`, hover/scatter/gravity props, `interactive` (true), `theme`, `label`, `onPhaseChange`.
+Deps: none. Key props: `text` (`"23rd"`), `src`, `fit` (0.82), `cellSize` (11), `cellGap` (2), `charset`, `edgeCharset`, `threshold` (0.2), `invert`, `color`, `backgroundColor` (transparent), `font`, `assemble` (true), hover/scatter/gravity props, `interactive` (true), `theme`, `label`, `onPhaseChange`.
 
 ```tsx
 "use client"

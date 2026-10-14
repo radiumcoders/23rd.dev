@@ -1,9 +1,14 @@
 "use client"
 
-import type { CSSProperties, ReactNode } from "react"
+import {
+  useLayoutEffect,
+  useRef,
+  type CSSProperties,
+  type ReactNode,
+} from "react"
 import Link from "next/link"
 import { RiHeartFill } from "@remixicon/react"
-import { motion } from "motion/react"
+import { motion, useReducedMotion } from "motion/react"
 
 import { DocsSidebar } from "@/components/docs-sidebar"
 import { DocsSidebarTrigger } from "@/components/docs-sidebar-trigger"
@@ -13,6 +18,7 @@ import { SearchTrigger } from "@/components/search-trigger"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { FOOTER_LINKS, SUPPORT_EMAIL } from "@/lib/site"
 import { FrameworkProvider } from "@/lib/framework"
+import { cn } from "@/lib/utils"
 import {
   Sidebar,
   SidebarContent,
@@ -65,28 +71,19 @@ function SidebarBody({
 }) {
   return (
     <>
-      <SidebarHeader className="gap-4 px-4 pt-6 pb-2">
-        <Wordmark />
+      <SidebarHeader className="gap-4 px-3 pt-3 pb-2">
+        <div className="flex items-center justify-between gap-2 ps-1">
+          <Wordmark />
+          <DocsSidebarTrigger />
+        </div>
         <SearchTrigger variant="field" className="w-full" />
       </SidebarHeader>
-      <SidebarContent className="px-2 pb-6">
+      <SidebarContent className="[mask-image:linear-gradient(to_bottom,#000_calc(100%-2rem),transparent)] px-2 pb-8">
         <DocsSidebar tree={tree} embedded />
-      </SidebarContent>
-      <SidebarFooter className="mx-4 gap-3 border-t px-0 pt-3 pb-4">
-        <div className="flex items-center gap-1">
-          <GithubStars stars={githubStars} className="-ms-2.5" />
-          <ThemeToggle />
-          <Link
-            href="/sponsors"
-            className="ms-auto inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <RiHeartFill className="size-3.5" />
-            Sponsor
-          </Link>
-        </div>
+        {/* Fine print scrolls with the list, so the pinned row stays one line. */}
         <nav
           aria-label="Secondary"
-          className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground"
+          className="mt-auto flex flex-wrap gap-x-3 gap-y-1 px-4 pt-6 text-xs text-muted-foreground/75"
         >
           {FOOTER_LINKS.map((link) => (
             <Link
@@ -99,13 +96,144 @@ function SidebarBody({
           ))}
           <a
             href={`mailto:${SUPPORT_EMAIL}`}
-            className="break-all hover:text-foreground"
+            className="min-w-0 truncate hover:text-foreground"
           >
             {SUPPORT_EMAIL}
           </a>
         </nav>
+      </SidebarContent>
+      <SidebarFooter className="mx-3 flex-row items-center gap-1 border-t px-0 py-2.5">
+        <GithubStars stars={githubStars} />
+        <ThemeToggle />
+        <Link
+          href="/sponsors"
+          className="ms-auto inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <RiHeartFill className="size-3.5" />
+          Sponsor
+        </Link>
       </SidebarFooter>
     </>
+  )
+}
+
+/** The sidebar's width in px; `w-60`. */
+const SIDEBAR_WIDTH = 240
+/** Release the preview this long after a toggle if `transitionend` never comes. */
+const SLIDE_FALLBACK_MS = 1000
+
+/**
+ * Holds the live preview at one width while the sidebar slides, centred in
+ * the stage, which clips it. The stage itself eases with the layout, but
+ * the component inside is resized once, when the slide ends, instead of on
+ * every frame (each resize redraws or re-lays out the component, and a
+ * canvas clears until its next frame). Returns the release.
+ */
+function holdPreview(main: HTMLElement, opening: boolean) {
+  const screen = main.querySelector<HTMLElement>(
+    '[data-slot="docs-stage-screen"]'
+  )
+  if (!screen) return () => {}
+  // The stage gains or loses the sidebar's width; hold the wider of the
+  // two so the preview never comes up short of its frame.
+  const width = screen.clientWidth + (opening ? 0 : SIDEBAR_WIDTH)
+  const held = Array.from(screen.children) as HTMLElement[]
+  for (const el of held) {
+    el.style.width = `${width}px`
+    el.style.maxWidth = "none"
+    el.style.marginLeft = `calc(50% - ${width / 2}px)`
+  }
+  return () => {
+    for (const el of held) {
+      el.style.width = ""
+      el.style.maxWidth = ""
+      el.style.marginLeft = ""
+    }
+  }
+}
+
+/**
+ * From `md` up the page tree sits at the left, and its toggle (or Ctrl+B)
+ * folds it away entirely, leaving a floating button over the corner of
+ * the page so a component's stage can take the full width.
+ *
+ * The aside's width eases and the panel inside rides its right edge, so the
+ * page reflows smoothly beside it; only the live preview is held still
+ * until the slide lands (`holdPreview`).
+ */
+function DesktopFrame({
+  tree,
+  githubStars,
+  children,
+}: {
+  tree: RootNode
+  githubStars: number | null
+  children: ReactNode
+}) {
+  const { open, isMobile } = useSidebar()
+  const reduce = useReducedMotion() ?? false
+  const asideRef = useRef<HTMLElement>(null)
+  const mainRef = useRef<HTMLElement>(null)
+  const wasOpen = useRef(open)
+
+  useLayoutEffect(() => {
+    if (wasOpen.current === open) return
+    wasOpen.current = open
+    const aside = asideRef.current
+    const main = mainRef.current
+    if (!aside || !main || reduce || isMobile) return
+    const release = holdPreview(main, open)
+    const done = (e: TransitionEvent) => {
+      if (e.target === aside && e.propertyName === "width") release()
+    }
+    aside.addEventListener("transitionend", done)
+    const id = window.setTimeout(release, SLIDE_FALLBACK_MS)
+    return () => {
+      aside.removeEventListener("transitionend", done)
+      window.clearTimeout(id)
+      release()
+    }
+  }, [open, reduce, isMobile])
+
+  return (
+    <div className="flex w-full items-start">
+      <aside
+        ref={asideRef}
+        aria-label="Documentation"
+        data-state={open ? "expanded" : "collapsed"}
+        className={cn(
+          "sticky top-0 z-20 hidden h-svh shrink-0 [contain:layout] md:block",
+          "transition-[width] duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+          open ? "w-60" : "w-0"
+        )}
+      >
+        {/*
+         * Motion measures shared layouts in page coordinates, and Next
+         * scrolls to the top between its before/after measurements, so
+         * a sticky sidebar's marker would fly in from off-screen. A
+         * `layoutScroll` fixed box is a scroll root it measures in the
+         * viewport instead; `contain: layout` pins that box to the aside.
+         * Pinned to the aside's right edge, it slides out as the aside
+         * narrows rather than being squeezed.
+         */}
+        <motion.div
+          layoutScroll
+          inert={!open}
+          className="fixed inset-y-0 right-0 flex w-60 flex-col overflow-hidden bg-background"
+        >
+          <SidebarBody tree={tree} githubStars={githubStars} />
+        </motion.div>
+      </aside>
+      {open ? null : (
+        // Waits for the sidebar to leave before it shows.
+        <div className="fixed top-5 left-5 z-30 hidden animate-in delay-200 duration-200 fill-mode-backwards zoom-in-90 fade-in motion-reduce:animate-none md:block">
+          <DocsSidebarTrigger className="bg-background/85 shadow-sm ring-1 ring-border backdrop-blur-md hover:bg-background" />
+        </div>
+      )}
+      <main ref={mainRef} className="flex min-w-0 flex-1 flex-col">
+        {children}
+      </main>
+    </div>
   )
 }
 
@@ -145,36 +273,19 @@ export function DocsShell({
     <FrameworkProvider>
       <SidebarProvider
         style={sidebarTokens}
-        className="min-h-svh bg-background"
+        className="docs-flip min-h-svh bg-background"
       >
         <MobileSidebar tree={tree} githubStars={githubStars} />
-        <div className="mx-auto flex w-full max-w-[90rem] items-start">
-          {/*
-           * Motion measures shared layouts in page coordinates, and Next
-           * scrolls to the top between its before/after measurements, so
-           * a sticky sidebar's marker would fly in from off-screen. A
-           * `layoutScroll` fixed box is a scroll root it measures in the
-           * viewport instead; `contain: layout` pins that box to the aside.
-           */}
-          <aside
-            aria-label="Documentation"
-            className="sticky top-0 hidden h-svh w-60 shrink-0 [contain:layout] md:block"
-          >
-            <motion.div layoutScroll className="fixed inset-0 flex flex-col">
-              <SidebarBody tree={tree} githubStars={githubStars} />
-            </motion.div>
-          </aside>
-          <main className="flex min-w-0 flex-1 flex-col">
-            <header className="flex h-14 items-center gap-2 px-3 md:hidden">
-              <DocsSidebarTrigger />
-              <Wordmark />
-              <div className="flex-1" />
-              <SearchTrigger />
-              <ThemeToggle />
-            </header>
-            {children}
-          </main>
-        </div>
+        <DesktopFrame tree={tree} githubStars={githubStars}>
+          <header className="flex h-14 items-center gap-2 px-3 md:hidden">
+            <DocsSidebarTrigger />
+            <Wordmark />
+            <div className="flex-1" />
+            <SearchTrigger />
+            <ThemeToggle />
+          </header>
+          {children}
+        </DesktopFrame>
       </SidebarProvider>
     </FrameworkProvider>
   )

@@ -48,7 +48,7 @@ export function ShaderMetalDemo() {
         title="Landing hero"
         stageClassName="min-h-0 overflow-hidden p-0"
       >
-        <div className="relative h-[56svh] w-full overflow-hidden rounded-[inherit] bg-background">
+        <div className="relative h-[var(--preview-h,56svh)] w-full overflow-hidden rounded-[inherit] bg-background">
           <ShaderMetal
             metal={props.metal}
             ribbons={props.ribbons}

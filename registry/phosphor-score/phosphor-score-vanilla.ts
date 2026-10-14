@@ -580,13 +580,14 @@ export function createPhosphorScore(
   let clock = 0
   let view = makeView(1, 1, 0, 0, 0)
 
+  /** Sizes the canvas to its parent; true when the backing store changed. */
   const resize = () => {
     const parent = canvas.parentElement
-    if (!parent) return
+    if (!parent) return false
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     const w = parent.clientWidth
     const h = parent.clientHeight
-    if (w === size.w && h === size.h && dpr === size.dpr) return
+    if (w === size.w && h === size.h && dpr === size.dpr) return false
     size.w = w
     size.h = h
     size.dpr = dpr
@@ -595,6 +596,7 @@ export function createPhosphorScore(
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
     wake()
+    return true
   }
 
   const shouldAnimate = () =>
@@ -615,7 +617,10 @@ export function createPhosphorScore(
     wake()
   }
 
-  const ro = new ResizeObserver(resize)
+  // Resizing cleared the canvas; draw now, or it shows blank for a frame.
+  const ro = new ResizeObserver(() => {
+    if (resize() && running) draw()
+  })
   if (canvas.parentElement) ro.observe(canvas.parentElement)
 
   const io = new IntersectionObserver(([entry]) => {
@@ -667,7 +672,9 @@ export function createPhosphorScore(
     }
 
     draw()
-    if (animate) raf = requestAnimationFrame(tick)
+    // A pixel-ratio change above resized, and its wake may have queued the
+    // next frame already; a second request would run two loops.
+    if (animate && !raf) raf = requestAnimationFrame(tick)
   }
 
   /** Every note whose time was crossed since the last frame flares once; no frame can skip one. */

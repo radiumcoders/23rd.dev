@@ -41,6 +41,7 @@ Swap the component, keep the shell:
 | ASCII trails | `AsciiFluid` | `interactive` |
 | CRT score | `PhosphorScore` | parent `overflow-hidden`; do not expect a `d` key |
 | Burst, no mark | `LogoBurst` | no children |
+| Glowing isometric figure | `IsoLattice` | lattice in its own box under the copy |
 | Burst around a logo | `LogoBurst` | pass the mark as `children` |
 
 Svelte: `import ShaderGradient from "$lib/components/ui/shader-gradient.svelte"` and `class` on the section if you style the component itself.

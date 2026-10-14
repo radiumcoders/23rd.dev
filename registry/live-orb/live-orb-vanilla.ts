@@ -1,8 +1,19 @@
 export type LiveOrbVariant = "white" | "black" | "webgl" | "custom"
 
+export type LiveOrbTheme = "light" | "dark" | "auto"
+
 export type LiveOrbOptions = {
-  /** Material preset. Default `"white"`. */
+  /**
+   * Material preset. Omit it and the orb follows the theme: a white orb
+   * on dark pages, a black one on light pages.
+   */
   variant?: LiveOrbVariant
+  /**
+   * Which theme the default variant follows. `auto` (the default) reads
+   * `html.dark` / `html.light`, then `data-theme`, then
+   * `prefers-color-scheme`, and keeps up with changes.
+   */
+  theme?: LiveOrbTheme
   /** Body hex, used when `variant="custom"`. */
   color?: string
   /** Eye hex, used when `variant="custom"`. */
@@ -30,6 +41,48 @@ export const BLACK = { color: "#18181B", eyeColor: "#F4F4F5" } as const
 export const CUSTOM_DEFAULT = { color: "#7C5CFF", eyeColor: "#FAFAFA" } as const
 /** Violet / foam / dust-rose: stock unlit wash. */
 export const WEBGL_COLORS = ["#7C6AF7", "#7DD3C7", "#E8B4D4"]
+
+export function isDarkTheme(): boolean {
+  if (typeof document === "undefined") return false
+  const root = document.documentElement
+  if (root.classList.contains("dark")) return true
+  if (root.classList.contains("light")) return false
+  const dataTheme = root.getAttribute("data-theme")
+  if (dataTheme === "dark") return true
+  if (dataTheme === "light") return false
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+}
+
+export function resolveDark(theme: LiveOrbTheme = "auto"): boolean {
+  if (theme === "dark") return true
+  if (theme === "light") return false
+  return isDarkTheme()
+}
+
+/**
+ * Calls `onChange` whenever the page theme may have changed (the `html`
+ * class, `data-theme` or `style`, or the system preference). Returns the
+ * unsubscribe.
+ */
+export function watchTheme(onChange: () => void): () => void {
+  if (typeof document === "undefined") return () => {}
+  const mo = new MutationObserver(onChange)
+  mo.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class", "data-theme", "style"],
+  })
+  const mq = window.matchMedia("(prefers-color-scheme: dark)")
+  mq.addEventListener("change", onChange)
+  return () => {
+    mo.disconnect()
+    mq.removeEventListener("change", onChange)
+  }
+}
+
+/** The material an omitted `variant` resolves to. */
+export function defaultVariant(dark: boolean): LiveOrbVariant {
+  return dark ? "white" : "black"
+}
 
 const VERT = `
 attribute vec2 a_position;
@@ -193,25 +246,27 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
 }
 
 export function resolveVariant(
-  variant: LiveOrbVariant,
+  variant: LiveOrbVariant | undefined,
   color?: string,
   eyeColor?: string,
-  colors?: string[]
+  colors?: string[],
+  dark = false
 ) {
   let body: string = WHITE.color
   let eye: string = WHITE.eyeColor
   let mode = 0
   let palette: string[] = WEBGL_COLORS
+  const preset = variant ?? defaultVariant(dark)
 
-  if (variant === "black") {
+  if (preset === "black") {
     body = BLACK.color
     eye = BLACK.eyeColor
-  } else if (variant === "webgl") {
+  } else if (preset === "webgl") {
     palette = colors && colors.length > 0 ? colors : WEBGL_COLORS
     body = palette[1] ?? WEBGL_COLORS[1]!
     eye = "#0C0C10"
     mode = 1
-  } else if (variant === "custom") {
+  } else if (preset === "custom") {
     body = color ?? CUSTOM_DEFAULT.color
     eye = eyeColor ?? CUSTOM_DEFAULT.eyeColor
   }
@@ -252,15 +307,13 @@ export function createLiveOrb(
   canvas: HTMLCanvasElement,
   initial: LiveOrbOptions = {}
 ): LiveOrbInstance | null {
-  let options: Required<
-    Pick<LiveOrbOptions, "variant" | "interactive" | "blink">
-  > &
+  let options: Required<Pick<LiveOrbOptions, "interactive" | "blink">> &
     LiveOrbOptions = {
-    variant: "white",
     interactive: true,
     blink: true,
     ...initial,
   }
+  let dark = resolveDark(options.theme)
 
   const look = { x: 0, y: 0.08 }
   const targetLook = { x: 0, y: 0.08 }
@@ -362,20 +415,23 @@ export function createLiveOrb(
   // When the pointer last moved, from performance.now().
   let pointerAt = -Infinity
 
+  /** Returns whether the backing size changed (which clears the canvas). */
   const resize = () => {
     const parent = canvas.parentElement
-    if (!parent) return
+    if (!parent) return false
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     const w = parent.clientWidth
     const h = parent.clientHeight
-    if (w <= 0 || h <= 0) return
-    canvas.width = Math.max(1, Math.floor(w * dpr))
-    canvas.height = Math.max(1, Math.floor(h * dpr))
+    if (w <= 0 || h <= 0) return false
+    const width = Math.max(1, Math.floor(w * dpr))
+    const height = Math.max(1, Math.floor(h * dpr))
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
+    if (width === canvas.width && height === canvas.height) return false
+    canvas.width = width
+    canvas.height = height
     gl.viewport(0, 0, canvas.width, canvas.height)
-    // Resizing clears the canvas, so a still frame needs a redraw.
-    wake()
+    return true
   }
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -387,6 +443,19 @@ export function createLiveOrb(
     if (raf || destroyed || lost) return
     last = performance.now()
     raf = requestAnimationFrame(tick)
+  }
+
+  /**
+   * Draws now: resizing cleared the canvas, and waiting for the next frame
+   * would show it blank for one. Zero dt, so time doesn't jump; the tick
+   * reschedules itself if it should keep running.
+   */
+  function redraw() {
+    if (destroyed || lost) return
+    cancelAnimationFrame(raf)
+    raf = 0
+    last = performance.now()
+    tick(last)
   }
 
   const onMove = (e: PointerEvent) => {
@@ -418,7 +487,8 @@ export function createLiveOrb(
       options.variant,
       options.color,
       options.eyeColor,
-      options.colors
+      options.colors,
+      dark
     )
     const time = clock / 1000
 
@@ -474,7 +544,9 @@ export function createLiveOrb(
     if (live && !destroyed) raf = requestAnimationFrame(tick)
   }
 
-  const ro = new ResizeObserver(resize)
+  const ro = new ResizeObserver(() => {
+    if (resize()) redraw()
+  })
   if (canvas.parentElement) ro.observe(canvas.parentElement)
   const io = new IntersectionObserver(([entry]) => {
     onScreen = entry?.isIntersecting ?? true
@@ -485,6 +557,13 @@ export function createLiveOrb(
   document.addEventListener("visibilitychange", onVisibility)
   const onReduce = () => wake()
   mqReduce.addEventListener("change", onReduce)
+  const syncTheme = () => {
+    const next = resolveDark(options.theme)
+    if (next === dark) return
+    dark = next
+    wake()
+  }
+  const unwatchTheme = watchTheme(syncTheme)
 
   // Without preventDefault the browser never hands the context back.
   const onLost = (e: Event) => {
@@ -514,6 +593,7 @@ export function createLiveOrb(
   return {
     setOptions(next) {
       options = { ...options, ...next }
+      dark = resolveDark(options.theme)
       wake()
     },
     destroy() {
@@ -524,6 +604,7 @@ export function createLiveOrb(
       io.disconnect()
       document.removeEventListener("visibilitychange", onVisibility)
       mqReduce.removeEventListener("change", onReduce)
+      unwatchTheme()
       window.removeEventListener("pointermove", onMove)
       canvas.removeEventListener("webglcontextlost", onLost)
       canvas.removeEventListener("webglcontextrestored", onRestored)

@@ -92,6 +92,7 @@ npx skills add radiumcoders/23rd.dev --skill 23rd -g
 | [Dithered 404](https://23rd.dev/docs/components/dithered-404)             | `@23rd/dithered-404`       | Bayer-pixel 404; a fireball cursor scorches it into embers and smoke, then it reforms |
 | [Folio](https://23rd.dev/docs/components/folio)                           | `@23rd/folio`              | The page leans back in perspective while you scroll, blurs, then springs flat         |
 | [Gooey Color Picker](https://23rd.dev/docs/components/gooey-color-picker) | `@23rd/gooey-color-picker` | Floating swatch → hue wheel, alpha, hex, joined by an SVG gooey filter                |
+| [Iso Lattice](https://23rd.dev/docs/components/iso-lattice)               | `@23rd/iso-lattice`        | Glowing isometric tiles build solid figures, one over the last, from the floor up      |
 | [Live Orb](https://23rd.dev/docs/components/live-orb)                     | `@23rd/live-orb`           | An evenly lit sphere with two capsule eyes that follow the pointer                    |
 | [Logo Burst](https://23rd.dev/docs/components/logo-burst)                 | `@23rd/logo-burst`         | Hair-line tentacles explode from the center, then breathe, light and dark             |
 | [Phosphor Score](https://23rd.dev/docs/components/phosphor-score)         | `@23rd/phosphor-score`     | Vertical CRT sheet music; notes fall, bloom at the playhead, then exit in a flare     |

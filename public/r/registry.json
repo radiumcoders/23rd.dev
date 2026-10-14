@@ -138,6 +138,32 @@
       "type": "registry:ui"
     },
     {
+      "name": "iso-lattice",
+      "title": "Iso Lattice",
+      "description": "A hex lattice of glowing tiles that builds solid isometric figures, one over the last, from the floor up. Follows light and dark.",
+      "files": [
+        {
+          "path": "registry/iso-lattice/iso-lattice.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/iso-lattice.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
+      "name": "iso-lattice-svelte",
+      "title": "Iso Lattice",
+      "description": "A hex lattice of glowing tiles that builds solid isometric figures, one over the last, from the floor up. Follows light and dark.",
+      "files": [
+        {
+          "path": "registry/iso-lattice/iso-lattice.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/iso-lattice.svelte"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "live-orb",
       "title": "Live Orb",
       "description": "An evenly lit sphere with two capsule eyes that follow the pointer: white, black, webgl, and custom variants.",

@@ -68,6 +68,31 @@ Constants: `LIGHT_COLOR` `#3F3F46`, `DARK_COLOR` `#D6D2CA`. `DEFAULT_COLOR` is d
 
 Vanilla `LogoBurstInstance`: `{ setOptions, replay, destroy }`. Not returned to app code by the React component.
 
+## iso-lattice
+
+```ts
+type IsoLatticeTheme = "light" | "dark" | "auto"
+type IsoLatticeShape = "cube" | "steps" | "pillars" | "coil"
+
+type IsoLatticeProps = {
+  shapes?: IsoLatticeShape[] // ["cube", "steps", "pillars", "coil"]; one item holds still
+  interval?: number // 4 seconds per figure
+  color?: string
+  size?: number // 0.6 of the shorter side, 0.2–1
+  spacing?: number // 8 CSS px between tiles, 4–24
+  glow?: number // 0.6, 0–1
+  speed?: number // 1, glint and shimmer only
+  floor?: boolean // true
+  interactive?: boolean // true
+  theme?: IsoLatticeTheme // "auto"
+  className?: string
+}
+```
+
+Constants: `LIGHT_COLOR` `#C2560C`, `DARK_COLOR` `#FFB25B`, `SHAPES`. Each build takes a fixed 1.6 s; it is not a prop.
+
+Vanilla `IsoLatticeInstance`: `{ setOptions, destroy }`. Not returned to app code by the React component.
+
 ## phosphor-score
 
 ```ts
@@ -92,7 +117,8 @@ type PhosphorScoreProps = {
 
 ```ts
 type RadiantLinesProps = {
-  colors?: string[]
+  colors?: string[] // omit → theme palette
+  theme?: "light" | "dark" | "auto" // "auto"
   starCount?: number // 420
   displacement?: number // 1, values < 0 clamp to 0
   containerRef?: RefObject<HTMLElement | null> // omit → window
@@ -100,7 +126,7 @@ type RadiantLinesProps = {
 }
 ```
 
-`DEFAULT_COLORS`: `#FF6B4A`, `#2DD4BF`, `#FBBF24`, `#60A5FA`, `#F472B6`, `#A3E635`, `#94A3B8`.
+`DEFAULT_COLORS` (dark pages): `#FF6B4A`, `#2DD4BF`, `#FBBF24`, `#60A5FA`, `#F472B6`, `#A3E635`, `#94A3B8`. `LIGHT_COLORS` (light pages): the same hues, deeper. A set `colors` wins in both themes.
 
 Instance: `{ setOptions, destroy }`.
 
@@ -289,7 +315,8 @@ type StretchyFooterPlayDetail = {
 type LiveOrbVariant = "white" | "black" | "webgl" | "custom"
 
 type LiveOrbProps = {
-  variant?: LiveOrbVariant // "white"
+  variant?: LiveOrbVariant // omit → "white" on dark pages, "black" on light
+  theme?: "light" | "dark" | "auto" // "auto"
   color?: string // custom body, default #7C5CFF
   eyeColor?: string // custom eyes, default #FAFAFA
   colors?: string[] // webgl stops
@@ -315,11 +342,14 @@ type AsciiLogoProps = {
   fit?: number // 0.82
   cellSize?: number // 11
   cellGap?: number // 2
-  charset?: string // DEFAULT_CHARSET
-  threshold?: number // 0.2
+  charset?: string // DEFAULT_CHARSET, cells inside the shape
+  edgeCharset?: string // EDGE_CHARSET, light marks on the rim
+  threshold?: number // 0.2, coverage a cell needs
   invert?: boolean // true if src set, else false
-  color?: string
-  backgroundColor?: string // "transparent" skips fill
+  color?: string // omit → LIGHT_INK / DARK_INK by theme
+  backgroundColor?: string // "transparent"
+  font?: string // omit → root's computed font; wrapper sets font-mono
+  assemble?: boolean // true, glyphs fly in on build
   hoverRadius?: number // 7
   hoverPush?: number // 2.6
   hoverEase?: number // 0.18

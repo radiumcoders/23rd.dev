@@ -120,7 +120,7 @@
 
 /*
  * Firefox stops painting the rest of the page while a view transition runs,
- * so the sidebar marker's whole flight happens unseen and it just jumps.
+ * so the sidebar chip's whole slide happens unseen and it just jumps.
  * There the transition ends at once and the new page fades in as a plain
  * animation, which leaves everything else live.
  */
@@ -186,7 +186,7 @@
     --wash: #e6e8e9;
     --rule: #d8dadc;
 
-    /* Subpixel triad: the "this one is on" indicator. */
+    /* Subpixel triad: the outline's click pulse and the chart colors. */
     --triad-r: #ff3b3b;
     --triad-g: #1fc760;
     --triad-b: #3563ff;
@@ -274,6 +274,38 @@
     --color-fd-accent: var(--wash);
     --color-fd-accent-foreground: var(--ink);
     --color-fd-ring: var(--ring);
+}
+
+/*
+ * Docs, inside out: the frame (sidebar, bench) takes the panel tone and the
+ * panels (stage, sheet) take the bench tone, so the work sits on a raised
+ * surface. The roles derived from --bench resolve where they are declared,
+ * so they are declared again here to pick up the swapped value.
+ */
+.docs-flip {
+    --bench: #ffffff;
+    --sheet: #eeefef;
+    --screen: #eeefef;
+    --background: var(--bench);
+    --primary-foreground: var(--bench);
+    --sidebar: var(--bench);
+    --sidebar-primary-foreground: var(--bench);
+    --color-fd-background: var(--bench);
+    --color-fd-primary-foreground: var(--bench);
+}
+
+.dark .docs-flip {
+    --bench: #070706;
+    --sheet: #0f0f0e;
+    --screen: #0f0f0e;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not(.light) .docs-flip {
+        --bench: #070706;
+        --sheet: #0f0f0e;
+        --screen: #0f0f0e;
+    }
 }
 
 .dark {

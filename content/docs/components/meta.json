@@ -3,10 +3,10 @@
   "pages": [
     "---Background---",
     "logo-burst",
-    "phosphor-score",
     "radiant-lines",
     "ascii-fluid",
     "ring-tower",
+    "iso-lattice",
     "---Shaders---",
     "shader-gradient",
     "shader-anime-fire",
@@ -23,6 +23,8 @@
     "folio",
     "---Components---",
     "gooey-color-picker",
+    "---Experiments---",
+    "phosphor-score",
     "typewriter"
   ]
 }

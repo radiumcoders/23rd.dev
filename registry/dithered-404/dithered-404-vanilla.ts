@@ -584,15 +584,21 @@ export function createDithered404(
     reformAt = now
   }
 
+  /** Returns whether the backing size changed (which clears the canvas). */
   const resize = () => {
     dpr = Math.min(window.devicePixelRatio || 1, 2)
     const w = wrap.clientWidth
     const h = wrap.clientHeight
-    if (w <= 0 || h <= 0) return
+    if (w <= 0 || h <= 0) return false
     cssW = w
     cssH = h
-    canvas.width = Math.max(1, Math.floor(w * dpr))
-    canvas.height = Math.max(1, Math.floor(h * dpr))
+    const width = Math.max(1, Math.floor(w * dpr))
+    const height = Math.max(1, Math.floor(h * dpr))
+    const changed = width !== canvas.width || height !== canvas.height
+    if (changed) {
+      canvas.width = width
+      canvas.height = height
+    }
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
@@ -602,10 +608,18 @@ export function createDithered404(
       lastH = h
       rebuild(false)
     }
+    return changed
   }
 
   resize()
-  const ro = new ResizeObserver(resize)
+  // Resizing cleared the canvas; draw now (`tick` is declared below, and the
+  // observer only fires after setup), or it shows blank for a frame.
+  const ro = new ResizeObserver(() => {
+    if (!resize() || !running) return
+    cancelAnimationFrame(raf)
+    lastNow = performance.now()
+    tick(lastNow)
+  })
   ro.observe(wrap)
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")

@@ -13,7 +13,6 @@ import {
 } from "react"
 import { RiArrowRightUpLine } from "@remixicon/react"
 
-import { useHydratedTheme } from "@/hooks/use-hydrated-theme"
 import { cn } from "@/lib/utils"
 import { LiveOrb, type LiveOrbProps } from "@/registry/live-orb/live-orb"
 import { LogoBurst } from "@/registry/logo-burst/logo-burst"
@@ -35,14 +34,9 @@ const SHIFT_MS = 1400
  * rests. The stock one is white on dark, black on light.
  */
 function OrbPreview(props: Omit<LiveOrbProps, "size">) {
-  const theme = useHydratedTheme()
   return (
     <div className="absolute inset-0 flex items-center justify-center">
-      <LiveOrb
-        size={150}
-        variant={theme === "dark" ? "white" : "black"}
-        {...props}
-      />
+      <LiveOrb size={150} {...props} />
     </div>
   )
 }
