@@ -51,7 +51,7 @@ export function TypewriterDemo() {
   return (
     <>
       <ComponentPreview title="Typewriter" stageClassName="min-h-0 p-0">
-        <div className="relative aspect-[16/9] max-h-[70svh] w-full px-4 pt-2 pb-4">
+        <div className="relative aspect-[16/9] max-h-[var(--preview-h,70svh)] w-full px-4 pt-2 pb-4">
           <Typewriter
             key={take}
             color={props.color}

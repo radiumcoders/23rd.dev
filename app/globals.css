@@ -276,6 +276,38 @@
     --color-fd-ring: var(--ring);
 }
 
+/*
+ * Docs, inside out: the frame (sidebar, bench) takes the panel tone and the
+ * panels (stage, sheet) take the bench tone, so the work sits on a raised
+ * surface. The roles derived from --bench resolve where they are declared,
+ * so they are declared again here to pick up the swapped value.
+ */
+.docs-flip {
+    --bench: #ffffff;
+    --sheet: #eeefef;
+    --screen: #eeefef;
+    --background: var(--bench);
+    --primary-foreground: var(--bench);
+    --sidebar: var(--bench);
+    --sidebar-primary-foreground: var(--bench);
+    --color-fd-background: var(--bench);
+    --color-fd-primary-foreground: var(--bench);
+}
+
+.dark .docs-flip {
+    --bench: #070706;
+    --sheet: #0f0f0e;
+    --screen: #0f0f0e;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not(.light) .docs-flip {
+        --bench: #070706;
+        --sheet: #0f0f0e;
+        --screen: #0f0f0e;
+    }
+}
+
 .dark {
     --destructive: oklch(0.704 0.191 22.216);
 }

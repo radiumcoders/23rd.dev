@@ -67,7 +67,7 @@ export function LogoBurstDemo() {
         title="Logo Burst"
         stageClassName="min-h-0 overflow-hidden p-0"
       >
-        <div className="relative h-[56svh] w-full bg-background">
+        <div className="relative h-[var(--preview-h,56svh)] w-full bg-background">
           <LogoBurst
             tentacleCount={props.tentacleCount}
             color={useAutoColor ? undefined : props.color}

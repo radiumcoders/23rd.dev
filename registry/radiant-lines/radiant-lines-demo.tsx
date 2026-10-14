@@ -80,9 +80,9 @@ export function RadiantLinesDemo() {
       >
         <div
           ref={scrollerRef}
-          className="relative no-scrollbar h-[56svh] w-full snap-y snap-mandatory overflow-y-auto overscroll-contain rounded-[inherit] bg-background"
+          className="relative no-scrollbar h-[var(--preview-h,56svh)] w-full snap-y snap-mandatory overflow-y-auto overscroll-contain rounded-[inherit] bg-background"
         >
-          <div className="pointer-events-none sticky top-0 h-[56svh]">
+          <div className="pointer-events-none sticky top-0 h-[var(--preview-h,56svh)]">
             <RadiantLines
               containerRef={scrollerRef}
               starCount={props.starCount}
@@ -91,11 +91,11 @@ export function RadiantLinesDemo() {
             />
           </div>
 
-          <div className="relative z-10 -mt-[56svh]">
+          <div className="relative z-10 -mt-[var(--preview-h,56svh)]">
             {PAGES.map((page) => (
               <section
                 key={page.title}
-                className="flex h-[56svh] snap-start snap-always flex-col items-center justify-center px-8 text-center"
+                className="flex h-[var(--preview-h,56svh)] snap-start snap-always flex-col items-center justify-center px-8 text-center"
               >
                 <div className="mx-auto flex max-w-md flex-col gap-3">
                   <p className="text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">

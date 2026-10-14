@@ -2,18 +2,22 @@
 
 import {
   useCallback,
+  useContext,
+  useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react"
 import { RiAddLine, RiRefreshLine } from "@remixicon/react"
+import { createPortal } from "react-dom"
 
+import { PreviewStageContext } from "@/components/component-preview"
 import { CopyButton } from "@/components/copy-button"
 import { trackEvent } from "@/components/tracwell-analytics"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 
 function toHex6(value: string) {
@@ -61,6 +65,17 @@ function formatJsxLiteral(value: unknown): string {
   if (Array.isArray(value)) {
     return `[${value.map((item) => formatJsxLiteral(item)).join(", ")}]`
   }
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value).filter(([, v]) => v !== undefined)
+    if (entries.length === 0) return "{}"
+    const body = entries
+      .map(([key, v]) => {
+        const name = /^[A-Za-z_$][\w$]*$/.test(key) ? key : JSON.stringify(key)
+        return `${name}: ${formatJsxLiteral(v)}`
+      })
+      .join(", ")
+    return `{ ${body} }`
+  }
   return JSON.stringify(value)
 }
 
@@ -105,10 +120,12 @@ export type ComponentControlsProps = {
 }
 
 /** Row chrome shared by every control, and applied to custom rows demos pass in. */
-const rowClassName = "rounded-lg border bg-background"
+const rowClassName = "rounded-lg bg-background"
 
 /**
- * Live prop controls. Directly after ComponentPreview it joins the preview's
+ * Live prop controls. On a component page they move into the props panel
+ * beside the stage (a portal, so they keep driving the demo you watch).
+ * Anywhere else, directly after ComponentPreview they join the preview's
  * frame, so the props read as the screen's control strip.
  */
 export function ComponentControls({
@@ -120,21 +137,43 @@ export function ComponentControls({
   component,
   snippetProps,
 }: ComponentControlsProps) {
+  const stage = useContext(PreviewStageContext)
+  const onControls = stage?.onControls
+  useEffect(() => {
+    if (!onControls) return
+    onControls(true)
+    return () => onControls(false)
+  }, [onControls])
+
   const snippet = component
     ? formatComponentSnippet(component, snippetProps ?? {})
     : ""
+  const docked = !!stage
 
-  return (
+  const controls = (
     <figure
       data-slot="component-controls"
       className={cn(
-        "not-prose my-8 rounded-2xl border bg-card",
-        "[[data-slot=component-preview]+&]:mt-0 [[data-slot=component-preview]+&]:rounded-t-none [[data-slot=component-preview]+&]:border-t-0",
+        "not-prose",
+        docked
+          ? "m-0"
+          : [
+              "my-8 rounded-2xl border bg-card",
+              "[[data-slot=component-preview]+&]:mt-0 [[data-slot=component-preview]+&]:rounded-t-none [[data-slot=component-preview]+&]:border-t-0",
+            ],
         className
       )}
     >
-      <figcaption className="flex h-12 items-center justify-between gap-3 px-4">
-        <span className="text-[13px] text-muted-foreground">{title}</span>
+      <figcaption
+        className={cn(
+          "flex h-12 items-center justify-between gap-3 border-b border-border/60 px-6",
+          // The panel scrolls on its own; its header stays put, and keeps
+          // the panel's rounded corners while it sits over them.
+          docked &&
+            "sticky top-0 z-10 rounded-t-[inherit] bg-sheet/90 backdrop-blur-md"
+        )}
+      >
+        <span className="text-[13px] font-medium text-foreground">{title}</span>
         {snippet || onReset ? (
           <div className="-me-2 flex items-center">
             {onReset ? (
@@ -171,14 +210,21 @@ export function ComponentControls({
 
       <div
         className={cn(
-          "flex flex-col gap-2 px-3 pb-3",
-          "[&>:not([data-control])]:rounded-lg [&>:not([data-control])]:border [&>:not([data-control])]:bg-background [&>:not([data-control])]:px-3 [&>:not([data-control])]:py-2"
+          "flex flex-col gap-2 px-3 py-3",
+          // Under the stage on a mid-width screen the panel is wide; two
+          // columns keep each label near its control. Beside it, one.
+          docked && "md:grid md:grid-cols-2 md:gap-x-3 xl:flex",
+          "[&>:not([data-control])]:rounded-lg [&>:not([data-control])]:bg-background [&>:not([data-control])]:px-3 [&>:not([data-control])]:py-2"
         )}
       >
         {children}
       </div>
     </figure>
   )
+
+  if (!stage) return controls
+  if (!stage.controlsSlot) return null
+  return createPortal(controls, stage.controlsSlot)
 }
 
 function formatValue(value: number) {
@@ -205,7 +251,32 @@ function snapToStep(raw: number, min: number, max: number, step: number) {
   return Number(Math.min(max, Math.max(min, snapped)).toFixed(precision))
 }
 
-/** A whole-row slider: drag anywhere on the row; the fill is the value. */
+/**
+ * How far, in px, the row can stretch past its end; it never quite gets
+ * there. The rows' side padding leaves exactly this much room, so a scroll
+ * container around them never clips the stretch.
+ */
+const STRETCH_MAX = 12
+/** Release spring: a quick overshoot, then rest. */
+const STRETCH_RELEASE = "transform 520ms cubic-bezier(0.34, 1.56, 0.64, 1)"
+
+/**
+ * Rubber band: the further past the end, the less each extra pixel pulls,
+ * easing toward STRETCH_MAX.
+ */
+function rubberBand(overshoot: number) {
+  return (
+    Math.sign(overshoot) *
+    STRETCH_MAX *
+    (1 - Math.exp(-Math.abs(overshoot) / 60))
+  )
+}
+
+/**
+ * A whole-row slider: drag anywhere on the row; the fill is the value.
+ * Dragged past either end, the row stretches after the pointer like
+ * rubber, then springs back on release.
+ */
 export function ControlSlider({
   label,
   value,
@@ -218,30 +289,67 @@ export function ControlSlider({
 }: ControlSliderProps) {
   const id = useId()
   const progress = max === min ? 0 : (value - min) / (max - min)
+  const rowRef = useRef<HTMLDivElement>(null)
+  // The row's box when the drag began. Measured once: while stretched the
+  // live box is scaled, and measuring it would feed the stretch back in.
+  const boxRef = useRef<{ left: number; width: number } | null>(null)
+
+  const stretch = useCallback((px: number, width: number) => {
+    const row = rowRef.current
+    if (!row) return
+    if (px === 0 || width <= 0) {
+      row.style.transform = ""
+      return
+    }
+    const k = Math.abs(px) / width
+    row.style.transition = "none"
+    row.style.transformOrigin = px > 0 ? "left center" : "right center"
+    row.style.transform = `scale(${1 + k}, ${1 - k * 0.6})`
+  }, [])
 
   const commitFromClientX = useCallback(
-    (element: HTMLElement, clientX: number) => {
-      const { left, width } = element.getBoundingClientRect()
-      if (width <= 0) return
-      const ratio = Math.min(1, Math.max(0, (clientX - left) / width))
+    (clientX: number) => {
+      const box = boxRef.current
+      if (!box || box.width <= 0) return
+      const raw = (clientX - box.left) / box.width
+      const ratio = Math.min(1, Math.max(0, raw))
       onChange(snapToStep(min + ratio * (max - min), min, max, step))
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+      const overshoot =
+        raw < 0
+          ? clientX - box.left
+          : raw > 1
+            ? clientX - (box.left + box.width)
+            : 0
+      stretch(rubberBand(overshoot), box.width)
     },
-    [max, min, onChange, step]
+    [max, min, onChange, step, stretch]
   )
 
   function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     if (event.button !== 0) return
     event.currentTarget.setPointerCapture(event.pointerId)
-    commitFromClientX(event.currentTarget, event.clientX)
+    const { left, width } = event.currentTarget.getBoundingClientRect()
+    boxRef.current = { left, width }
+    commitFromClientX(event.clientX)
   }
 
   function onPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
     if (!event.currentTarget.hasPointerCapture(event.pointerId)) return
-    commitFromClientX(event.currentTarget, event.clientX)
+    commitFromClientX(event.clientX)
+  }
+
+  function onRelease() {
+    boxRef.current = null
+    const row = rowRef.current
+    if (!row || !row.style.transform) return
+    row.style.transition = STRETCH_RELEASE
+    row.style.transform = ""
   }
 
   return (
     <div
+      ref={rowRef}
       data-control="slider"
       className={cn(
         rowClassName,
@@ -250,6 +358,9 @@ export function ControlSlider({
       )}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
+      onPointerUp={onRelease}
+      onPointerCancel={onRelease}
+      onLostPointerCapture={onRelease}
     >
       <div
         aria-hidden
@@ -287,6 +398,10 @@ export type ControlSwitchProps = {
   className?: string
 }
 
+/**
+ * A toggle row: the whole row is the switch. The knob widens while pressed
+ * and springs across, like the sliders' stretch.
+ */
 export function ControlSwitch({
   label,
   checked,
@@ -294,32 +409,35 @@ export function ControlSwitch({
   description,
   className,
 }: ControlSwitchProps) {
-  const id = useId()
-
   return (
-    <div
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
       data-control="switch"
+      data-checked={checked || undefined}
+      onClick={() => onChange(!checked)}
       className={cn(
         rowClassName,
-        "flex min-h-10 items-center justify-between gap-4 px-3 py-2",
+        "group/switch flex min-h-10 w-full cursor-pointer items-center justify-between gap-4 px-3 py-2 text-start transition-colors outline-none hover:bg-foreground/[0.04] focus-visible:ring-2 focus-visible:ring-ring/40",
         className
       )}
     >
-      <div className="flex min-w-0 flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
-        <label htmlFor={id} className="text-sm text-foreground/85">
-          {label}
-        </label>
+      <span className="flex min-w-0 flex-col gap-0.5">
+        <span className="text-sm text-foreground/85">{label}</span>
         {description ? (
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <span className="text-xs text-muted-foreground">{description}</span>
         ) : null}
-      </div>
-      <Switch
-        id={id}
-        checked={checked}
-        onCheckedChange={onChange}
-        size="sm"
-      />
-    </div>
+      </span>
+      <span
+        aria-hidden
+        className="relative flex h-5 w-9 shrink-0 items-center rounded-full bg-foreground/10 p-0.5 transition-colors duration-200 group-data-checked/switch:bg-foreground/25"
+      >
+        {/* Quiet by design: the knob carries the state, dim when off and
+            full ink when on, rather than the whole pill lighting up. */}
+        <span className="block h-4 w-4 rounded-full bg-foreground/35 shadow-sm transition-[translate,width,background-color] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-active/switch:w-5 group-data-checked/switch:translate-x-4 group-data-checked/switch:bg-foreground group-data-checked/switch:group-active/switch:translate-x-3" />
+      </span>
+    </button>
   )
 }
 
@@ -390,11 +508,14 @@ export function ControlColors({
   className,
 }: ControlColorsProps) {
   const fitted = useMemo(
-    () => palettes.slice(0, 4).map((palette) => fitPalette(palette, colors.length)),
+    () =>
+      palettes.slice(0, 4).map((palette) => fitPalette(palette, colors.length)),
     [palettes, colors.length]
   )
 
-  const activeIndex = fitted.findIndex((palette) => colorsEqual(palette, colors))
+  const activeIndex = fitted.findIndex((palette) =>
+    colorsEqual(palette, colors)
+  )
   const [customOpen, setCustomOpen] = useState(activeIndex === -1)
 
   return (

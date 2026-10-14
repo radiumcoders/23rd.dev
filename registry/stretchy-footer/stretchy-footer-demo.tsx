@@ -113,7 +113,7 @@ export function StretchyFooterDemo() {
         title="Stretchy Footer"
         stageClassName="min-h-0 overflow-hidden p-0"
       >
-        <div className="relative h-[56svh] w-full overflow-hidden rounded-[inherit] bg-background">
+        <div className="relative h-[var(--preview-h,56svh)] w-full overflow-hidden rounded-[inherit] bg-background">
           <StretchyFooter
             demoId={PREVIEW_DEMO_ID}
             scrollRef={scrollerRef}

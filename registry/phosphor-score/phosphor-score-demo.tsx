@@ -67,7 +67,7 @@ export function PhosphorScoreDemo() {
         title="Phosphor Score"
         stageClassName="min-h-0 overflow-hidden p-0"
       >
-        <div className="relative h-[56svh] w-full overflow-hidden rounded-[inherit]">
+        <div className="relative h-[var(--preview-h,56svh)] w-full overflow-hidden rounded-[inherit]">
           <PhosphorScore
             color={useAutoColor ? undefined : props.color}
             glow={props.glow}

@@ -64,7 +64,7 @@ export function LiveOrbDemo() {
         title="Live Orb"
         stageClassName="min-h-0 overflow-hidden p-0"
       >
-        <div className="flex h-[56svh] w-full items-center justify-center bg-background">
+        <div className="flex h-[var(--preview-h,56svh)] w-full items-center justify-center bg-background">
           <LiveOrb
             size={props.size}
             variant={variant}

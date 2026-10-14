@@ -13,6 +13,7 @@ import { SearchTrigger } from "@/components/search-trigger"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { FOOTER_LINKS, SUPPORT_EMAIL } from "@/lib/site"
 import { FrameworkProvider } from "@/lib/framework"
+import { cn } from "@/lib/utils"
 import {
   Sidebar,
   SidebarContent,
@@ -65,8 +66,11 @@ function SidebarBody({
 }) {
   return (
     <>
-      <SidebarHeader className="gap-4 px-4 pt-6 pb-2">
-        <Wordmark />
+      <SidebarHeader className="gap-4 px-3 pt-5 pb-2">
+        <div className="flex items-center gap-1.5">
+          <DocsSidebarTrigger />
+          <Wordmark />
+        </div>
         <SearchTrigger variant="field" className="w-full" />
       </SidebarHeader>
       <SidebarContent className="px-2 pb-6">
@@ -109,6 +113,62 @@ function SidebarBody({
   )
 }
 
+/**
+ * From `md` up the page tree sits at the left. Its toggle (or Ctrl+B)
+ * folds it into a slim rail that keeps only the toggle, in the same spot,
+ * so a component's stage can take the width.
+ */
+function DesktopSidebar({
+  tree,
+  githubStars,
+}: {
+  tree: RootNode
+  githubStars: number | null
+}) {
+  const { open } = useSidebar()
+
+  return (
+    <aside
+      aria-label="Documentation"
+      data-state={open ? "expanded" : "collapsed"}
+      className={cn(
+        // The width snaps rather than animates: easing it would resize the
+        // live preview beside it on every frame, and each resize redraws
+        // (or re-lays out) the component. Only the contents fade.
+        "sticky top-0 hidden h-svh shrink-0 [contain:layout] md:block",
+        open ? "w-60" : "w-14"
+      )}
+    >
+      {/*
+       * Motion measures shared layouts in page coordinates, and Next
+       * scrolls to the top between its before/after measurements, so
+       * a sticky sidebar's marker would fly in from off-screen. A
+       * `layoutScroll` fixed box is a scroll root it measures in the
+       * viewport instead; `contain: layout` pins that box to the aside.
+       */}
+      <motion.div
+        layoutScroll
+        className="fixed inset-0 flex flex-col overflow-hidden"
+      >
+        <div
+          inert={!open}
+          className={cn(
+            "flex h-full w-60 flex-col transition-opacity duration-200",
+            !open && "opacity-0"
+          )}
+        >
+          <SidebarBody tree={tree} githubStars={githubStars} />
+        </div>
+        {open ? null : (
+          <div className="absolute top-5 left-3">
+            <DocsSidebarTrigger />
+          </div>
+        )}
+      </motion.div>
+    </aside>
+  )
+}
+
 /** Below `md` the page tree lives in a sheet opened from the top bar. */
 function MobileSidebar({
   tree,
@@ -145,25 +205,11 @@ export function DocsShell({
     <FrameworkProvider>
       <SidebarProvider
         style={sidebarTokens}
-        className="min-h-svh bg-background"
+        className="docs-flip min-h-svh bg-background"
       >
         <MobileSidebar tree={tree} githubStars={githubStars} />
-        <div className="mx-auto flex w-full max-w-[90rem] items-start">
-          {/*
-           * Motion measures shared layouts in page coordinates, and Next
-           * scrolls to the top between its before/after measurements, so
-           * a sticky sidebar's marker would fly in from off-screen. A
-           * `layoutScroll` fixed box is a scroll root it measures in the
-           * viewport instead; `contain: layout` pins that box to the aside.
-           */}
-          <aside
-            aria-label="Documentation"
-            className="sticky top-0 hidden h-svh w-60 shrink-0 [contain:layout] md:block"
-          >
-            <motion.div layoutScroll className="fixed inset-0 flex flex-col">
-              <SidebarBody tree={tree} githubStars={githubStars} />
-            </motion.div>
-          </aside>
+        <div className="flex w-full items-start">
+          <DesktopSidebar tree={tree} githubStars={githubStars} />
           <main className="flex min-w-0 flex-1 flex-col">
             <header className="flex h-14 items-center gap-2 px-3 md:hidden">
               <DocsSidebarTrigger />
