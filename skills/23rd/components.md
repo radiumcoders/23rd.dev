@@ -439,6 +439,31 @@ Controlled when `value` is not `undefined`. Otherwise uncontrolled, seeded from 
 
 Pitfalls: the panel overflows the trigger. Do not put it in `overflow-hidden`. React also exports `parseColor`. No `className` on Svelte; use `class`.
 
+## mech-keyboard
+
+Component. A 75% mechanical keyboard drawn as an isometric illustration with three.js on a transparent canvas: a milled case, a volume knob, and 82 keycaps fading from dusty blue to off-white, shaded in three flat tone bands and outlined in ink, with ink legends. The visitor's keyboard presses the matching keys (window-wide, ignoring typing in inputs), clicks press them too (modifiers latch), and the recorder above draws the chord as small illustrated keycaps, then "Shortcut saved" on release.
+
+Best fit: a "create a shortcut" step in onboarding, a keyboard-shortcuts page, or a hero that reacts to typing.
+
+Not this: typed prose (`typewriter`), a text input, or a background behind other copy.
+
+Deps: `three` (+ `@types/three`). Props: `x` / `y` (0, px), `scale` (1), `monochrome` (false), `interactive` (true), `recorder` (true), `placeholder` (`"Press a shortcut"`), `highlight` (codes to pulse), `platform` (`"auto"`), `sound` (false), `intro` (true), `onKey(code, pressed)`, `onShortcut(shortcut)`.
+
+```tsx
+"use client"
+import { MechKeyboard } from "@/components/ui/mech-keyboard"
+
+export function ShortcutStep() {
+  return (
+    <div className="h-[28rem] w-full overflow-hidden rounded-xl border bg-background">
+      <MechKeyboard onShortcut={(s) => console.log(s.label)} />
+    </div>
+  )
+}
+```
+
+Pitfalls: give the parent a height; the keyboard fits itself inside it. The pose is fixed isometric: there are no rotation, `fov`, `z`, `fade`, `variant`, `colorway`, or `theme` props. Codes are `KeyboardEvent.code` (`"MetaLeft"`, `"KeyK"`), not `key`. `onShortcut` fires on release of the whole chord with `{ codes, keys, label }`; `label` is `"⌘⇧K"` on Mac and `"Ctrl+Shift+K"` elsewhere. While the keyboard has focus it calls `preventDefault` on every key but Tab, so it can record browser shortcuts. Needs WebGL; without it only the recorder renders. The knob turns under the wheel and with volume keys; clicking it records `AudioVolumeMute`.
+
 ## typewriter
 
 Component. A real typewriter drawn in SVG. Every key is wired to its own typebar: a letter presses its key, swings that bar up out of the basket to strike the ribbon, lands on the sheet, and the carriage steps one character left. Capitals hold shift. At the margin the return lever kicks, the platen turns the paper up a line, and the carriage slides home. With `loop`, the sheet is pulled out and a fresh one rolls in.

@@ -1,0 +1,100 @@
+---
+title: Mech Keyboard
+description: A 75% keyboard drawn as an isometric illustration that presses along with yours and records shortcuts.
+---
+
+import { MechKeyboardDemo } from "@/components/demos"
+
+Press a few keys. It is a three.js scene drawn as an isometric illustration: a milled case around a recessed plate, a volume knob, and 82 keycaps fading from dusty blue at the back to off-white at the front, shaded in three flat tone bands and outlined in ink. Legends are printed in the same ink. Your keyboard drives the keys, and the recorder above spells out the chord, ready for a "create a shortcut" step in onboarding.
+
+<MechKeyboardDemo />
+
+## Installation
+
+<CliCommand item="mech-keyboard" />
+
+Or from the public GitHub registry:
+
+<CliCommand item="mech-keyboard" github />
+
+## Usage
+
+Give the parent a size; the keyboard fits itself inside it.
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+"use client"
+
+import { MechKeyboard } from "@/components/ui/mech-keyboard"
+
+export function ShortcutStep() {
+  return (
+    <div className="h-[28rem] w-full overflow-hidden rounded-xl border bg-background">
+      <MechKeyboard
+        onShortcut={(shortcut) => console.log(shortcut.label)}
+      />
+    </div>
+  )
+}
+```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<script>
+  import MechKeyboard from "$lib/components/ui/mech-keyboard.svelte"
+</script>
+
+<div class="h-[28rem] w-full overflow-hidden rounded-xl border bg-background">
+  <MechKeyboard
+    onShortcut={(shortcut) => console.log(shortcut.label)}
+  />
+</div>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+`onShortcut` fires when every key of a chord is released. It gets `codes` (`KeyboardEvent.code`s, modifiers first), `keys` (one legend per key), and `label` (`"⌘⇧K"` on Mac, `"Ctrl+Shift+K"` elsewhere).
+
+Keys listen on the window, but typing in an input, textarea, or contenteditable elsewhere on the page is ignored. While the keyboard itself has focus, the browser's own handling of those keys is prevented (except Tab), so it can record combos like `⌘S`. Clicking a modifier latches it; clicking another key then fires the chord.
+
+Needs WebGL; without it the canvas stays empty and the recorder still works. The pose is fixed at true isometric. Move it, drop the color, or pulse the keys you want pressed:
+
+<FrameworkCode>
+  <FrameworkReact>
+    ```tsx
+    <MechKeyboard x={-40} y={20} scale={0.9} />
+    <MechKeyboard monochrome />
+    <MechKeyboard highlight={["MetaLeft", "KeyK"]} recorder={false} />
+    ```
+  </FrameworkReact>
+  <FrameworkSvelte>
+    ```svelte
+    <MechKeyboard x={-40} y={20} scale={0.9} />
+    <MechKeyboard monochrome />
+    <MechKeyboard highlight={["MetaLeft", "KeyK"]} recorder={false} />
+    ```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+`monochrome` swaps the blue caps for white and grey, leaving a pure ink drawing. The recorder draws each key of the chord as a small keycap in the same style; held keys sink into their skirts. The knob turns under the mouse wheel and with the volume keys, and clicking it records Mute.
+
+## Props
+
+| Prop          | Type                                  | Default                    |
+| ------------- | ------------------------------------- | -------------------------- |
+| `x`           | `number`                              | `0`, px                    |
+| `y`           | `number`                              | `0`, px                    |
+| `scale`       | `number`                              | `1`, times the fitted size |
+| `monochrome`  | `boolean`                             | `false`                    |
+| `interactive` | `boolean`                             | `true`                     |
+| `recorder`    | `boolean`                             | `true`                     |
+| `placeholder` | `string`                              | `"Press a shortcut"`       |
+| `highlight`   | `string[]`                            | none, codes to pulse       |
+| `platform`    | `"auto" \| "mac" \| "pc"`             | `"auto"`, bottom-row legends |
+| `sound`       | `boolean`                             | `false`                    |
+| `intro`       | `boolean`                             | `true`                     |
+| `onKey`       | `(code: string, pressed: boolean) => void` | none                  |
+| `onShortcut`  | `(shortcut: MechKeyboardShortcut) => void` | none                  |
+| `className`   | `string`                              | React only                 |
+| `class`       | `string`                              | Svelte only                |
