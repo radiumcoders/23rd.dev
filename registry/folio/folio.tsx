@@ -91,7 +91,7 @@ export function Folio({
       data-slot="folio"
       data-folio-demo={demoId}
       className={cn(
-        "relative h-full overflow-x-hidden overflow-y-auto overscroll-contain",
+        "relative h-full overflow-x-hidden overflow-y-auto",
         className
       )}
     >
