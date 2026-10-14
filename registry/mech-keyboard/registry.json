@@ -1,0 +1,43 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "items": [
+    {
+      "name": "mech-keyboard",
+      "type": "registry:ui",
+      "title": "Mech Keyboard",
+      "description": "A 75% mechanical keyboard drawn as an isometric illustration in three.js, with ink outlines and a volume knob. Keys press along with your real keyboard, and a recorder spells out the shortcut for onboarding flows.",
+      "dependencies": [
+        "three"
+      ],
+      "devDependencies": [
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "mech-keyboard.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/mech-keyboard.tsx"
+        }
+      ]
+    },
+    {
+      "name": "mech-keyboard-svelte",
+      "type": "registry:ui",
+      "title": "Mech Keyboard",
+      "description": "A 75% mechanical keyboard drawn as an isometric illustration in three.js, with ink outlines and a volume knob. Keys press along with your real keyboard, and a recorder spells out the shortcut for onboarding flows.",
+      "dependencies": [
+        "three"
+      ],
+      "devDependencies": [
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "mech-keyboard.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/mech-keyboard.svelte"
+        }
+      ]
+    }
+  ]
+}

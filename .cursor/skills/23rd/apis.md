@@ -442,6 +442,37 @@ Also exported: `DEFAULT_COLOR`, `DEFAULT_TEXT`, `DEFAULT_SPEED`, `DEFAULT_COLUMN
 
 Vanilla `TypewriterInstance`: `{ setOptions, restart, destroy }`. Not returned to app code by the React component; remount with a `key` to type again. No `ticks` or `theme` props; `color` is the only color prop and it paints the enamel.
 
+## mech-keyboard
+
+```ts
+type MechKeyboardProps = {
+  x?: number // 0 px
+  y?: number // 0 px, +y is down
+  scale?: number // 1, times the fitted size
+  monochrome?: boolean // false: white and grey caps, ink only
+  interactive?: boolean // true: window keys and clicks press keys
+  recorder?: boolean // true: illustrated keycaps spelling out the chord
+  placeholder?: string // "Press a shortcut"
+  highlight?: string[] // KeyboardEvent.code values to pulse
+  platform?: "auto" | "mac" | "pc" // "auto": bottom-row legends and labels
+  sound?: boolean // false: synthesized switch sounds
+  intro?: boolean // true: rise into place with a wave across the keys
+  onKey?: (code: string, pressed: boolean) => void
+  onShortcut?: (shortcut: MechKeyboardShortcut) => void
+  className?: string
+}
+
+type MechKeyboardShortcut = {
+  codes: string[] // modifiers first
+  keys: string[] // one legend per key
+  label: string // "⌘⇧K" on Mac, "Ctrl+Shift+K" elsewhere
+}
+```
+
+Also exported: `DEFAULT_PLACEHOLDER`, `buildLayout(platform)`, `formatShortcut(codes, platform)`, types `MechKeyboardKey`, `MechKeyboardPlatform`.
+
+Vanilla `createMechKeyboard(root, stage, options)` returns `{ setOptions, replay, destroy }`. Not returned to app code by the React component; remount with a `key` to replay the intro.
+
 ## Events that are not props
 
 | Name | Constant | Who listens |

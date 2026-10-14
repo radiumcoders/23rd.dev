@@ -104,6 +104,7 @@ npx skills add radiumcoders/23rd.dev --skill 23rd -g
 | [Shader Metal](https://23rd.dev/docs/components/shader-metal)             | `@23rd/shader-metal`       | Liquid chrome, gold, or copper ribbons; the key light follows the pointer             |
 | [Stretchy Footer](https://23rd.dev/docs/components/stretchy-footer)       | `@23rd/stretchy-footer`    | Dia-style rubber overscroll; aurora stretches past the bottom, then snaps back        |
 | [Typewriter](https://23rd.dev/docs/components/typewriter)                 | `@23rd/typewriter`         | A playable typewriter in SVG; keys press, typebars strike, the carriage steps         |
+| [Mech Keyboard](https://23rd.dev/docs/components/mech-keyboard)           | `@23rd/mech-keyboard`      | An isometric keyboard illustration that presses with yours and records shortcuts     |
 
 ```tsx
 import { GooeyColorPicker } from "@/components/ui/gooey-color-picker"

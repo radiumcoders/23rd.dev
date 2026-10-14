@@ -216,6 +216,44 @@
       "type": "registry:ui"
     },
     {
+      "name": "mech-keyboard",
+      "title": "Mech Keyboard",
+      "description": "A 75% mechanical keyboard drawn as an isometric illustration in three.js, with ink outlines and a volume knob. Keys press along with your real keyboard, and a recorder spells out the shortcut for onboarding flows.",
+      "dependencies": [
+        "three"
+      ],
+      "devDependencies": [
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "registry/mech-keyboard/mech-keyboard.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/mech-keyboard.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
+      "name": "mech-keyboard-svelte",
+      "title": "Mech Keyboard",
+      "description": "A 75% mechanical keyboard drawn as an isometric illustration in three.js, with ink outlines and a volume knob. Keys press along with your real keyboard, and a recorder spells out the shortcut for onboarding flows.",
+      "dependencies": [
+        "three"
+      ],
+      "devDependencies": [
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "registry/mech-keyboard/mech-keyboard.svelte",
+          "type": "registry:file",
+          "target": "src/lib/components/ui/mech-keyboard.svelte"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "phosphor-score",
       "title": "Phosphor Score",
       "description": "Vertical sheet music on a CRT phosphor: notes fall, bloom at the playhead, then exit in a flare.",

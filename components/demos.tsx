@@ -60,6 +60,12 @@ export const LogoBurstDemo = lazyDemo(() =>
   import("@/registry/logo-burst/logo-burst-demo").then((m) => m.LogoBurstDemo)
 )
 
+export const MechKeyboardDemo = lazyDemo(() =>
+  import("@/registry/mech-keyboard/mech-keyboard-demo").then(
+    (m) => m.MechKeyboardDemo
+  )
+)
+
 export const PhosphorScoreDemo = lazyDemo(() =>
   import("@/registry/phosphor-score/phosphor-score-demo").then(
     (m) => m.PhosphorScoreDemo

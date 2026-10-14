@@ -3,7 +3,7 @@ name: 23rd
 description: >
   Install, choose, and compose 23rd shadcn/ui registry components for React and
   Svelte 5. Use when the user wants a UI component, background, shader, WebGL
-  wash, liquid metal or chrome, hero atmosphere, footer, 404, color picker, typewriter text, ASCII effect,
+  wash, liquid metal or chrome, hero atmosphere, footer, 404, color picker, typewriter text, keyboard shortcut recorder, ASCII effect,
   starfield, orb, or page-tilt from the 23rd registry (@23rd, 23rd.dev, radiumcoders/23rd.dev),
   or when adding a new component to this registry. Covers install commands,
   import paths, props, theming, and when not to use each item.
@@ -76,6 +76,7 @@ npm dependencies the registry declares:
 | --- | --- | --- |
 | `gooey-color-picker` | `motion` | none |
 | `ring-tower` | `three` | `three` |
+| `mech-keyboard` | `three` | `three` |
 | every other item | none | none |
 
 Published index: `https://23rd.dev/r/registry.json`. Docs: `https://23rd.dev/docs`.
@@ -93,6 +94,7 @@ flowchart TD
   pick -->|Scroll makes the page lean| folio[folio]
   pick -->|Character or wordmark| mark{Which}
   pick -->|Type text out letter by letter| tw[typewriter]
+  pick -->|Show or record a keyboard shortcut| mk[mech-keyboard]
   atmo -->|Quiet wash| sg[shader-gradient]
   atmo -->|Cel-shaded fire from the bottom| saf[shader-anime-fire]
   atmo -->|Sky or rain, optional glass| ss[shader-sky]
@@ -127,6 +129,7 @@ Disambiguation that agents get wrong:
 | Rings, bands, or a tower of screenshots that spins | `ring-tower` | `shader-metal` (no images) |
 | A face / orb / mascot | `live-orb` | `logo-burst` |
 | Typing effect, typewriter, text that types itself | `typewriter` | `ascii-logo` (a wordmark, not prose) |
+| Keyboard, keycaps, record a shortcut, onboarding hotkey step | `mech-keyboard` | `typewriter` (types prose, not chords) |
 
 There is one variant enum in the whole registry: `LiveOrb` `variant` is `"white" | "black" | "webgl" | "custom"`. Nothing else has `variant`.
 
@@ -196,6 +199,7 @@ Categories match `content/docs/components/meta.json`.
 | `folio` | Sections | Page leans on scroll, then springs flat | React + Svelte |
 | `gooey-color-picker` | Components | Swatch opens into hue, alpha, and hex under an SVG goo filter | React + Svelte |
 | `typewriter` | Components | A real typewriter in SVG: keys press, typebars strike, the carriage steps | React + Svelte |
+| `mech-keyboard` | Components | Isometric 75% keyboard illustration; presses with yours and records shortcuts | React + Svelte |
 
 ## Minimal installs that must be right
 
