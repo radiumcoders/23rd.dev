@@ -73,24 +73,12 @@ function SidebarBody({
         </div>
         <SearchTrigger variant="field" className="w-full" />
       </SidebarHeader>
-      <SidebarContent className="px-2 pb-6">
+      <SidebarContent className="[mask-image:linear-gradient(to_bottom,#000_calc(100%-2rem),transparent)] px-2 pb-8">
         <DocsSidebar tree={tree} embedded />
-      </SidebarContent>
-      <SidebarFooter className="mx-4 gap-3 border-t px-0 pt-3 pb-4">
-        <div className="flex items-center gap-1">
-          <GithubStars stars={githubStars} className="-ms-2.5" />
-          <ThemeToggle />
-          <Link
-            href="/sponsors"
-            className="ms-auto inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <RiHeartFill className="size-3.5" />
-            Sponsor
-          </Link>
-        </div>
+        {/* Fine print scrolls with the list, so the pinned row stays one line. */}
         <nav
           aria-label="Secondary"
-          className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground"
+          className="mt-auto flex flex-wrap gap-x-3 gap-y-1 px-4 pt-6 text-xs text-muted-foreground/75"
         >
           {FOOTER_LINKS.map((link) => (
             <Link
@@ -103,11 +91,22 @@ function SidebarBody({
           ))}
           <a
             href={`mailto:${SUPPORT_EMAIL}`}
-            className="break-all hover:text-foreground"
+            className="min-w-0 truncate hover:text-foreground"
           >
             {SUPPORT_EMAIL}
           </a>
         </nav>
+      </SidebarContent>
+      <SidebarFooter className="mx-3 flex-row items-center gap-1 border-t px-0 py-2.5">
+        <GithubStars stars={githubStars} />
+        <ThemeToggle />
+        <Link
+          href="/sponsors"
+          className="ms-auto inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <RiHeartFill className="size-3.5" />
+          Sponsor
+        </Link>
       </SidebarFooter>
     </>
   )

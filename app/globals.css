@@ -120,7 +120,7 @@
 
 /*
  * Firefox stops painting the rest of the page while a view transition runs,
- * so the sidebar marker's whole flight happens unseen and it just jumps.
+ * so the sidebar chip's whole slide happens unseen and it just jumps.
  * There the transition ends at once and the new page fades in as a plain
  * animation, which leaves everything else live.
  */
@@ -186,7 +186,7 @@
     --wash: #e6e8e9;
     --rule: #d8dadc;
 
-    /* Subpixel triad: the "this one is on" indicator. */
+    /* Subpixel triad: the outline's click pulse and the chart colors. */
     --triad-r: #ff3b3b;
     --triad-g: #1fc760;
     --triad-b: #3563ff;

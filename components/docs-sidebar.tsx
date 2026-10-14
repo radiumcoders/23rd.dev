@@ -4,7 +4,6 @@ import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  arc,
   cancelFrame,
   frame,
   frameData,
@@ -12,13 +11,11 @@ import {
   motion,
   time,
   useReducedMotion,
-  type MotionPath,
   type ValueTransition,
 } from "motion/react"
 
 import { DocsSidebarTrigger } from "@/components/docs-sidebar-trigger"
 import { Logo } from "@/components/logo"
-import { Triad } from "@/components/triad"
 import {
   Sidebar,
   SidebarContent,
@@ -63,56 +60,34 @@ function isCurrent(pathname: string, url: string) {
 }
 
 const headingClassName =
-  "mt-6 mb-1 h-auto truncate px-2 py-1 font-mono text-[10.5px] font-normal tracking-[0.18em] text-muted-foreground/80 uppercase first:mt-0"
+  "relative z-10 mt-4 mb-0.5 h-6 truncate rounded-md px-2.5 text-[12.5px] font-medium text-foreground first:mt-0"
 
-const markSpring = {
+/** Settles without overshoot: the chip lands on its row and stays. */
+const chipSpring = {
   type: "spring" as const,
-  stiffness: 460,
-  damping: 34,
-  mass: 0.7,
+  stiffness: 520,
+  damping: 44,
+  mass: 0.8,
 }
 
-/**
- * The marker bows left, toward the sidebar's edge. Only ~24px sit between
- * it and the scroll area's clip, so the bow is capped in pixels instead of
- * growing with the trip like a plain `arc()` would.
- */
-const MARK_BOW = 18
-const MARK_STRENGTH = 0.3
-
-const markPath: MotionPath = {
-  interpolateProjection(delta) {
-    // `translate` is where the marker starts relative to its new row:
-    // negative means the old row sat above, so it is travelling down.
-    const distance = Math.hypot(delta.x.translate, delta.y.translate)
-    // A quadratic arc peaks at half its control-point offset.
-    const strength = Math.min(MARK_STRENGTH, (2 * MARK_BOW) / distance)
-    // `arc()` bends relative to travel, so pick the side per trip.
-    const direction = delta.y.translate < 0 ? "ccw" : "cw"
-    return arc({ strength, direction }).interpolateProjection(delta)
-  },
-  animateVisualElement: (...args) =>
-    arc({ strength: MARK_STRENGTH }).animateVisualElement(...args),
-}
-
-/** The longest step, in ms, the marker's clock takes in one frame. */
-const MARK_MAX_STEP = 1000 / 60
+/** The longest step, in ms, the chip's clock takes in one frame. */
+const CHIP_MAX_STEP = 1000 / 60
 
 /**
  * Motion's frame loop, on a clock that never jumps more than
- * `MARK_MAX_STEP` per frame. Firefox stalls ~100ms swapping the page right
- * after the marker takes off, and on the real clock the spring spends that
- * stall mid-flight, so its first frame lands well down the arc. Here a
- * stalled frame just pauses the flight.
+ * `CHIP_MAX_STEP` per frame. Firefox stalls ~100ms swapping the page right
+ * after the chip sets off, and on the real clock the spring spends that
+ * stall mid-flight, so its first frame lands most of the way there. Here a
+ * stalled frame just pauses the move.
  */
-const markDriver: NonNullable<ValueTransition["driver"]> = (update) => {
+const chipDriver: NonNullable<ValueTransition["driver"]> = (update) => {
   let last: number | undefined
   let clock: number | undefined
   const step = ({ timestamp }: { timestamp: number }) => {
     clock =
       last === undefined || clock === undefined
         ? timestamp
-        : clock + Math.min(timestamp - last, MARK_MAX_STEP)
+        : clock + Math.min(timestamp - last, CHIP_MAX_STEP)
     last = timestamp
     update(clock)
   }
@@ -125,56 +100,71 @@ const markDriver: NonNullable<ValueTransition["driver"]> = (update) => {
   }
 }
 
-/** Room the marker takes before the open page's name. */
-const MARK_GUTTER = "translate-x-[21px]"
-
 /**
- * The open page's marker. Every page shares one `layoutId`, so when the
- * open page changes Motion flies the marker along an arc to the new row.
- * It hangs off the `<li>`, not the button, whose `overflow-hidden` would
- * clip it mid-flight.
+ * The open page's row is a scrap of the sheet the page sits on: the same
+ * surface and hairline edge, so the row and the panel beside it read as one
+ * thing. Every page shares one `layoutId`, so the chip slides to the new
+ * row when the page changes. Hover shows a fainter one.
+ *
+ * The chip sits at z-0 and every row and heading at z-10. Without that,
+ * DOM order decides: sliding down, the chip belongs to a later row and
+ * would paint over the text of every row it passes.
  */
-function ActiveMark() {
+function ActiveChip() {
   const reduce = useReducedMotion() ?? false
 
   return (
     <motion.span
-      layoutId="docs-sidebar-mark"
+      layoutId="docs-sidebar-chip"
       aria-hidden
-      className="pointer-events-none absolute inset-y-0 left-2 z-10 flex items-center"
+      className="pointer-events-none absolute inset-0 z-0 rounded-md border border-(--rule) bg-(--sheet)"
       transition={
-        reduce
-          ? { duration: 0 }
-          : { ...markSpring, path: markPath, driver: markDriver }
+        reduce ? { duration: 0 } : { ...chipSpring, driver: chipDriver }
       }
-    >
-      <Triad />
-    </motion.span>
+    />
   )
+}
+
+/** Scrolls the list just enough to show `row`, without moving the page. */
+function reveal(row: HTMLElement) {
+  const list = row.closest<HTMLElement>('[data-sidebar="content"]')
+  if (!list) return
+  const top = row.offsetTop - list.offsetTop
+  const margin = 32
+  if (top < list.scrollTop + margin) {
+    list.scrollTop = Math.max(0, top - margin)
+  } else if (
+    top + row.offsetHeight >
+    list.scrollTop + list.clientHeight - margin
+  ) {
+    list.scrollTop = top + row.offsetHeight - list.clientHeight + margin
+  }
 }
 
 function PageItem({ node, pathname }: { node: PageNode; pathname: string }) {
   const active = isCurrent(pathname, node.url)
+  const rowRef = React.useRef<HTMLLIElement>(null)
+
+  // Opening a page from search or a link keeps its row in sight.
+  React.useLayoutEffect(() => {
+    if (active && rowRef.current) reveal(rowRef.current)
+  }, [active])
 
   return (
-    <SidebarMenuItem>
-      {active ? <ActiveMark /> : null}
+    <SidebarMenuItem ref={rowRef}>
+      {active ? <ActiveChip /> : null}
       <SidebarMenuButton
         render={
           <Link href={node.url} aria-label={String(node.name ?? "Page")} />
         }
         isActive={active}
-        className="h-8 gap-0 rounded-lg bg-transparent px-2 font-normal text-foreground/70 transition-colors duration-150 hover:bg-transparent hover:text-foreground active:bg-transparent data-active:bg-transparent data-active:font-medium data-active:text-foreground data-active:hover:bg-transparent"
+        className={cn(
+          "relative z-10 h-7 rounded-md bg-transparent px-2.5 text-[13.5px] font-normal text-muted-foreground transition-colors duration-150",
+          "hover:bg-[color-mix(in_oklab,var(--sheet)_70%,transparent)] hover:text-foreground active:bg-transparent",
+          "data-active:bg-transparent data-active:font-normal data-active:text-foreground data-active:hover:bg-transparent"
+        )}
       >
-        {/* The name steps aside for the marker instead of jumping. */}
-        <span
-          className={cn(
-            "min-w-0 truncate transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
-            active && MARK_GUTTER
-          )}
-        >
-          {node.name}
-        </span>
+        <span className="min-w-0 truncate">{node.name}</span>
       </SidebarMenuButton>
     </SidebarMenuItem>
   )
@@ -238,13 +228,13 @@ function NavItems({
   })
 }
 
-/** Scopes the marker's `layoutId` so the desktop and mobile lists don't share one. */
+/** Scopes the chip's `layoutId` so the desktop and mobile lists don't share one. */
 function NavList({ nodes, pathname }: { nodes: TreeNode[]; pathname: string }) {
   const id = React.useId()
 
   return (
     <LayoutGroup id={id}>
-      <SidebarMenu>
+      <SidebarMenu className="gap-px">
         <NavItems nodes={nodes} pathname={pathname} />
       </SidebarMenu>
     </LayoutGroup>
