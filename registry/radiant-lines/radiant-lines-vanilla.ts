@@ -181,21 +181,29 @@ export function createRadiantLines(
   let lastScrollT = performance.now()
   let attached: Window | HTMLElement | null = null
 
+  /**
+   * Sizes the canvas to its parent; true when the backing store changed.
+   * Assigning the same size still clears the canvas, so it only assigns on
+   * a real change.
+   */
   const resize = () => {
     const parent = canvas.parentElement
-    if (!parent) return
+    if (!parent) return false
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     const w = parent.clientWidth
     const h = parent.clientHeight
     size.w = w
     size.h = h
-    canvas.width = Math.floor(w * dpr)
-    canvas.height = Math.floor(h * dpr)
+    const width = Math.floor(w * dpr)
+    const height = Math.floor(h * dpr)
+    if (canvas.width === width && canvas.height === height) return false
+    canvas.width = width
+    canvas.height = height
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    // Resizing clears the canvas, so a paused field needs a fresh frame.
     wake()
+    return true
   }
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -262,6 +270,15 @@ export function createRadiantLines(
     if (raf || destroyed) return
     lastFrame = performance.now()
     raf = requestAnimationFrame(tick)
+  }
+
+  /** Draws in place now, without advancing; the tick carries on if live. */
+  function redraw() {
+    if (destroyed) return
+    cancelAnimationFrame(raf)
+    raf = 0
+    lastFrame = performance.now()
+    tick(lastFrame)
   }
 
   // An arrow, not a declaration, so TypeScript keeps `ctx` narrowed inside.
@@ -368,7 +385,10 @@ export function createRadiantLines(
   }
 
   resize()
-  const ro = new ResizeObserver(resize)
+  // Resizing cleared the canvas; draw now, or it shows blank for a frame.
+  const ro = new ResizeObserver(() => {
+    if (resize()) redraw()
+  })
   if (canvas.parentElement) ro.observe(canvas.parentElement)
   const io = new IntersectionObserver(([entry]) => {
     onScreen = entry?.isIntersecting ?? true

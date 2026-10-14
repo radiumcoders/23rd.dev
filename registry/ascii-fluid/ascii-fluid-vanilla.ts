@@ -595,24 +595,42 @@ export function createAsciiFluid(
     raf = requestAnimationFrame(tick)
   }
 
+  /**
+   * Draws now: resizing cleared the canvas, and waiting for the next frame
+   * would show it blank for one. Zero dt, so time doesn't jump; the tick
+   * reschedules itself if it should keep running.
+   */
+  const redraw = () => {
+    if (destroyed || lost) return
+    cancelAnimationFrame(raf)
+    raf = 0
+    last = performance.now()
+    tick(last)
+  }
+
+  /** Returns whether the backing size changed (which clears the canvas). */
   const resize = () => {
     const parent = canvas.parentElement
-    if (!parent) return
+    if (!parent) return false
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     const w = parent.clientWidth
     const h = parent.clientHeight
-    if (w <= 0 || h <= 0) return
-    canvas.width = Math.max(1, Math.floor(w * dpr))
-    canvas.height = Math.max(1, Math.floor(h * dpr))
+    if (w <= 0 || h <= 0) return false
+    const width = Math.max(1, Math.floor(w * dpr))
+    const height = Math.max(1, Math.floor(h * dpr))
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
+    if (width === canvas.width && height === canvas.height) return false
+    canvas.width = width
+    canvas.height = height
+    return true
   }
 
   resize()
   // Resizing clears the canvas, so redraw even when the loop is idle.
   const ro = new ResizeObserver(() => {
-    resize()
-    wake()
+    if (resize()) redraw()
+    else wake()
   })
   if (canvas.parentElement) ro.observe(canvas.parentElement)
 

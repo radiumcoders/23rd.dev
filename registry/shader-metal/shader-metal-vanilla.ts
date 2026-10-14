@@ -437,23 +437,29 @@ export function createShaderMetal(
   if (!initGl()) return null
 
   // Ribbon edges are hard, so this one renders at device resolution (up to 2x).
+  // Returns true when the backing store changed.
   const resize = () => {
     const parent = canvas.parentElement
-    if (!parent) return
+    if (!parent) return false
     const w = parent.clientWidth
     const h = parent.clientHeight
-    if (w <= 0 || h <= 0) return
+    if (w <= 0 || h <= 0) return false
     const ratio = Math.min(
       window.devicePixelRatio || 1,
       2,
       Math.sqrt(MAX_PIXELS / (w * h))
     )
-    canvas.width = Math.max(1, Math.floor(w * ratio))
-    canvas.height = Math.max(1, Math.floor(h * ratio))
+    const width = Math.max(1, Math.floor(w * ratio))
+    const height = Math.max(1, Math.floor(h * ratio))
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
-    gl.viewport(0, 0, canvas.width, canvas.height)
     wake()
+    // Assigning a size clears the canvas, even the same size.
+    if (width === canvas.width && height === canvas.height) return false
+    canvas.width = width
+    canvas.height = height
+    gl.viewport(0, 0, canvas.width, canvas.height)
+    return true
   }
 
   let f0Key = ""
@@ -533,7 +539,21 @@ export function createShaderMetal(
     if (flowing || settling()) raf = requestAnimationFrame(tick)
   }
 
-  const ro = new ResizeObserver(resize)
+  /**
+   * Draws now: resizing cleared the canvas, and waiting for the next frame
+   * would show it blank for one.
+   */
+  const redraw = () => {
+    if (destroyed || lost) return
+    cancelAnimationFrame(raf)
+    raf = 0
+    last = performance.now()
+    tick(last)
+  }
+
+  const ro = new ResizeObserver(() => {
+    if (resize()) redraw()
+  })
   if (canvas.parentElement) ro.observe(canvas.parentElement)
   const io = new IntersectionObserver(([entry]) => {
     onScreen = entry?.isIntersecting ?? true

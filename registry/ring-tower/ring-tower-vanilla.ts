@@ -451,15 +451,23 @@ export function createRingTower(
   }
 
   const size = { width: 0, height: 0 }
+  const current = new Vector2()
+  /**
+   * Sizes the renderer to the root; true when the canvas changed. Setting
+   * the same size still clears the canvas, so it only sets a real change.
+   */
   const resize = () => {
     const { width, height } = root.getBoundingClientRect()
     size.width = width
     size.height = height
-    if (width <= 0 || height <= 0) return
+    if (width <= 0 || height <= 0) return false
+    renderer.getSize(current)
+    if (current.x === width && current.y === height) return false
     renderer.setSize(width, height)
     camera.aspect = width / height
     camera.updateProjectionMatrix()
     wake()
+    return true
   }
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -615,7 +623,11 @@ export function createRingTower(
   canvas.addEventListener("pointercancel", onUp)
   canvas.addEventListener("pointerleave", onLeave)
 
-  const ro = new ResizeObserver(resize)
+  // Resizing cleared the canvas; draw the current pose now, or it shows
+  // blank for a frame.
+  const ro = new ResizeObserver(() => {
+    if (resize() && !destroyed && !lost) renderer.render(scene, camera)
+  })
   ro.observe(root)
   const io = new IntersectionObserver(([entry]) => {
     onScreen = entry?.isIntersecting ?? true

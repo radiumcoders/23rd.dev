@@ -415,20 +415,23 @@ export function createLiveOrb(
   // When the pointer last moved, from performance.now().
   let pointerAt = -Infinity
 
+  /** Returns whether the backing size changed (which clears the canvas). */
   const resize = () => {
     const parent = canvas.parentElement
-    if (!parent) return
+    if (!parent) return false
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     const w = parent.clientWidth
     const h = parent.clientHeight
-    if (w <= 0 || h <= 0) return
-    canvas.width = Math.max(1, Math.floor(w * dpr))
-    canvas.height = Math.max(1, Math.floor(h * dpr))
+    if (w <= 0 || h <= 0) return false
+    const width = Math.max(1, Math.floor(w * dpr))
+    const height = Math.max(1, Math.floor(h * dpr))
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
+    if (width === canvas.width && height === canvas.height) return false
+    canvas.width = width
+    canvas.height = height
     gl.viewport(0, 0, canvas.width, canvas.height)
-    // Resizing clears the canvas, so a still frame needs a redraw.
-    wake()
+    return true
   }
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -440,6 +443,19 @@ export function createLiveOrb(
     if (raf || destroyed || lost) return
     last = performance.now()
     raf = requestAnimationFrame(tick)
+  }
+
+  /**
+   * Draws now: resizing cleared the canvas, and waiting for the next frame
+   * would show it blank for one. Zero dt, so time doesn't jump; the tick
+   * reschedules itself if it should keep running.
+   */
+  function redraw() {
+    if (destroyed || lost) return
+    cancelAnimationFrame(raf)
+    raf = 0
+    last = performance.now()
+    tick(last)
   }
 
   const onMove = (e: PointerEvent) => {
@@ -528,7 +544,9 @@ export function createLiveOrb(
     if (live && !destroyed) raf = requestAnimationFrame(tick)
   }
 
-  const ro = new ResizeObserver(resize)
+  const ro = new ResizeObserver(() => {
+    if (resize()) redraw()
+  })
   if (canvas.parentElement) ro.observe(canvas.parentElement)
   const io = new IntersectionObserver(([entry]) => {
     onScreen = entry?.isIntersecting ?? true

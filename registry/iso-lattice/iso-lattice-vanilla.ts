@@ -670,19 +670,28 @@ export function createIsoLattice(
   if (!initGl()) return null
 
   let pixel = 1
+  /**
+   * Sizes the canvas to its parent; true when the backing store changed.
+   * Assigning the same size still clears the canvas, so it only assigns on
+   * a real change.
+   */
   const resize = () => {
     const parent = canvas.parentElement
-    if (!parent) return
+    if (!parent) return false
     const w = parent.clientWidth
     const h = parent.clientHeight
-    if (w <= 0 || h <= 0) return
+    if (w <= 0 || h <= 0) return false
     pixel = Math.min(window.devicePixelRatio || 1, 2)
-    canvas.width = Math.max(1, Math.floor(w * pixel))
-    canvas.height = Math.max(1, Math.floor(h * pixel))
+    const width = Math.max(1, Math.floor(w * pixel))
+    const height = Math.max(1, Math.floor(h * pixel))
+    if (canvas.width === width && canvas.height === height) return false
+    canvas.width = width
+    canvas.height = height
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
     gl.viewport(0, 0, canvas.width, canvas.height)
     wake()
+    return true
   }
 
   let colorKey = ""
@@ -725,6 +734,15 @@ export function createIsoLattice(
     if (raf || destroyed || lost) return
     last = performance.now()
     raf = requestAnimationFrame(tick)
+  }
+
+  /** Draws in place now, without advancing; the tick carries on if live. */
+  function redraw() {
+    if (destroyed || lost) return
+    cancelAnimationFrame(raf)
+    raf = 0
+    last = performance.now()
+    tick(last)
   }
 
   const advance = (dt: number) => {
@@ -831,7 +849,10 @@ export function createIsoLattice(
   canvas.addEventListener("webglcontextlost", onLost)
   canvas.addEventListener("webglcontextrestored", onRestored)
 
-  const ro = new ResizeObserver(resize)
+  // Resizing cleared the canvas; draw now, or it shows blank for a frame.
+  const ro = new ResizeObserver(() => {
+    if (resize()) redraw()
+  })
   if (canvas.parentElement) ro.observe(canvas.parentElement)
   const io = new IntersectionObserver(([entry]) => {
     onScreen = entry?.isIntersecting ?? true

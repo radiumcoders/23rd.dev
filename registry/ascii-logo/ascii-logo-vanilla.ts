@@ -805,6 +805,9 @@ export function createAsciiLogo(
     if (root.clientWidth === lastW && root.clientHeight === lastH) return
     lastKey = ""
     void rebuild()
+    // Resizing cleared the canvas; draw now, or it shows blank for a frame
+    // until the next tick.
+    if (running) draw()
   })
   ro.observe(root)
 
