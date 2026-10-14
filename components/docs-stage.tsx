@@ -45,7 +45,7 @@ export function DocsStage({ children }: { children: ReactNode }) {
           ref={setControlsSlot}
           aria-label="Props"
           hidden={!hasControls}
-          className="overflow-hidden overscroll-contain rounded-[1.25rem] bg-sheet [--background:var(--sheet)] xl:w-80 xl:shrink-0 xl:overflow-y-auto 2xl:w-[22rem]"
+          className="overflow-hidden rounded-[1.25rem] bg-sheet [--background:var(--sheet)] xl:w-80 xl:shrink-0 xl:overflow-y-auto 2xl:w-[22rem]"
         />
       </div>
       {children}
