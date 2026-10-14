@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync, existsSync } from "node:fs"
-import { basename, dirname, join, relative } from "node:path"
+import { dirname, join, relative } from "node:path"
 import { fileURLToPath } from "node:url"
 
 export const ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..")
@@ -144,30 +144,6 @@ function stripVanillaBindings(wrapper) {
   return out.join(newline)
 }
 
-function withLangTs(attrs) {
-  if (/\blang\s*=/.test(attrs)) return attrs
-  return `${attrs} lang="ts"`
-}
-
-function standaloneSvelte(stripped, body) {
-  const moduleRe = /<script\b([^>]*\bmodule\b[^>]*)>/
-  const match = moduleRe.exec(stripped)
-  let out
-  if (match) {
-    const open = `<script${withLangTs(match[1])}>`
-    out =
-      stripped.slice(0, match.index) +
-      `${open}\n${body}\n` +
-      stripped.slice(match.index + match[0].length)
-  } else {
-    out = `<script module lang="ts">\n${body}\n</script>\n\n${stripped}`
-  }
-
-  return out.replace(/<script\b([^>]*)>/g, (_full, attrs) => {
-    return `<script${withLangTs(attrs)}>`
-  })
-}
-
 const IMPORT_LINE_RE =
   /^import\b[\s\S]*?["'][^"']+["']\s*;?[ \t]*(?:\r?\n|$)/
 
@@ -223,26 +199,14 @@ function standaloneReact(stripped, body) {
 }
 
 /**
- * Inline a vanilla engine into a framework wrapper so the published registry
+ * Inline a vanilla engine into a React wrapper so the published registry
  * item is a single standalone file (Canvas UI `makeStandalone`).
  *
  * @param {string} wrapper
  * @param {string} engine
- * @param {"react" | "svelte"} kind
  */
-export function makeStandalone(wrapper, engine, kind) {
-  const body = engine.trimEnd()
-  const stripped = stripVanillaBindings(wrapper)
-
-  if (kind === "svelte") {
-    return standaloneSvelte(stripped, body)
-  }
-
-  return standaloneReact(stripped, body)
-}
-
-function kindFromPath(filePath) {
-  return filePath.endsWith(".svelte") ? "svelte" : "react"
+export function makeStandalone(wrapper, engine) {
+  return standaloneReact(stripVanillaBindings(wrapper), engine.trimEnd())
 }
 
 /**
@@ -269,20 +233,5 @@ export function publishedFileContent(dir, filePath) {
     engine += `${engine ? "\n\n" : ""}${readFileSync(enginePath, "utf8")}`
   }
 
-  return normalizeEol(makeStandalone(wrapper, engine, kindFromPath(filePath)))
-}
-
-/** True when this registry item is the Svelte port of a React component. */
-export function isSvelteItem(item) {
-  return (
-    typeof item?.name === "string" &&
-    item.name.endsWith("-svelte") &&
-    Array.isArray(item.files) &&
-    item.files.some((file) => file.path?.endsWith(".svelte"))
-  )
-}
-
-/** Expected install target for a Svelte registry file. */
-export function svelteTarget(filePath) {
-  return `src/lib/components/ui/${basename(filePath)}`
+  return normalizeEol(makeStandalone(wrapper, engine))
 }

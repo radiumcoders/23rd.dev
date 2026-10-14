@@ -13,19 +13,6 @@
           "target": "components/ui/phosphor-score.tsx"
         }
       ]
-    },
-    {
-      "name": "phosphor-score-svelte",
-      "type": "registry:ui",
-      "title": "Phosphor Score",
-      "description": "Vertical sheet music on a CRT phosphor: notes fall, bloom at the playhead, then exit in a flare.",
-      "files": [
-        {
-          "path": "phosphor-score.svelte",
-          "type": "registry:file",
-          "target": "src/lib/components/ui/phosphor-score.svelte"
-        }
-      ]
     }
   ]
 }

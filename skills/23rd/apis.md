@@ -1,13 +1,6 @@
 # Public APIs
 
-Types below are what the React modules export. Svelte components take the same fields with these renames:
-
-| React | Svelte |
-| --- | --- |
-| `className` | `class` |
-| `children?: ReactNode` | `children?: Snippet` |
-| `scrollRef?: RefObject<HTMLElement \| null>` | `scrollEl?: HTMLElement` |
-| `containerRef?: RefObject<HTMLElement \| null>` | `container?: HTMLElement` |
+Types below are what the React modules export.
 
 Vanilla `onThemeChange` and `onHasGl` are not React props. The wrappers subscribe internally. `Dithered404` vanilla `onHideCursor` is also internal to the wrapper.
 
@@ -389,6 +382,36 @@ type Dithered404Props = {
 
 `LIGHT_COLOR` `#18181B`, `DARK_COLOR` `#E4E4E7`. `dither={false}` is soft fire on the same glyph. No `text` prop. Wrapper does not expose `onHideCursor`.
 
+## dither-scan
+
+```ts
+type DitherScanProps = {
+  src: string
+  alt?: string
+  passes?: number // 4, clamped 1–12
+  duration?: number // 1400 ms per pass
+  pause?: number // 280 ms between passes
+  angle?: number // 45, degrees the line travels (0 = left to right)
+  alternate?: boolean // true, odd passes run back
+  pixelSize?: number // 6 CSS px, first-pass cell
+  blur?: number // 6 CSS px trailing the line, 0 off
+  colors?: readonly [shadow: string, highlight: string] // hex
+  lineColor?: string // default inverts what is under the line
+  fit?: "cover" | "contain" // "cover"
+  autoPlay?: boolean // true, starts when 35% in view
+  loop?: boolean // false
+  loopDelay?: number // 2400 ms on the clean image
+  theme?: "light" | "dark" | "auto"
+  replayKey?: number // increment to re-dither and scan
+  onStart?: () => void
+  onPass?: (pass: number, passes: number) => void
+  onComplete?: () => void
+  className?: string
+}
+```
+
+`LIGHT_COLORS` `["#18181B", "#F4F4F5"]`, `DARK_COLORS` `["#09090B", "#D4D4D8"]`. Also exports `levelSpec(level, passes, pixelSize)`. Vanilla `onLoad` and `onScanningChange` are internal to the wrapper, which sets `data-scanning` and `aria-busy` while sweeping.
+
 ## folio
 
 ```ts
@@ -415,7 +438,7 @@ type FolioPlayDetail = {
 }
 ```
 
-React exports `playFolioDemo`, `FOLIO_PLAY` (`"folio:play"`), `applyFolioFrame`. The Svelte component listens for that window event. Reduced motion: no tilt, no blur.
+React exports `playFolioDemo`, `FOLIO_PLAY` (`"folio:play"`), `applyFolioFrame`. Reduced motion: no tilt, no blur.
 
 ## typewriter
 

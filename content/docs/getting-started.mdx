@@ -3,7 +3,7 @@ title: Getting Started
 description: Install 23rd components into a shadcn project with the CLI.
 ---
 
-23rd is a [shadcn/ui](https://ui.shadcn.com) registry for React and Svelte 5. Pick your framework on the install command.
+23rd is a [shadcn/ui](https://ui.shadcn.com) registry of React components.
 
 ## Install a component
 
@@ -13,14 +13,12 @@ Or from the public GitHub registry:
 
 <CliCommand item="shader-gradient" github />
 
-Swap `shader-gradient` for any item name. Svelte items are `@23rd/<name>-svelte` and land in `src/lib/components/ui/`.
+Swap `shader-gradient` for any item name.
 
 ## Use a background or shader
 
 Put it in a relatively positioned container, with your content in a later stacking context.
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -35,30 +33,17 @@ export function Hero() {
   )
 }
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import ShaderGradient from "$lib/components/ui/shader-gradient.svelte"
-</script>
-
-<section class="relative isolate min-h-svh overflow-hidden bg-background">
-  <ShaderGradient />
-  <div class="relative z-10 p-10">Your content</div>
-</section>
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 ## Browse
 
-| Category    | Components                                                                                                                                                                                                                      |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Background  | [Logo Burst](/docs/components/logo-burst), [Radiant Lines](/docs/components/radiant-lines), [ASCII Fluid](/docs/components/ascii-fluid), [Ring Tower](/docs/components/ring-tower), [Iso Lattice](/docs/components/iso-lattice) |
-| Shaders     | [Shader Gradient](/docs/components/shader-gradient), [Shader Anime Fire](/docs/components/shader-anime-fire), [Shader Sky](/docs/components/shader-sky), [Shader Metal](/docs/components/shader-metal)                          |
-| Footers     | [Stretchy Footer](/docs/components/stretchy-footer)                                                                                                                                                                             |
-| Characters  | [Live Orb](/docs/components/live-orb), [ASCII Logo](/docs/components/ascii-logo)                                                                                                                                                |
-| Pages       | [Dithered 404](/docs/components/dithered-404)                                                                                                                                                                                   |
-| Sections    | [Folio](/docs/components/folio)                                                                                                                                                                                                 |
-| Components  | [Gooey Color Picker](/docs/components/gooey-color-picker)                                                                                                                                                                       |
-| Experiments | [Phosphor Score](/docs/components/phosphor-score), [Typewriter](/docs/components/typewriter)                                                                                                                                    |
+| Category      | Components                                                                                                                                                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AI Components | [Dither Scan](/docs/components/dither-scan)                                                                                                                                                                                     |
+| Background    | [Logo Burst](/docs/components/logo-burst), [Radiant Lines](/docs/components/radiant-lines), [ASCII Fluid](/docs/components/ascii-fluid), [Ring Tower](/docs/components/ring-tower), [Iso Lattice](/docs/components/iso-lattice) |
+| Shaders       | [Shader Gradient](/docs/components/shader-gradient), [Shader Anime Fire](/docs/components/shader-anime-fire), [Shader Sky](/docs/components/shader-sky), [Shader Metal](/docs/components/shader-metal)                          |
+| Footers       | [Stretchy Footer](/docs/components/stretchy-footer)                                                                                                                                                                             |
+| Characters    | [Live Orb](/docs/components/live-orb), [ASCII Logo](/docs/components/ascii-logo)                                                                                                                                                |
+| Pages         | [Dithered 404](/docs/components/dithered-404)                                                                                                                                                                                   |
+| Sections      | [Folio](/docs/components/folio)                                                                                                                                                                                                 |
+| Components    | [Gooey Color Picker](/docs/components/gooey-color-picker)                                                                                                                                                                       |
+| Experiments   | [Phosphor Score](/docs/components/phosphor-score), [Typewriter](/docs/components/typewriter)                                                                                                                                    |

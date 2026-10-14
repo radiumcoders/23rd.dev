@@ -1,8 +1,8 @@
 ---
 name: 23rd
 description: >
-  Install, choose, and compose 23rd shadcn/ui registry components for React and
-  Svelte 5. Use when the user wants a UI component, background, shader, WebGL
+  Install, choose, and compose 23rd shadcn/ui registry components for React.
+  Use when the user wants a UI component, background, shader, WebGL
   wash, liquid metal or chrome, hero atmosphere, footer, 404, color picker, typewriter text, keyboard shortcut recorder, ASCII effect,
   starfield, orb, or page-tilt from the 23rd registry (@23rd, 23rd.dev, radiumcoders/23rd.dev),
   or when adding a new component to this registry. Covers install commands,
@@ -14,7 +14,7 @@ metadata:
 
 # 23rd
 
-23rd is a shadcn registry of opinionated components. Install with the shadcn CLI, then own the source. Every published item has a React build and a Svelte 5 build. This skill is the playbook. Open the linked files before inventing props.
+23rd is a shadcn registry of opinionated components. Install with the shadcn CLI, then own the source. Every published item is a single React client component. This skill is the playbook. Open the linked files before inventing props.
 
 This folder is checked in twice and the copies must stay identical. `skills/23rd/` is the path the skills CLI and [skills.sh](https://skills.sh) discover. `.cursor/skills/23rd/` is what Cursor loads as `/23rd` in this repo.
 
@@ -29,11 +29,9 @@ Do not invent props, CSS variables, or variants. If a prop is not in [apis.md](a
 
 ## Install
 
-The consumer project must already be a shadcn project. React files import `cn` from `@/lib/utils` and land in `components/ui/`. Svelte files inline their own `cn`, use `class` (not `className`), and land in `src/lib/components/ui/`. React components are `"use client"`.
+The consumer project must already be a shadcn project. React files import `cn` from `@/lib/utils` and land in `components/ui/`. React components are `"use client"`.
 
 Replace `<name>` with the kebab-case item (`shader-gradient`, `gooey-color-picker`, …).
-
-React:
 
 ```bash
 pnpm dlx shadcn@latest add @23rd/<name>
@@ -42,20 +40,10 @@ yarn dlx shadcn@latest add @23rd/<name>
 bunx --bun shadcn@latest add @23rd/<name>
 ```
 
-Svelte 5 (item suffix `-svelte`):
-
-```bash
-pnpm dlx shadcn@latest add @23rd/<name>-svelte
-npx shadcn@latest add @23rd/<name>-svelte
-yarn dlx shadcn@latest add @23rd/<name>-svelte
-bunx --bun shadcn@latest add @23rd/<name>-svelte
-```
-
 GitHub source, if `@23rd` is not configured:
 
 ```bash
 pnpm dlx shadcn@latest add radiumcoders/23rd.dev/<name>
-pnpm dlx shadcn@latest add radiumcoders/23rd.dev/<name>-svelte
 ```
 
 Imports after install:
@@ -64,20 +52,14 @@ Imports after install:
 import { ShaderGradient } from "@/components/ui/shader-gradient"
 ```
 
-```svelte
-<script>
-  import ShaderGradient from "$lib/components/ui/shader-gradient.svelte"
-</script>
-```
-
 npm dependencies the registry declares:
 
-| Item | React | Svelte |
-| --- | --- | --- |
-| `gooey-color-picker` | `motion` | none |
-| `ring-tower` | `three` | `three` |
-| `mech-keyboard` | `three` | `three` |
-| every other item | none | none |
+| Item | Dependencies |
+| --- | --- |
+| `gooey-color-picker` | `motion` |
+| `ring-tower` | `three` |
+| `mech-keyboard` | `three` |
+| every other item | none |
 
 Published index: `https://23rd.dev/r/registry.json`. Docs: `https://23rd.dev/docs`.
 
@@ -90,6 +72,7 @@ flowchart TD
   pick -->|Pick or edit a color| gooey[gooey-color-picker]
   pick -->|Atmosphere behind a hero| atmo{Mood}
   pick -->|Footer or page-end| foot{Treatment}
+  pick -->|Reveal an image from a dither| ds[dither-scan]
   pick -->|Full page 404| d404[dithered-404]
   pick -->|Scroll makes the page lean| folio[folio]
   pick -->|Character or wordmark| mark{Which}
@@ -118,6 +101,7 @@ Disambiguation that agents get wrong:
 | Soft gradient behind a headline | `shader-gradient` | `gooey-color-picker` |
 | Fire, heat under a hero | `shader-anime-fire` | `dithered-404` unless the page is a 404 |
 | 404 that burns under the cursor | `dithered-404` | `shader-anime-fire` |
+| Image that un-dithers, scan line, enhance or processing reveal | `dither-scan` | `dithered-404` (a 404 glyph, not your image) |
 | Overscroll rubber band, aurora at the bottom | `stretchy-footer` | `folio` |
 | Page leans while scrolling | `folio` | `stretchy-footer` (that one stretches, it does not tilt) |
 | Stars that speed up when you scroll | `radiant-lines` | `logo-burst` |
@@ -148,7 +132,7 @@ Same shell for `ShaderAnimeFire`, `ShaderFire`, `ShaderSky`, `AsciiFluid`, `Logo
 
 `ShaderMetal` uses the same shell but is transparent: the ribbons and their shadows sit on the parent's background, so set one (`bg-background`). The ribbons cross the middle; put copy top-left.
 
-`RadiantLines` is transparent and warps with scroll. Inside an overflow div, pass the scroller (`containerRef` in React, `container` in Svelte) and make the canvas `sticky top-0 h-svh`. Omit the scroller to use the window.
+`RadiantLines` is transparent and warps with scroll. Inside an overflow div, pass the scroller (`containerRef`) and make the canvas `sticky top-0 h-svh`. Omit the scroller to use the window.
 
 `Folio` and `StretchyFooter` are the scroller by default. Put the page in `children`. For a real document, set `windowScroll` and mark the tilting or lifting element (`data-folio-page` or `data-stretchy-page`).
 
@@ -180,26 +164,27 @@ Exceptions:
 
 Categories match `content/docs/components/meta.json`.
 
-| Name | Category | One line | Frameworks |
-| --- | --- | --- | --- |
-| `logo-burst` | Background | Hair-line tentacles explode from center, then breathe | React + Svelte |
-| `phosphor-score` | Background | Vertical CRT score; notes fall, bloom, flare | React + Svelte |
-| `radiant-lines` | Background | Hyperspace streaks; warp follows scroll | React + Svelte |
-| `ascii-fluid` | Background | Pointer trails quantized to an ASCII brightness ramp | React + Svelte |
-| `iso-lattice` | Background | Isometric tiles build solid figures from the floor up | React + Svelte |
-| `ring-tower` | Background | three.js tower of tilted image bands; drag to spin, neighbors counter-turn | React + Svelte |
-| `shader-gradient` | Shaders | Quiet WebGL wash behind heroes and empty states | React + Svelte |
-| `shader-anime-fire` | Shaders | Cel-shaded flames licking up from the bottom | React + Svelte |
-| `shader-sky` | Shaders | Clear sky or rain; optional dotted window glass | React + Svelte |
-| `shader-metal` | Shaders | Chrome, gold, copper, or graphite ribbons; pointer key light | React + Svelte |
-| `stretchy-footer` | Footers | Dia-style rubber overscroll with an aurora floor | React + Svelte |
-| `live-orb` | Characters | Lit sphere; eyes follow the pointer | React + Svelte |
-| `ascii-logo` | Characters | ASCII wordmark: hover shove, click scatter / fall / gather | React + Svelte |
-| `dithered-404` | Pages | Bayer 404 burned by a fireball cursor, then reforms | React + Svelte |
-| `folio` | Sections | Page leans on scroll, then springs flat | React + Svelte |
-| `gooey-color-picker` | Components | Swatch opens into hue, alpha, and hex under an SVG goo filter | React + Svelte |
-| `typewriter` | Components | A real typewriter in SVG: keys press, typebars strike, the carriage steps | React + Svelte |
-| `mech-keyboard` | Components | Isometric 75% keyboard illustration; presses with yours and records shortcuts | React + Svelte |
+| Name | Category | One line |
+| --- | --- | --- |
+| `dither-scan` | AI Components | 1-bit dithered image a diagonal scan line clears in N passes |
+| `logo-burst` | Background | Hair-line tentacles explode from center, then breathe |
+| `phosphor-score` | Background | Vertical CRT score; notes fall, bloom, flare |
+| `radiant-lines` | Background | Hyperspace streaks; warp follows scroll |
+| `ascii-fluid` | Background | Pointer trails quantized to an ASCII brightness ramp |
+| `iso-lattice` | Background | Isometric tiles build solid figures from the floor up |
+| `ring-tower` | Background | three.js tower of tilted image bands; drag to spin, neighbors counter-turn |
+| `shader-gradient` | Shaders | Quiet WebGL wash behind heroes and empty states |
+| `shader-anime-fire` | Shaders | Cel-shaded flames licking up from the bottom |
+| `shader-sky` | Shaders | Clear sky or rain; optional dotted window glass |
+| `shader-metal` | Shaders | Chrome, gold, copper, or graphite ribbons; pointer key light |
+| `stretchy-footer` | Footers | Dia-style rubber overscroll with an aurora floor |
+| `live-orb` | Characters | Lit sphere; eyes follow the pointer |
+| `ascii-logo` | Characters | ASCII wordmark: hover shove, click scatter / fall / gather |
+| `dithered-404` | Pages | Bayer 404 burned by a fireball cursor, then reforms |
+| `folio` | Sections | Page leans on scroll, then springs flat |
+| `gooey-color-picker` | Components | Swatch opens into hue, alpha, and hex under an SVG goo filter |
+| `typewriter` | Components | A real typewriter in SVG: keys press, typebars strike, the carriage steps |
+| `mech-keyboard` | Components | Isometric 75% keyboard illustration; presses with yours and records shortcuts |
 
 ## Minimal installs that must be right
 
@@ -249,8 +234,8 @@ export function Accent() {
 }
 ```
 
-Svelte equivalents use `class`, default imports, and `@23rd/<name>-svelte`. Full prop tables are in [apis.md](apis.md). More assemblies are in [recipes.md](recipes.md).
+Full prop tables are in [apis.md](apis.md). More assemblies are in [recipes.md](recipes.md).
 
 ## Adding a component
 
-Only when the task is to add one to this repository. Follow [conventions.md](conventions.md). Short version: `registry/<name>/` with vanilla engine plus React and Svelte wrappers and a two-item `registry.json`, a doc at `content/docs/components/<name>.mdx`, a row in `content/docs/components/meta.json`, then `pnpm registry:build` and `pnpm test`.
+Only when the task is to add one to this repository. Follow [conventions.md](conventions.md). Short version: `registry/<name>/` with a vanilla engine, a React wrapper, and a `registry.json`, a doc at `content/docs/components/<name>.mdx`, a row in `content/docs/components/meta.json`, then `pnpm registry:build` and `pnpm test`.

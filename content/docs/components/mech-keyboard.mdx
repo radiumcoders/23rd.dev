@@ -21,8 +21,6 @@ Or from the public GitHub registry:
 
 Give the parent a size; the keyboard fits itself inside it.
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -38,21 +36,6 @@ export function ShortcutStep() {
   )
 }
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import MechKeyboard from "$lib/components/ui/mech-keyboard.svelte"
-</script>
-
-<div class="h-[28rem] w-full overflow-hidden rounded-xl border bg-background">
-  <MechKeyboard
-    onShortcut={(shortcut) => console.log(shortcut.label)}
-  />
-</div>
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 `onShortcut` fires when every key of a chord is released. It gets `codes` (`KeyboardEvent.code`s, modifiers first), `keys` (one legend per key), and `label` (`"⌘⇧K"` on Mac, `"Ctrl+Shift+K"` elsewhere).
 
@@ -60,22 +43,11 @@ Keys listen on the window, but typing in an input, textarea, or contenteditable 
 
 Needs WebGL; without it the canvas stays empty and the recorder still works. The pose is fixed at true isometric. Move it, drop the color, or pulse the keys you want pressed:
 
-<FrameworkCode>
-  <FrameworkReact>
-    ```tsx
-    <MechKeyboard x={-40} y={20} scale={0.9} />
-    <MechKeyboard monochrome />
-    <MechKeyboard highlight={["MetaLeft", "KeyK"]} recorder={false} />
-    ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-    ```svelte
-    <MechKeyboard x={-40} y={20} scale={0.9} />
-    <MechKeyboard monochrome />
-    <MechKeyboard highlight={["MetaLeft", "KeyK"]} recorder={false} />
-    ```
-  </FrameworkSvelte>
-</FrameworkCode>
+```tsx
+<MechKeyboard x={-40} y={20} scale={0.9} />
+<MechKeyboard monochrome />
+<MechKeyboard highlight={["MetaLeft", "KeyK"]} recorder={false} />
+```
 
 `monochrome` swaps the blue caps for white and grey, leaving a pure ink drawing. The recorder draws each key of the chord as a small keycap in the same style; held keys sink into their skirts. The knob turns under the mouse wheel and with the volume keys, and clicking it records Mute.
 
@@ -96,5 +68,4 @@ Needs WebGL; without it the canvas stays empty and the recorder still works. The
 | `intro`       | `boolean`                             | `true`                     |
 | `onKey`       | `(code: string, pressed: boolean) => void` | none                  |
 | `onShortcut`  | `(shortcut: MechKeyboardShortcut) => void` | none                  |
-| `className`   | `string`                              | React only                 |
-| `class`       | `string`                              | Svelte only                |
+| `className`   | `string`                              | none                       |

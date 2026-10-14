@@ -1655,7 +1655,7 @@ void main() {
 }
 `
 
-/** Tailwind for the recorder, shared by the React and Svelte wrappers. */
+/** Tailwind for the recorder. */
 export const CLASSES = {
   root: "relative size-full touch-manipulation overflow-hidden outline-none select-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset",
   stage: "absolute inset-0 opacity-0",

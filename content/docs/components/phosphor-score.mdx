@@ -19,8 +19,6 @@ Or from the public GitHub registry:
 
 Give the parent a size; the transparent canvas fills it.
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -34,53 +32,20 @@ export function HeroScore() {
   )
 }
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import PhosphorScore from "$lib/components/ui/phosphor-score.svelte"
-</script>
-
-<div class="relative h-svh w-full bg-background">
-  <PhosphorScore />
-</div>
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 Lock a theme or set the glow:
 
-<FrameworkCode>
-  <FrameworkReact>
-    ```tsx
-    <PhosphorScore theme="light" glow={50} />
-    <PhosphorScore theme="dark" color="#4DFF6A" glow={50} />
-    ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-    ```svelte
-    <PhosphorScore theme="light" glow={50} />
-    <PhosphorScore theme="dark" color="#4DFF6A" glow={50} />
-    ```
-  </FrameworkSvelte>
-</FrameworkCode>
+```tsx
+<PhosphorScore theme="light" glow={50} />
+<PhosphorScore theme="dark" color="#4DFF6A" glow={50} />
+```
 
 Tilt the plane in perspective, like CSS rotations:
 
-<FrameworkCode>
-  <FrameworkReact>
-    ```tsx
-    <PhosphorScore rotateX={50} />
-    <PhosphorScore rotateX={35} rotateY={-20} rotateZ={8} />
-    ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-    ```svelte
-    <PhosphorScore rotateX={50} />
-    <PhosphorScore rotateX={35} rotateY={-20} rotateZ={8} />
-    ```
-  </FrameworkSvelte>
-</FrameworkCode>
+```tsx
+<PhosphorScore rotateX={50} />
+<PhosphorScore rotateX={35} rotateY={-20} rotateZ={8} />
+```
 
 ## Props
 
@@ -96,5 +61,4 @@ Tilt the plane in perspective, like CSS rotations:
 | `rotateY`   | `number`                      | `0`, degrees, `-70`–`70` |
 | `rotateZ`   | `number`                      | `0`, degrees |
 | `theme`     | `"light" \| "dark" \| "auto"` | `"auto"`                                         |
-| `className` | `string`                      | React only                                       |
-| `class`     | `string`                      | Svelte only                                      |
+| `className` | `string`                      | none                                             |

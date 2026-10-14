@@ -19,8 +19,6 @@ Or from the public GitHub registry:
 
 Use it as the scroll viewport, with your page and footer as children.
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -39,29 +37,9 @@ export function Page() {
   )
 }
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import StretchyFooter from "$lib/components/ui/stretchy-footer.svelte"
-</script>
-
-<StretchyFooter class="h-svh bg-background">
-  <main class="min-h-[120%] px-8 py-24 text-foreground">
-    <!-- page content -->
-  </main>
-  <footer class="px-8 pb-10 text-center text-muted-foreground">
-    23rd · opinionated UI for shippers
-  </footer>
-</StretchyFooter>
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 For window scroll, pass `windowScroll` and mark the page root with `data-stretchy-page`:
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -76,26 +54,13 @@ export function DocsChrome() {
   )
 }
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import StretchyFooter from "$lib/components/ui/stretchy-footer.svelte"
-</script>
-
-<div data-stretchy-page><!-- page content --></div>
-<StretchyFooter windowScroll />
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 ## Props
 
 | Prop              | Type                             | Default                                           |
 | ----------------- | -------------------------------- | ------------------------------------------------- |
-| `children`        | `ReactNode` / snippet            | none                                                 |
-| `scrollRef`       | `RefObject<HTMLElement \| null>` | React: self as scroller                          |
-| `scrollEl`        | `HTMLElement`                    | Svelte: self as scroller                         |
+| `children`        | `ReactNode`                      | none                                                 |
+| `scrollRef`       | `RefObject<HTMLElement \| null>` | self as scroller                          |
 | `windowScroll`    | `boolean`                        | `false`                                           |
 | `contentSelector` | `string`                         | `[data-stretchy-page]`                            |
 | `maxStretch`      | `number`                         | `280`                                             |
@@ -109,5 +74,4 @@ export function DocsChrome() {
 | `rotate`          | `0 \| 180`                       | `0`, `180` hangs it from the page |
 | `label`           | `string`                         | `Stretchy overflow` |
 | `demoId`          | `string`                         | pairs with `playStretchyFooterDemo({ target })` |
-| `className`       | `string`                         | React only                                        |
-| `class`           | `string`                         | Svelte only                                       |
+| `className`       | `string`                         | none                                              |

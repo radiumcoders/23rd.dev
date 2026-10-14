@@ -6,16 +6,13 @@ import { join } from "node:path"
 import {
   ROOT,
   discoverIncludes,
-  isSvelteItem,
   readJson,
 } from "../scripts/registry-lib.mjs"
 
 // A component is listed by hand in several places besides registry/. These
 // checks keep them in step, so a new component can't ship missing from one.
 const names = discoverIncludes().flatMap((include) =>
-  (readJson(join(ROOT, include)).items ?? [])
-    .filter((item) => !isSvelteItem(item))
-    .map((item) => item.name)
+  (readJson(join(ROOT, include)).items ?? []).map((item) => item.name)
 )
 
 const read = (path) => readFileSync(join(ROOT, path), "utf8")

@@ -1,0 +1,97 @@
+---
+title: Dither Scan
+description: An image that starts as a 1-bit dither and comes clean over a set number of diagonal scan passes.
+---
+
+import { DitherScanDemo } from "@/components/demos"
+
+<DitherScanDemo />
+
+## Installation
+
+<CliCommand item="dither-scan" />
+
+Or from the public GitHub registry:
+
+<CliCommand item="dither-scan" github />
+
+## Usage
+
+The frame takes the image's aspect ratio and the full width of its parent. Size it with `className`.
+
+```tsx
+"use client"
+
+import { DitherScan } from "@/components/ui/dither-scan"
+
+export function Cover() {
+  return (
+    <DitherScan
+      src="/cover.jpg"
+      alt="The studio at dusk"
+      passes={5}
+      className="mx-auto max-w-2xl rounded-xl"
+    />
+  )
+}
+```
+
+Each pass shrinks the dither cells and adds tones and color, so more passes make a slower, finer reveal. With `alternate`, every other sweep runs back the way it came, like a scanner head. A short blur follows the line while each pass settles; set `blur={0}` to turn it off.
+
+Start it yourself instead of on scroll:
+
+```tsx
+"use client"
+
+import { useState } from "react"
+
+import { DitherScan } from "@/components/ui/dither-scan"
+
+export function Scan() {
+  const [key, setKey] = useState(0)
+
+  return (
+    <div className="flex flex-col items-center gap-4">
+      <DitherScan
+        src="/scan.jpg"
+        autoPlay={false}
+        replayKey={key}
+        onComplete={() => console.log("clean")}
+      />
+      <button type="button" onClick={() => setKey((n) => n + 1)}>
+        Scan
+      </button>
+    </div>
+  )
+}
+```
+
+Remote images must send CORS headers, because the dither reads their pixels. An image that can't be read is shown as is, without the scan.
+
+## Props
+
+| Prop         | Type                                     | Default                    |
+| ------------ | ---------------------------------------- | -------------------------- |
+| `src`        | `string`                                 | required                   |
+| `alt`        | `string`                                 | `""`                       |
+| `passes`     | `number`                                 | `4`, 1–12                  |
+| `duration`   | `number`                                 | `1400`, ms per pass        |
+| `pause`      | `number`                                 | `280`, ms between passes   |
+| `angle`      | `number`                                 | `45`, degrees of travel    |
+| `alternate`  | `boolean`                                | `true`                     |
+| `pixelSize`  | `number`                                 | `6`, first-pass cell in px |
+| `blur`       | `number`                                 | `6`, px, `0` is off        |
+| `colors`     | `[shadow: string, highlight: string]`    | theme ink and paper        |
+| `lineColor`  | `string`                                 | inverts what's under it    |
+| `fit`        | `"cover" \| "contain"`                   | `"cover"`                  |
+| `autoPlay`   | `boolean`                                | `true`, when in view       |
+| `loop`       | `boolean`                                | `false`                    |
+| `loopDelay`  | `number`                                 | `2400`, ms on clean image  |
+| `replayKey`  | `number`                                 | `0`                        |
+| `theme`      | `"light" \| "dark" \| "auto"`            | `"auto"`                   |
+| `onStart`    | `() => void`                             | none                       |
+| `onPass`     | `(pass: number, passes: number) => void` | none                       |
+| `onComplete` | `() => void`                             | none                       |
+| `className`  | `string`                                 | none                       |
+
+With reduced motion the image is shown clean, without sweeps.

@@ -21,8 +21,6 @@ Or from the public GitHub registry:
 
 Give the parent a size; the machine scales to fit.
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -36,36 +34,13 @@ export function Letter() {
   )
 }
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import Typewriter from "$lib/components/ui/typewriter.svelte"
-</script>
-
-<div class="h-96 w-full overflow-hidden rounded-xl border">
-  <Typewriter text={"Dear reader,\nthe ribbon is fresh."} />
-</div>
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 `\n` breaks a line; text wraps at `columns` characters.
 
-<FrameworkCode>
-  <FrameworkReact>
-    ```tsx
-    <Typewriter loop={false} onDone={() => console.log("typed")} />
-    <Typewriter color="#D2463A" speed={8} columns={40} sound />
-    ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-    ```svelte
-    <Typewriter loop={false} onDone={() => console.log("typed")} />
-    <Typewriter color="#D2463A" speed={8} columns={40} sound />
-    ```
-  </FrameworkSvelte>
-</FrameworkCode>
+```tsx
+<Typewriter loop={false} onDone={() => console.log("typed")} />
+<Typewriter color="#D2463A" speed={8} columns={40} sound />
+```
 
 `sound` only plays after the visitor has clicked or pressed a key on the page.
 
@@ -86,5 +61,4 @@ export function Letter() {
 | `interactive` | `boolean`   | `true` |
 | `label`      | `string`     | none, nameplate text |
 | `onDone`     | `() => void` | fires when the last character lands |
-| `className`  | `string`     | React only                                          |
-| `class`      | `string`     | Svelte only                                         |
+| `className`  | `string`     | none                                                |

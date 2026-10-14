@@ -19,8 +19,6 @@ Or from the public GitHub registry:
 
 Use it as the scroll viewport; children are the page.
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -41,31 +39,9 @@ export function Page() {
   )
 }
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import Folio from "$lib/components/ui/folio.svelte"
-</script>
-
-<Folio class="h-svh bg-background">
-  <main class="px-10 py-24 text-foreground">
-    <h1 class="text-5xl font-medium tracking-tight">
-      The page leans back
-    </h1>
-    <p class="mt-6 max-w-md text-sm leading-relaxed text-foreground/70">
-      Put the site in children. Folio is the scroller.
-    </p>
-  </main>
-</Folio>
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 For window scroll, pass `windowScroll` and mark the page root with `data-folio-page`:
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -80,24 +56,12 @@ export function App() {
   )
 }
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import Folio from "$lib/components/ui/folio.svelte"
-</script>
-
-<div data-folio-page><!-- page content --></div>
-<Folio windowScroll />
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 ## Props
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `children` | `ReactNode` / snippet | none |
+| `children` | `ReactNode`           | none |
 | `blur` | `number` | `4`, peak edge blur |
 | `perspective` | `number` | `1000`, floor `1000` |
 | `returnMs` | `number` | `520`, return time after the bottom |
@@ -105,5 +69,4 @@ export function App() {
 | `contentSelector` | `string` | `[data-folio-page]` |
 | `label` | `string` | `Tilting page` |
 | `demoId` | `string` | pairs with `playFolioDemo({ target })` |
-| `className` | `string` | React only |
-| `class` | `string` | Svelte only |
+| `className` | `string` | none       |

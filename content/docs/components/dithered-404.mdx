@@ -19,8 +19,6 @@ Or from the public GitHub registry:
 
 Pin it inside a relatively positioned section.
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -39,56 +37,19 @@ export function NotFound() {
   )
 }
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import Dithered404 from "$lib/components/ui/dithered-404.svelte"
-</script>
-
-<section class="relative isolate min-h-svh overflow-hidden bg-background">
-  <Dithered404 color="#E8B45A" />
-  <div class="relative z-10 flex min-h-svh flex-col items-center justify-end px-6 pb-16 text-center">
-    <p class="text-sm text-muted-foreground">
-      This page could not be found.
-    </p>
-  </div>
-</section>
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 Lock the theme:
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 <Dithered404 theme="light" />
 <Dithered404 theme="dark" />
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<Dithered404 theme="light" />
-<Dithered404 theme="dark" />
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 Soft fire instead of Bayer pixels:
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 <Dithered404 dither={false} />
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<Dithered404 dither={false} />
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 ## Props
 
@@ -100,5 +61,4 @@ Soft fire instead of Bayer pixels:
 | `interactive` | `boolean`                     | `true`      |
 | `dither`      | `boolean`                     | `true`      |
 | `theme`       | `"light" \| "dark" \| "auto"` | `auto`      |
-| `className`   | `string`                      | React only  |
-| `class`       | `string`                      | Svelte only |
+| `className`   | `string`                      | none        |

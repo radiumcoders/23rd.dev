@@ -19,8 +19,6 @@ Or from the public GitHub registry:
 
 Place it behind content in a relatively positioned container.
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -35,20 +33,6 @@ export function Hero() {
   )
 }
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import AsciiFluid from "$lib/components/ui/ascii-fluid.svelte"
-</script>
-
-<div class="relative h-svh overflow-hidden bg-background">
-  <AsciiFluid />
-  <div class="relative z-10 p-10">Your content</div>
-</div>
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 ## Props
 
@@ -64,5 +48,4 @@ export function Hero() {
 | `animate` | `boolean` | `true` |
 | `interactive` | `boolean` | `true` |
 | `theme` | `"light" \| "dark" \| "auto"` | `auto` |
-| `className` | `string` | React only |
-| `class` | `string` | Svelte only |
+| `className` | `string` | none       |

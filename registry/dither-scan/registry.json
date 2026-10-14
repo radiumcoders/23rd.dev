@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "items": [
+    {
+      "name": "dither-scan",
+      "type": "registry:ui",
+      "title": "Dither Scan",
+      "description": "An image that starts as a 1-bit ordered dither. A diagonal scan line sweeps it a set number of times, and each pass sharpens the cells and brings back tone and color until the source is clean.",
+      "files": [
+        {
+          "path": "dither-scan.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/dither-scan.tsx"
+        }
+      ]
+    }
+  ]
+}

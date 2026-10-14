@@ -1,6 +1,8 @@
 {
   "title": "Components",
   "pages": [
+    "---AI Components---",
+    "dither-scan",
     "---Background---",
     "logo-burst",
     "radiant-lines",

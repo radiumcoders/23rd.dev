@@ -132,7 +132,6 @@ export async function generateMetadata(props: {
         page.data.title,
         "shadcn component",
         "React component",
-        "Svelte component",
       ]
     : [page.data.title]
 
