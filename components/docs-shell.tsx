@@ -1,9 +1,15 @@
 "use client"
 
-import type { CSSProperties, ReactNode } from "react"
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react"
 import Link from "next/link"
 import { RiHeartFill } from "@remixicon/react"
-import { motion } from "motion/react"
+import { motion, useReducedMotion } from "motion/react"
 
 import { DocsSidebar } from "@/components/docs-sidebar"
 import { DocsSidebarTrigger } from "@/components/docs-sidebar-trigger"
@@ -112,59 +118,124 @@ function SidebarBody({
   )
 }
 
+/** The sidebar's width in px; `w-60`. */
+const SIDEBAR_WIDTH = 240
+const SLIDE = {
+  duration: 320,
+  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+}
+
+type Phase = "open" | "closing" | "closed" | "opening"
+
 /**
- * From `md` up the page tree sits at the left. Its toggle (or Ctrl+B)
- * folds it into a slim rail that keeps only the toggle, in the same spot,
- * so a component's stage can take the width.
+ * From `md` up the page tree sits at the left, and its toggle (or Ctrl+B)
+ * folds it away entirely, leaving a floating button over the corner of
+ * the page so a component's stage can take the full width.
+ *
+ * Folding never eases the width: that would resize the live preview on
+ * every frame, and each resize redraws (or re-lays out) the component.
+ * Instead the width changes once and the page glides by transform. Closing
+ * snaps the width first and slides the page back from where it was;
+ * opening slides the page aside first and snaps the width as it lands.
+ * Either way the preview is resized once, while it is moving.
  */
-function DesktopSidebar({
+function DesktopFrame({
   tree,
   githubStars,
+  children,
 }: {
   tree: RootNode
   githubStars: number | null
+  children: ReactNode
 }) {
-  const { open } = useSidebar()
+  const { open, isMobile } = useSidebar()
+  // Below `md` the frame is hidden and the mobile sheet takes over.
+  const instant = (useReducedMotion() ?? false) || isMobile
+  const [phase, setPhase] = useState<Phase>(open ? "open" : "closed")
+  const panelRef = useRef<HTMLDivElement>(null)
+  const mainRef = useRef<HTMLElement>(null)
+
+  // Follow the toggle during render, so the first frame is already right.
+  if (open && (phase === "closed" || phase === "closing")) {
+    setPhase(instant ? "open" : "opening")
+  } else if (!open && (phase === "open" || phase === "opening")) {
+    setPhase(instant ? "closed" : "closing")
+  }
+
+  useLayoutEffect(() => {
+    const panel = panelRef.current
+    const main = mainRef.current
+    if (!panel || !main) return
+    // A toggle mid-slide starts the new slide from rest.
+    for (const el of [panel, main]) {
+      for (const a of el.getAnimations()) a.cancel()
+    }
+    const shift = `translateX(${SIDEBAR_WIDTH}px)`
+    if (phase === "opening") {
+      panel.animate(
+        [{ transform: "translateX(-100%)" }, { transform: "none" }],
+        SLIDE
+      )
+      const slide = main.animate(
+        [{ transform: "none" }, { transform: shift }],
+        {
+          ...SLIDE,
+          fill: "forwards",
+        }
+      )
+      slide.onfinish = () => setPhase("open")
+    } else if (phase === "closing") {
+      main.animate([{ transform: shift }, { transform: "none" }], SLIDE)
+      const slide = panel.animate(
+        [{ transform: "none" }, { transform: "translateX(-100%)" }],
+        { ...SLIDE, fill: "forwards" }
+      )
+      slide.onfinish = () => setPhase("closed")
+    }
+  }, [phase])
+
+  const panelShown = phase !== "closed"
 
   return (
-    <aside
-      aria-label="Documentation"
-      data-state={open ? "expanded" : "collapsed"}
-      className={cn(
-        // The width snaps rather than animates: easing it would resize the
-        // live preview beside it on every frame, and each resize redraws
-        // (or re-lays out) the component. Only the contents fade.
-        "sticky top-0 hidden h-svh shrink-0 [contain:layout] md:block",
-        open ? "w-60" : "w-14"
-      )}
-    >
-      {/*
-       * Motion measures shared layouts in page coordinates, and Next
-       * scrolls to the top between its before/after measurements, so
-       * a sticky sidebar's marker would fly in from off-screen. A
-       * `layoutScroll` fixed box is a scroll root it measures in the
-       * viewport instead; `contain: layout` pins that box to the aside.
-       */}
-      <motion.div
-        layoutScroll
-        className="fixed inset-0 flex flex-col overflow-hidden"
+    // `clip`, not `hidden`: it trims the page while it slides past the
+    // right edge without becoming a scroll box, so `sticky` keeps working.
+    <div className="flex w-full items-start overflow-x-clip">
+      <aside
+        aria-label="Documentation"
+        data-state={open ? "expanded" : "collapsed"}
+        className={cn(
+          "sticky top-0 z-20 hidden h-svh shrink-0 [contain:layout] md:block",
+          phase === "open" ? "w-60" : "w-0"
+        )}
       >
-        <div
+        {/*
+         * Motion measures shared layouts in page coordinates, and Next
+         * scrolls to the top between its before/after measurements, so
+         * a sticky sidebar's marker would fly in from off-screen. A
+         * `layoutScroll` fixed box is a scroll root it measures in the
+         * viewport instead; `contain: layout` pins that box to the aside.
+         */}
+        <motion.div
+          ref={panelRef}
+          layoutScroll
           inert={!open}
           className={cn(
-            "flex h-full w-60 flex-col transition-opacity duration-200",
-            !open && "opacity-0"
+            "fixed inset-y-0 left-0 flex w-60 flex-col overflow-hidden bg-background",
+            !panelShown && "invisible"
           )}
         >
           <SidebarBody tree={tree} githubStars={githubStars} />
+        </motion.div>
+      </aside>
+      {phase === "closed" ? (
+        <div className="fixed top-5 left-5 z-30 hidden animate-in duration-200 zoom-in-90 fade-in md:block">
+          <DocsSidebarTrigger className="bg-background/85 shadow-sm ring-1 ring-border backdrop-blur-md hover:bg-background" />
         </div>
-        {open ? null : (
-          <div className="absolute top-3 left-3">
-            <DocsSidebarTrigger />
-          </div>
-        )}
-      </motion.div>
-    </aside>
+      ) : null}
+      <main ref={mainRef} className="flex min-w-0 flex-1 flex-col">
+        {children}
+      </main>
+    </div>
   )
 }
 
@@ -207,19 +278,16 @@ export function DocsShell({
         className="docs-flip min-h-svh bg-background"
       >
         <MobileSidebar tree={tree} githubStars={githubStars} />
-        <div className="flex w-full items-start">
-          <DesktopSidebar tree={tree} githubStars={githubStars} />
-          <main className="flex min-w-0 flex-1 flex-col">
-            <header className="flex h-14 items-center gap-2 px-3 md:hidden">
-              <DocsSidebarTrigger />
-              <Wordmark />
-              <div className="flex-1" />
-              <SearchTrigger />
-              <ThemeToggle />
-            </header>
-            {children}
-          </main>
-        </div>
+        <DesktopFrame tree={tree} githubStars={githubStars}>
+          <header className="flex h-14 items-center gap-2 px-3 md:hidden">
+            <DocsSidebarTrigger />
+            <Wordmark />
+            <div className="flex-1" />
+            <SearchTrigger />
+            <ThemeToggle />
+          </header>
+          {children}
+        </DesktopFrame>
       </SidebarProvider>
     </FrameworkProvider>
   )
