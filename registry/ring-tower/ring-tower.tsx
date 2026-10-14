@@ -19,10 +19,16 @@ export {
   DEFAULT_PARALLAX,
   DEFAULT_RINGS,
   DEFAULT_SPEED,
+  DEFAULT_SPIN,
+  DEFAULT_TILT,
+  MAX_RINGS,
+  defaultParallax,
+  defaultRotation,
 } from "./ring-tower-vanilla"
 export type {
   RingTowerInstance,
   RingTowerOptions,
+  RingTowerRing,
   RingTowerTheme,
 } from "./ring-tower-vanilla"
 
@@ -33,8 +39,9 @@ export type RingTowerProps = RingTowerOptions & {
 /**
  * A tower of tilted bands wrapped in your images. The images crawl around
  * the bands, dragging spins the tower, and the pointer turns neighboring
- * bands opposite ways. Transparent; the parent paints the background.
- * Theme-aware.
+ * bands opposite ways. Pass `rings` an array to set each ring's rotation,
+ * tilt, spin, speed, parallax or images. Transparent; the parent paints the
+ * background. Theme-aware.
  */
 export function RingTower({
   className,

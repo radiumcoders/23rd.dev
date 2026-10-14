@@ -5,8 +5,6 @@ description: A tower of tilted bands wrapped in your images. Drag to spin it; th
 
 import { RingTowerDemo } from "@/components/demos"
 
-## Preview
-
 <RingTowerDemo />
 
 ## Installation
@@ -75,12 +73,52 @@ Every band in step, like the original:
   </FrameworkSvelte>
 </FrameworkCode>
 
+### Each ring
+
+Pass `rings` an array instead of a number to set each ring on its own, bottom ring first. The array's length is the ring count, up to 5. Anything a ring leaves out follows the tower, so `{}` is a plain ring.
+
+<FrameworkCode>
+  <FrameworkReact>
+```tsx
+<RingTower
+  images={bands}
+  rings={[
+    {},
+    { tilt: -20, spin: 30 },
+    { rotation: 45, speed: -1.5, images: ["/bands/feature.jpg"] },
+  ]}
+/>
+```
+  </FrameworkReact>
+  <FrameworkSvelte>
+```svelte
+<RingTower
+  images={bands}
+  rings={[
+    {},
+    { tilt: -20, spin: 30 },
+    { rotation: 45, speed: -1.5, images: ["/bands/feature.jpg"] },
+  ]}
+/>
+```
+  </FrameworkSvelte>
+</FrameworkCode>
+
+| Ring field | Type | Default |
+| --- | --- | --- |
+| `rotation` | `number` | `i * 90`, degrees; which way the ring leans |
+| `tilt` | `number` | `14`, degrees, −45–45 |
+| `spin` | `number` | `0`, degrees per second, −180–180; sweeps the lean around |
+| `speed` | `number` | the tower's `speed`, −4–4; negative crawls backwards |
+| `parallax` | `number` | the tower's `parallax`, alternating direction; degrees, −90–90 |
+| `images` | `string[]` | the tower's `images` |
+
 ## Props
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `images` | `string[]` | none, draws a grid band |
-| `rings` | `number` | `12`, 1–24 |
+| `rings` | `number \| RingTowerRing[]` | `5`, 1–5, or one object per ring |
 | `speed` | `number` | `1`, 0–4 crawl speed |
 | `draggable` | `boolean` | `true` |
 | `parallax` | `number` | `24`, degrees, 0–90 |
