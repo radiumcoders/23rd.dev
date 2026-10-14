@@ -67,9 +67,9 @@ function SidebarBody({
   return (
     <>
       <SidebarHeader className="gap-4 px-3 pt-3 pb-2">
-        <div className="flex items-center gap-1.5">
-          <DocsSidebarTrigger />
+        <div className="flex items-center justify-between gap-2 ps-1">
           <Wordmark />
+          <DocsSidebarTrigger />
         </div>
         <SearchTrigger variant="field" className="w-full" />
       </SidebarHeader>
