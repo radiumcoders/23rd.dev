@@ -117,7 +117,7 @@ import { Foo } from "@/components/ui/<name>"
 | --- | --- | --- |
 ```
 
-Add the page under a separator in `content/docs/components/meta.json`. Current groups: Background, Shaders, Footers, Characters, Pages, Sections, Components. Separators look like `"---Background---"`.
+Add the page under a separator in `content/docs/components/meta.json`. Current groups: Background, Shaders, Footers, Characters, Pages, Sections, Components, AI Components, Experiments. Separators look like `"---Background---"`.
 
 MDX components already global: `CliCommand`, `ComponentPreview`, `ComponentControls`.
 

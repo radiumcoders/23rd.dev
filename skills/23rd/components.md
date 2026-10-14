@@ -384,7 +384,7 @@ Pitfalls: `interactive` hides the system cursor while the fireball is active (`o
 
 ## dither-scan
 
-Component. An image that starts as a 1-bit ordered dither in theme ink and paper. A diagonal scan line sweeps it `passes` times; each pass shrinks the cells and brings back tones and color, and the last leaves the source image.
+AI component. An image that starts as a 1-bit ordered dither in theme ink and paper. A diagonal scan line sweeps it `passes` times; each pass shrinks the cells and brings back tones and color, and the last leaves the source image.
 
 Best fit: a cover image, product shot, or case-study hero that should feel processed or "enhanced" as it arrives. One per view.
 

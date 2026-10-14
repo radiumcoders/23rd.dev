@@ -22,9 +22,10 @@
     "---Sections---",
     "folio",
     "---Components---",
-    "dither-scan",
     "gooey-color-picker",
     "mech-keyboard",
+    "---AI Components---",
+    "dither-scan",
     "---Experiments---",
     "phosphor-score",
     "typewriter"
