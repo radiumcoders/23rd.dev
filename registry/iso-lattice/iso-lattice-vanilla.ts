@@ -108,6 +108,18 @@ vec2 sampleShape(vec2 q, float k) {
   return mix(texture2D(u_maskA, uv).rg, texture2D(u_maskB, uv).rg, k);
 }
 
+// Whether a whole tile fits on the figure: its four tips, pulled in a touch,
+// must all land on it. A cell whose centre is inside but whose tips are not
+// would poke past the silhouette as a ragged half-lit column.
+float fits(sampler2D mask, vec2 q, vec2 tip) {
+  float c = 1.0;
+  c = min(c, texture2D(mask, toUv(q + vec2(tip.x, 0.0))).r);
+  c = min(c, texture2D(mask, toUv(q - vec2(tip.x, 0.0))).r);
+  c = min(c, texture2D(mask, toUv(q + vec2(0.0, tip.y))).r);
+  c = min(c, texture2D(mask, toUv(q - vec2(0.0, tip.y))).r);
+  return step(0.08, c);
+}
+
 void main() {
   vec2 frag = gl_FragCoord.xy;
 
@@ -132,9 +144,11 @@ void main() {
   vec3 shapeA = texture2D(u_maskA, toUv(q)).rgb;
   vec3 shapeB = texture2D(u_maskB, toUv(q)).rgb;
   // The mask's soft outline would leave half-strength specks along every
-  // edge; a cell is either on the figure or off it.
-  shapeA.r *= smoothstep(0.12, 0.26, shapeA.r);
-  shapeB.r *= smoothstep(0.12, 0.26, shapeB.r);
+  // edge; a cell is either on the figure or off it, and only when the whole
+  // tile (at full size, so the call never depends on brightness) fits.
+  vec2 tip = vec2(1.0, 1.0 / SQ3) * u_spacing * 0.866 * 0.84 * 0.85 / u_radius;
+  shapeA.r *= smoothstep(0.12, 0.26, shapeA.r) * fits(u_maskA, q, tip);
+  shapeB.r *= smoothstep(0.12, 0.26, shapeB.r) * fits(u_maskB, q, tip);
   float m = mix(shapeA.r, shapeB.r, k);
   // The build front burns brighter as it passes.
   float flare = 4.0 * k * (1.0 - k) * max(shapeA.r, shapeB.r);
