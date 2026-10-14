@@ -382,6 +382,34 @@ export function NotFound() {
 
 Pitfalls: `interactive` hides the system cursor while the fireball is active (`onHideCursor` exists on the vanilla options; the React wrapper owns that state and does not expose the callback as a prop). Ink follows theme: `#18181B` light, `#E4E4E7` dark. The glyph string is the 404 itself; there is no `text` prop.
 
+## snake-404
+
+Page. A dot-matrix "404" where every dot is a food pellet. A Nokia-style snake slides in and eats its way through the digits on autopilot; each meal rides down the body as a bulge, and the digits pop back once the last pellet is gone.
+
+Best fit: the not-found route, full viewport, when the page should be a small game. `code="500"` works for other error pages.
+
+Not this: a 404 that reacts to the cursor without a game (`dithered-404`).
+
+Deps: none. Key props: `code` ("404"), `color`, `cellSize` (12), `speed` (14), `maxLength` (32), `grid` (true), `lcd` (false), `playable` (true), `score` (true), `smooth` (true), `theme`.
+
+```tsx
+"use client"
+import { Snake404 } from "@/components/ui/snake-404"
+
+export function NotFound() {
+  return (
+    <section className="relative isolate min-h-svh overflow-hidden bg-background">
+      <Snake404 />
+      <div className="pointer-events-none relative z-10 flex min-h-svh flex-col items-center justify-end px-6 pb-16 text-center">
+        <p className="text-sm text-muted-foreground">This page could not be found.</p>
+      </div>
+    </section>
+  )
+}
+```
+
+Pitfalls: overlays must be `pointer-events-none` or clicks never focus the field. With `playable` the root is focusable and swallows arrow keys and WASD only while focused; Esc or blur hands back to autopilot. `playable` also sets `touch-none` so swipes steer instead of scrolling. Only digits 0–9 are drawn. `lcd` paints the canvas green, so `color` defaults to LCD ink there.
+
 ## dither-scan
 
 AI component. An image that starts as a 1-bit ordered dither in theme ink and paper. A diagonal scan line sweeps it `passes` times; each pass shrinks the cells and brings back tones and color, and the last leaves the source image.

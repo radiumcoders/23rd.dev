@@ -240,6 +240,19 @@
       "type": "registry:ui"
     },
     {
+      "name": "snake-404",
+      "title": "Snake 404",
+      "description": "Dot-matrix 404 where every dot is food: a Nokia-style snake eats the digits, then they come back. Arrow keys, WASD, or a swipe take over.",
+      "files": [
+        {
+          "path": "registry/snake-404/snake-404.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/snake-404.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "stretchy-footer",
       "title": "Stretchy Footer",
       "description": "Dia-style rubber overscroll: rainbow aurora stretches up past the bottom, then snaps back.",

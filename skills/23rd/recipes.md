@@ -74,7 +74,7 @@ export function Story() {
 
 ## 404
 
-Use `dithered-404` on the not-found route. Do not also mount `shader-anime-fire`.
+Use `dithered-404` on the not-found route. Do not also mount `shader-anime-fire`. For a playable page, swap in `snake-404` with the same shell and keep the overlay `pointer-events-none`.
 
 ```tsx
 "use client"

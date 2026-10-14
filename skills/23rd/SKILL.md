@@ -73,7 +73,7 @@ flowchart TD
   pick -->|Atmosphere behind a hero| atmo{Mood}
   pick -->|Footer or page-end| foot{Treatment}
   pick -->|Reveal an image from a dither| ds[dither-scan]
-  pick -->|Full page 404| d404[dithered-404]
+  pick -->|Full page 404| p404{Treatment}
   pick -->|Scroll makes the page lean| folio[folio]
   pick -->|Character or wordmark| mark{Which}
   pick -->|Type text out letter by letter| tw[typewriter]
@@ -89,6 +89,8 @@ flowchart TD
   atmo -->|Isometric figures built from tiles| il[iso-lattice]
   atmo -->|Falling sheet music| ps[phosphor-score]
   foot -->|Rubber overscroll aurora| st[stretchy-footer]
+  p404 -->|Burns under the cursor| d404[dithered-404]
+  p404 -->|Snake eats the digits, playable| s404[snake-404]
   mark -->|Eyes that track the pointer| orb[live-orb]
   mark -->|ASCII wordmark, click to scatter| al[ascii-logo]
 ```
@@ -101,6 +103,7 @@ Disambiguation that agents get wrong:
 | Soft gradient behind a headline | `shader-gradient` | `gooey-color-picker` |
 | Fire, heat under a hero | `shader-anime-fire` | `dithered-404` unless the page is a 404 |
 | 404 that burns under the cursor | `dithered-404` | `shader-anime-fire` |
+| Snake game, Nokia, retro 404 or 500 you can play | `snake-404` | `dithered-404` (fire, not a game) |
 | Image that un-dithers, scan line, enhance or processing reveal | `dither-scan` | `dithered-404` (a 404 glyph, not your image) |
 | Overscroll rubber band, aurora at the bottom | `stretchy-footer` | `folio` |
 | Page leans while scrolling | `folio` | `stretchy-footer` (that one stretches, it does not tilt) |
@@ -128,7 +131,7 @@ Backgrounds and shaders fill the parent. They do not create a page.
 </section>
 ```
 
-Same shell for `ShaderAnimeFire`, `ShaderFire`, `ShaderSky`, `AsciiFluid`, `LogoBurst`, `PhosphorScore`, `IsoLattice`, and `Dithered404`. Give the parent a height. Put UI in a later stacking context (`relative z-10`).
+Same shell for `ShaderAnimeFire`, `ShaderFire`, `ShaderSky`, `AsciiFluid`, `LogoBurst`, `PhosphorScore`, `IsoLattice`, `Dithered404`, and `Snake404`. Give the parent a height. Put UI in a later stacking context (`relative z-10`).
 
 `ShaderMetal` uses the same shell but is transparent: the ribbons and their shadows sit on the parent's background, so set one (`bg-background`). The ribbons cross the middle; put copy top-left.
 
@@ -181,6 +184,7 @@ Categories match `content/docs/components/meta.json`.
 | `live-orb` | Characters | Lit sphere; eyes follow the pointer |
 | `ascii-logo` | Characters | ASCII wordmark: hover shove, click scatter / fall / gather |
 | `dithered-404` | Pages | Bayer 404 burned by a fireball cursor, then reforms |
+| `snake-404` | Pages | Dot-matrix 404 eaten by a Nokia-style snake; arrow keys take over |
 | `folio` | Sections | Page leans on scroll, then springs flat |
 | `gooey-color-picker` | Components | Swatch opens into hue, alpha, and hex under an SVG goo filter |
 | `typewriter` | Components | A real typewriter in SVG: keys press, typebars strike, the carriage steps |

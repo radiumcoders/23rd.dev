@@ -85,6 +85,7 @@ npx skills add radiumcoders/23rd.dev --skill 23rd -g
 | [ASCII Logo](https://23rd.dev/docs/components/ascii-logo)                 | `@23rd/ascii-logo`         | Interactive ASCII wordmark: hover shove, then click to scatter, drop, and gather      |
 | [Dither Scan](https://23rd.dev/docs/components/dither-scan)               | `@23rd/dither-scan`        | A 1-bit dithered image a diagonal scan line clears over a set number of passes        |
 | [Dithered 404](https://23rd.dev/docs/components/dithered-404)             | `@23rd/dithered-404`       | Bayer-pixel 404; a fireball cursor scorches it into embers and smoke, then it reforms |
+| [Snake 404](https://23rd.dev/docs/components/snake-404) | `@23rd/snake-404` | Dot-matrix 404 where every dot is food; a Nokia-style snake eats it, and you can take over |
 | [Folio](https://23rd.dev/docs/components/folio)                           | `@23rd/folio`              | The page leans back in perspective while you scroll, blurs, then springs flat         |
 | [Gooey Color Picker](https://23rd.dev/docs/components/gooey-color-picker) | `@23rd/gooey-color-picker` | Floating swatch → hue wheel, alpha, hex, joined by an SVG gooey filter                |
 | [Iso Lattice](https://23rd.dev/docs/components/iso-lattice)               | `@23rd/iso-lattice`        | Glowing isometric tiles build solid figures, one over the last, from the floor up      |

@@ -382,6 +382,31 @@ type Dithered404Props = {
 
 `LIGHT_COLOR` `#18181B`, `DARK_COLOR` `#E4E4E7`. `dither={false}` is soft fire on the same glyph. No `text` prop. Wrapper does not expose `onHideCursor`.
 
+## snake-404
+
+```ts
+type Snake404Props = {
+  code?: string // "404", digits 0–9 only, up to 6
+  color?: string // theme ink, or LCD ink when lcd
+  cellSize?: number // 12 CSS px
+  speed?: number // 14 cells per second
+  maxLength?: number // 32
+  grid?: boolean // true, faint unlit cells
+  lcd?: boolean // false, green Nokia screen
+  playable?: boolean // true, arrow keys / WASD / swipe
+  score?: boolean // true, pellets eaten, top left
+  smooth?: boolean // true, glide between cells
+  theme?: "light" | "dark" | "auto"
+  onEat?: (left: number, total: number) => void
+  onClear?: () => void
+  onPlayChange?: (playing: boolean) => void
+  label?: string // "404, page not found"
+  className?: string
+}
+```
+
+`LIGHT_COLOR` `#18181B`, `DARK_COLOR` `#E4E4E7`, `LCD_SCREEN` `#C7F0D8`, `LCD_INK` `#43523D`. Crashing into a wall or itself while playing blinks the snake and restarts autopilot.
+
 ## dither-scan
 
 ```ts
