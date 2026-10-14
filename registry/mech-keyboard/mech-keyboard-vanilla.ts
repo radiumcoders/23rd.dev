@@ -1369,6 +1369,10 @@ export function createMechKeyboard(
     timers.add(id)
   }
 
+  // The real OS, not the `platform` legends option: it decides which
+  // keyboard events arrive.
+  const onMac = detectPlatform() === "mac"
+
   const focused = () =>
     document.activeElement === root || root.contains(document.activeElement)
 
@@ -1379,7 +1383,10 @@ export function createMechKeyboard(
     if (event.repeat) return
     press(event.code)
     // macOS fires one event per Caps Lock toggle; never leave it stuck.
-    if (event.code === "CapsLock") later(() => release("CapsLock"), 160)
+    // Elsewhere Caps Lock sends a normal down and up, so it can be held.
+    if (event.code === "CapsLock" && onMac) {
+      later(() => release("CapsLock"), 160)
+    }
   }
 
   const onKeyUp = (event: KeyboardEvent) => {
@@ -1413,7 +1420,8 @@ export function createMechKeyboard(
     return (hit?.object.userData.id as string | undefined) ?? null
   }
 
-  let pointerCode: string | null = null
+  /** Keys held down by each pointer, so two fingers release independently. */
+  const pointers = new Map<number, string>()
 
   const onPointerDown = (event: PointerEvent) => {
     if (!opts.interactive || event.button !== 0) return
@@ -1437,18 +1445,21 @@ export function createMechKeyboard(
       }
       return
     }
-    pointerCode = code
+    pointers.set(event.pointerId, code)
     press(code)
   }
 
-  const onPointerUp = () => {
-    if (!pointerCode) return
-    const code = pointerCode
-    pointerCode = null
-    held.delete(code)
-    sound(code, false)
-    opts.onKey?.(code, false)
-    latched.clear()
+  const onPointerUp = (event: PointerEvent) => {
+    const code = pointers.get(event.pointerId)
+    if (!code) return
+    pointers.delete(event.pointerId)
+    if (![...pointers.values()].includes(code)) {
+      held.delete(code)
+      sound(code, false)
+      opts.onKey?.(code, false)
+    }
+    // Latched modifiers belong to the chord until the last finger lifts.
+    if (pointers.size === 0) latched.clear()
     paint()
     commit()
   }
@@ -1581,6 +1592,9 @@ export function createMechKeyboard(
       normal.depthTexture?.dispose()
       normal.dispose()
       renderer.dispose()
+      // dispose() keeps the context until garbage collection, and browsers
+      // cap live contexts; give it back now.
+      renderer.forceContextLoss()
       el.remove()
     },
   }
