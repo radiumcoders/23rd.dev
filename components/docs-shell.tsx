@@ -66,7 +66,7 @@ function SidebarBody({
 }) {
   return (
     <>
-      <SidebarHeader className="gap-4 px-3 pt-5 pb-2">
+      <SidebarHeader className="gap-4 px-3 pt-3 pb-2">
         <div className="flex items-center gap-1.5">
           <DocsSidebarTrigger />
           <Wordmark />
@@ -159,7 +159,7 @@ function DesktopSidebar({
           <SidebarBody tree={tree} githubStars={githubStars} />
         </div>
         {open ? null : (
-          <div className="absolute top-5 left-3">
+          <div className="absolute top-3 left-3">
             <DocsSidebarTrigger />
           </div>
         )}
