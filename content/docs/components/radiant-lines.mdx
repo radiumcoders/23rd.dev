@@ -19,8 +19,6 @@ Or from the public GitHub registry:
 
 Pass the scroll container if the page scrolls inside an element, not the window.
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -38,22 +36,6 @@ export function Hero() {
   )
 }
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import RadiantLines from "$lib/components/ui/radiant-lines.svelte"
-
-  let scroller: HTMLDivElement | undefined = $state()
-</script>
-
-<div bind:this={scroller} class="relative h-svh overflow-y-auto">
-  <RadiantLines container={scroller} class="sticky top-0 h-svh" />
-  <div class="relative z-10 p-10">Your content</div>
-</div>
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 ## Props
 
@@ -63,7 +45,5 @@ export function Hero() {
 | `theme` | `"light" \| "dark" \| "auto"` | `"auto"` |
 | `starCount` | `number` | `420` |
 | `displacement` | `number` | `1`, star jump on warp |
-| `containerRef` | `RefObject<HTMLElement \| null>` | React: window scroll |
-| `container` | `HTMLElement` | Svelte: window scroll |
-| `className` | `string` | React only |
-| `class` | `string` | Svelte only |
+| `containerRef` | `RefObject<HTMLElement \| null>` | window scroll |
+| `className` | `string` | none       |

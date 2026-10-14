@@ -17,8 +17,6 @@ Or from the public GitHub registry:
 
 ## Usage
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -28,22 +26,9 @@ export function Mascot() {
   return <LiveOrb />
 }
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import LiveOrb from "$lib/components/ui/live-orb.svelte"
-</script>
-
-<LiveOrb />
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 Without a `variant` the orb is white on dark pages and black on light ones. `custom` uses `color` and `eyeColor`; `webgl` takes an optional three-stop `colors`.
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 <LiveOrb variant="white" />
 <LiveOrb variant="black" />
@@ -51,17 +36,6 @@ Without a `variant` the orb is white on dark pages and black on light ones. `cus
 <LiveOrb variant="webgl" colors={["#7C6AF7", "#7DD3C7", "#E8B4D4"]} />
 <LiveOrb variant="custom" color="#7C5CFF" eyeColor="#FAFAFA" />
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<LiveOrb variant="white" />
-<LiveOrb variant="black" />
-<LiveOrb variant="webgl" />
-<LiveOrb variant="webgl" colors={["#7C6AF7", "#7DD3C7", "#E8B4D4"]} />
-<LiveOrb variant="custom" color="#7C5CFF" eyeColor="#FAFAFA" />
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 ## Props
 
@@ -75,5 +49,4 @@ Without a `variant` the orb is white on dark pages and black on light ones. `cus
 | `interactive` | `boolean`                                   | `true`                    |
 | `blink`       | `boolean`                                   | `true`                    |
 | `theme`       | `"light" \| "dark" \| "auto"`               | `"auto"`                  |
-| `className`   | `string`                                    | React only                |
-| `class`       | `string`                                    | Svelte only               |
+| `className`   | `string`                                    | none                      |

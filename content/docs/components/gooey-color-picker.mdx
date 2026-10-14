@@ -19,8 +19,6 @@ Or from the public GitHub registry:
 
 ## Usage
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 import { GooeyColorPicker } from "@/components/ui/gooey-color-picker"
 
@@ -35,22 +33,6 @@ export function Example() {
   )
 }
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import GooeyColorPicker from "$lib/components/ui/gooey-color-picker.svelte"
-</script>
-
-<GooeyColorPicker
-  defaultValue={{ h: 210, s: 90, l: 55, a: 1 }}
-  onChange={(color, css) => {
-    console.log(color, css)
-  }}
-/>
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 ## Props
 
@@ -60,7 +42,6 @@ export function Example() {
 | `defaultValue` | `GooeyColor \| string` | `{ h: 320, s: 90, l: 58, a: 1 }` |
 | `onChange` | `(color: GooeyColor, css: string) => void` | none |
 | `label` | `string` | `"Color picker"` |
-| `className` | `string` | React only |
-| `class` | `string` | Svelte only |
+| `className` | `string` | none       |
 
 `GooeyColor` is `{ h, s, l, a }` (h 0–360, s and l 0–100, a 0–1); strings accept hex or `hsl`/`hsla`.

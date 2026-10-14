@@ -1,6 +1,6 @@
 # Component guide
 
-React snippets are the primary examples. Svelte parity: same props, `class` instead of `className`, default import from `$lib/components/ui/<name>.svelte`, `children` is a snippet, `scrollRef` is `scrollEl`, `containerRef` is `container`. Read [apis.md](apis.md) before adding a prop.
+Read [apis.md](apis.md) before adding a prop.
 
 Shared shell for fill-the-parent pieces:
 
@@ -46,7 +46,7 @@ Best fit: an infrastructure or developer-tool hero that wants one luminous objec
 
 Not this: hair-line explosion (`logo-burst`), scroll starfield (`radiant-lines`), images on a tower (`ring-tower`).
 
-Deps: none (WebGL). Key props: `shapes` (`["cube", "steps", "pillars", "coil"]`), `interval` (4s), `color`, `theme` (`auto`), `size` (0.6), `spacing` (8px), `glow` (0.6), `speed` (1), `floor` (true), `interactive` (true).
+Deps: none (WebGL). Key props: `shapes` (`["cube", "steps", "pillars", "coil"]`), `interval` (4s), `color`, `theme` (`auto`), `size` (0.6), `spacing` (8px), `speed` (1), `floor` (true), `interactive` (true).
 
 ```tsx
 "use client"
@@ -99,7 +99,7 @@ Best fit: a long scrolling page that should feel like hyperspace. Not a static p
 
 Not this: `logo-burst` (one-shot explosion), `shader-gradient` (no scroll coupling).
 
-Deps: none. Key props: `colors` (omit it and the palette follows the theme), `theme`, `starCount` (420), `displacement` (1), `containerRef` / Svelte `container`.
+Deps: none. Key props: `colors` (omit it and the palette follows the theme), `theme`, `starCount` (420), `displacement` (1), `containerRef`.
 
 ```tsx
 "use client"
@@ -282,7 +282,7 @@ Best fit: a Dia-like end of a long page. The component can be the scroller, or a
 
 Not this: tilting the page (`folio`).
 
-Deps: none. Key props: `children`, `scrollRef` / Svelte `scrollEl`, `windowScroll` (false), `contentSelector` (`[data-stretchy-page]`), `maxStretch` (280), `colors`, `stiffness` (380), `damping` (32), `columns` (9), `blur` (16), `glow` (0), `flip` (false), `rotate` (0 or 180), `label`, `demoId`.
+Deps: none. Key props: `children`, `scrollRef`, `windowScroll` (false), `contentSelector` (`[data-stretchy-page]`), `maxStretch` (280), `colors`, `stiffness` (380), `damping` (32), `columns` (9), `blur` (16), `glow` (0), `flip` (false), `rotate` (0 or 180), `label`, `demoId`.
 
 ```tsx
 "use client"
@@ -417,7 +417,7 @@ Best fit: pick or edit one color inline.
 
 Not this: any background, shader, or theme switcher.
 
-Deps: React needs `motion`. Svelte has none. Props: `value`, `defaultValue`, `onChange(color, css)`, `label` (`"Color picker"`), `className` / `class`.
+Deps: `motion`. Props: `value`, `defaultValue`, `onChange(color, css)`, `label` (`"Color picker"`), `className`.
 
 ```tsx
 "use client"
@@ -437,7 +437,7 @@ Controlled when `value` is not `undefined`. Otherwise uncontrolled, seeded from 
 
 `GooeyColor` is `{ h: 0–360, s: 0–100, l: 0–100, a: 0–1 }`. Strings accept hex (`#RGB`, `#RGBA`, `#RRGGBB`, `#RRGGBBAA`) and `hsl` / `hsla`. `onChange` second arg is `hsla(...)` from `toCss`. EyeDropper appears only when `window.EyeDropper` exists; it is not a prop.
 
-Pitfalls: the panel overflows the trigger. Do not put it in `overflow-hidden`. React also exports `parseColor`. No `className` on Svelte; use `class`.
+Pitfalls: the panel overflows the trigger. Do not put it in `overflow-hidden`. Also exports `parseColor`.
 
 ## mech-keyboard
 

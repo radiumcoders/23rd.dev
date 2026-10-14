@@ -13,19 +13,6 @@
           "target": "components/ui/logo-burst.tsx"
         }
       ]
-    },
-    {
-      "name": "logo-burst-svelte",
-      "type": "registry:ui",
-      "title": "Logo Burst",
-      "description": "Hair-line tentacles explode from the center, then keep a slow inhale. Follows light and dark.",
-      "files": [
-        {
-          "path": "logo-burst.svelte",
-          "type": "registry:file",
-          "target": "src/lib/components/ui/logo-burst.svelte"
-        }
-      ]
     }
   ]
 }

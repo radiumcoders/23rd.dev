@@ -19,8 +19,6 @@ Or from the public GitHub registry:
 
 Give the parent a size; the canvas is transparent.
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -34,43 +32,17 @@ export function HeroBurst() {
   )
 }
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import LogoBurst from "$lib/components/ui/logo-burst.svelte"
-</script>
-
-<div class="relative h-svh w-full bg-background">
-  <LogoBurst />
-</div>
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 Pass children to put a mark in the center.
 
-<FrameworkCode>
-  <FrameworkReact>
-    ```tsx
-    <LogoBurst>
-      <img src="/mark.svg" alt="" className="size-20 rounded-[22%]" />
-    </LogoBurst>
-    ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-    ```svelte
-    <LogoBurst>
-      <img src="/mark.svg" alt="" class="size-20 rounded-[22%]" />
-    </LogoBurst>
-    ```
-  </FrameworkSvelte>
-</FrameworkCode>
+```tsx
+<LogoBurst>
+  <img src="/mark.svg" alt="" className="size-20 rounded-[22%]" />
+</LogoBurst>
+```
 
 Replay from outside by incrementing `replayKey`.
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 
@@ -80,41 +52,22 @@ import { LogoBurst } from "@/components/ui/logo-burst"
 export function Replayable() {
   const [key, setKey] = useState(0)
 
-return (
-
-<div className="relative h-96 bg-background">
-<LogoBurst replayKey={key} replayOnClick={false} />
-<button type="button" onClick={() => setKey((n) => n + 1)}>
-Replay
-</button>
-</div>
-)
+  return (
+    <div className="relative h-96 bg-background">
+      <LogoBurst replayKey={key} replayOnClick={false} />
+      <button type="button" onClick={() => setKey((n) => n + 1)}>
+        Replay
+      </button>
+    </div>
+  )
 }
-
-````
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import LogoBurst from "$lib/components/ui/logo-burst.svelte"
-
-  let key = $state(0)
-</script>
-
-<div class="relative h-96 bg-background">
-  <LogoBurst replayKey={key} replayOnClick={false} />
-  <button type="button" onclick={() => (key += 1)}>Replay</button>
-</div>
-````
-
-  </FrameworkSvelte>
-</FrameworkCode>
+```
 
 ## Props
 
 | Prop            | Type                          | Default                                                        |
 | --------------- | ----------------------------- | -------------------------------------------------------------- |
-| `children`      | `ReactNode` / `Snippet`       | none                                                           |
+| `children`      | `ReactNode`                   | none                                                           |
 | `tentacleCount` | `number`                      | `260`                                                          |
 | `color`         | `string`                      | theme ink / bone                                               |
 | `theme`         | `"light" \| "dark" \| "auto"` | `"auto"`                                                       |
@@ -127,5 +80,4 @@ Replay
 | `replayKey`     | `number`                      | `0`                                                            |
 | `replayOnClick` | `boolean`                     | `true`                                                         |
 | `label`         | `string`                      | `"Logo burst"`                                                 |
-| `className`     | `string`                      | React only                                                     |
-| `class`         | `string`                      | Svelte only                                                    |
+| `className`     | `string`                      | none                                                           |

@@ -17,7 +17,6 @@ import { Logo } from "@/components/logo"
 import { SearchTrigger } from "@/components/search-trigger"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { FOOTER_LINKS, SUPPORT_EMAIL } from "@/lib/site"
-import { FrameworkProvider } from "@/lib/framework"
 import { cn } from "@/lib/utils"
 import {
   Sidebar,
@@ -270,23 +269,21 @@ export function DocsShell({
   githubStars?: number | null
 }) {
   return (
-    <FrameworkProvider>
-      <SidebarProvider
-        style={sidebarTokens}
-        className="docs-flip min-h-svh bg-background"
-      >
-        <MobileSidebar tree={tree} githubStars={githubStars} />
-        <DesktopFrame tree={tree} githubStars={githubStars}>
-          <header className="flex h-14 items-center gap-2 px-3 md:hidden">
-            <DocsSidebarTrigger />
-            <Wordmark />
-            <div className="flex-1" />
-            <SearchTrigger />
-            <ThemeToggle />
-          </header>
-          {children}
-        </DesktopFrame>
-      </SidebarProvider>
-    </FrameworkProvider>
+    <SidebarProvider
+      style={sidebarTokens}
+      className="docs-flip min-h-svh bg-background"
+    >
+      <MobileSidebar tree={tree} githubStars={githubStars} />
+      <DesktopFrame tree={tree} githubStars={githubStars}>
+        <header className="flex h-14 items-center gap-2 px-3 md:hidden">
+          <DocsSidebarTrigger />
+          <Wordmark />
+          <div className="flex-1" />
+          <SearchTrigger />
+          <ThemeToggle />
+        </header>
+        {children}
+      </DesktopFrame>
+    </SidebarProvider>
   )
 }

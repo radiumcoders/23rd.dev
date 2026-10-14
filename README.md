@@ -43,20 +43,14 @@ Most kits hand you every option. 23rd picks a direction: spacing, motion, and in
 
 - **shadcn-native**: install with the CLI, own the source in your repo
 - **Opinionated defaults**: less boilerplate, clearer decisions
-- **React and Svelte 5**: every published registry item ships for both; pick a framework on the install command
+- **React-first**: every item is a single client component with typed props
 
 ## Quick start
 
-Install a component (React):
+Install a component:
 
 ```bash
 pnpm dlx shadcn@latest add @23rd/gooey-color-picker
-```
-
-Svelte 5 (lands in `src/lib/components/ui/`):
-
-```bash
-pnpm dlx shadcn@latest add @23rd/gooey-color-picker-svelte
 ```
 
 Or pull straight from GitHub:
@@ -67,7 +61,7 @@ pnpm dlx shadcn@latest add radiumcoders/23rd.dev/gooey-color-picker
 
 ## Agent skill - IN BETA STAGE
 
-The 23rd agent skill teaches a coding agent every published registry component: which one fits, how to install it for React or Svelte, and the props that actually exist. It also knows when not to use a component.
+The 23rd agent skill teaches a coding agent every published registry component: which one fits, how to install it, and the props that actually exist. It also knows when not to use a component.
 
 [![skills.sh](https://skills.sh/b/radiumcoders/23rd.dev)](https://skills.sh/radiumcoders/23rd.dev)
 
@@ -119,19 +113,6 @@ export function Example() {
 }
 ```
 
-Svelte:
-
-```svelte
-<script>
-  import GooeyColorPicker from "$lib/components/ui/gooey-color-picker.svelte"
-</script>
-
-<GooeyColorPicker
-  defaultValue={{ h: 210, s: 90, l: 55, a: 1 }}
-  onChange={(color, css) => console.log(color, css)}
-/>
-```
-
 ## Develop locally
 
 This repo is the docs site and registry source.
@@ -151,7 +132,7 @@ Useful scripts:
 | `pnpm cf:deploy`      | Build with OpenNext and deploy to Cloudflare Workers   |
 | `pnpm cf:upload`      | Build with OpenNext and upload a preview version       |
 | `pnpm registry:build` | Emit `public/r/*.json` from `registry/`                |
-| `pnpm test`           | Registry, Svelte compile, OG, and sponsors tests       |
+| `pnpm test`           | Registry, listings, OG, and sponsors tests             |
 | `pnpm typecheck`      | MDX + TypeScript check                                 |
 | `pnpm lint`           | ESLint                                                 |
 
@@ -232,7 +213,7 @@ Paste the matching `https://` payment link when prompted. Redeploy after changin
 
 ## Contributing
 
-New components live under `registry/<name>/` with a vanilla engine, React/Svelte wrappers, and a `registry.json` (React item plus `<name>-svelte`), then get documented in `content/docs/components/`. Run `pnpm registry:build` before shipping registry changes.
+New components live under `registry/<name>/` with a vanilla engine, a React wrapper, and a `registry.json`, then get documented in `content/docs/components/`. Run `pnpm registry:build` before shipping registry changes.
 
 PRs that sharpen defaults, fix edge cases, or add tasteful components are welcome.
 

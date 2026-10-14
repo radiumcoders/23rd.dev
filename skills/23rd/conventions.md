@@ -8,9 +8,8 @@ Use this only when the task is to add or change a registry item in `radiumcoders
 registry/<name>/
   <name>-vanilla.ts          engine, no React
   <name>.tsx                 "use client" wrapper
-  <name>.svelte              Svelte 5 wrapper
   <name>-demo.tsx            docs controls (optional; gooey inlines the component)
-  registry.json              React item + <name>-svelte item
+  registry.json              one React item
 content/docs/components/<name>.mdx
 ```
 
@@ -36,19 +35,6 @@ Match `registry/shader-gradient/registry.json`.
           "target": "components/ui/<name>.tsx"
         }
       ]
-    },
-    {
-      "name": "<name>-svelte",
-      "type": "registry:ui",
-      "title": "Human Title",
-      "description": "Same sentence.",
-      "files": [
-        {
-          "path": "<name>.svelte",
-          "type": "registry:file",
-          "target": "src/lib/components/ui/<name>.svelte"
-        }
-      ]
     }
   ]
 }
@@ -56,12 +42,10 @@ Match `registry/shader-gradient/registry.json`.
 
 Rules tests enforce (`tests/registry.test.mjs`):
 
-- Both items exist. Svelte name is `<name>-svelte`.
 - `title` and `description` are non-empty strings.
-- React `files[].type` is `registry:ui` and `target` is `components/ui/<name>.tsx`.
-- Svelte `files[].type` is `registry:file` and `target` is `src/lib/components/ui/<file>.svelte` (`svelteTarget`).
+- `files[].type` is `registry:ui` and `target` is `components/ui/<name>.tsx`.
 - `dependencies` / `devDependencies` / `registryDependencies`, if present, are arrays of non-empty strings.
-- Declare `motion` on the React item only when the wrapper imports `motion`. Svelte ports of those components currently declare no npm dependencies.
+- Declare `motion` only when the wrapper imports `motion`.
 - Omit `dependencies` when there are none. Do not add a fake registry dependency.
 
 `scripts/build-registry.mjs` discovers `registry/*/registry.json`, rewrites the root `registry.json` `include` list, writes `.registry-standalone/` with vanilla code inlined, runs `shadcn registry validate` and `shadcn build` into `public/r/`.
@@ -78,17 +62,9 @@ React:
 - Do not pass `onThemeChange` through. Watch theme inside the wrapper if the CSS fallback needs it.
 - Re-export public constants and types the docs name (`LIGHT_COLORS`, `GooeyColor`, …).
 
-Svelte 5:
-
-- `<script module lang="ts">` empty, then `<script lang="ts">`. The inliner fills the module script. Keep that empty module block.
-- `$props()`. Prop is `class`, destructured as `className`.
-- Local `cn(...parts)` that filters falsy strings. Do not import `@/lib/utils`.
-- `children` is `Snippet`. Overlay scroll is an `HTMLElement` (`scrollEl`, `container`), not a ref object.
-- Same defaults as React.
-
 Vanilla:
 
-- No React, no Svelte, no `@/` imports.
+- No React, no `@/` imports.
 - Export an options type, an instance type `{ setOptions, destroy }`, and `create<Name>(canvas | root, options)`.
 - Every component works in light and dark mode. Expose `theme?: "light" | "dark" | "auto"` (default `"auto"`) and give anything theme-sensitive (ink, fades, backfaces, glows) a light and a dark value. Watch `html` attributes and `prefers-color-scheme` so `auto` follows the page live.
 - Theme helper: `html.dark` / `html.light`, then `data-theme`, then `prefers-color-scheme`. Copy `isDarkTheme` from `logo-burst-vanilla.ts` rather than inventing a new contract.
@@ -130,21 +106,10 @@ Or install straight from the public GitHub source registry:
 
 ## Usage
 
-<FrameworkCode>
-  <FrameworkReact>
 ```tsx
 "use client"
 import { Foo } from "@/components/ui/<name>"
 ```
-  </FrameworkReact>
-  <FrameworkSvelte>
-```svelte
-<script>
-  import Foo from "$lib/components/ui/<name>.svelte"
-</script>
-```
-  </FrameworkSvelte>
-</FrameworkCode>
 
 ## Props
 
@@ -154,7 +119,7 @@ import { Foo } from "@/components/ui/<name>"
 
 Add the page under a separator in `content/docs/components/meta.json`. Current groups: Background, Shaders, Footers, Characters, Pages, Sections, Components. Separators look like `"---Background---"`.
 
-MDX components already global: `CliCommand`, `ComponentPreview`, `ComponentControls`, `FrameworkCode`, `FrameworkReact`, `FrameworkSvelte`.
+MDX components already global: `CliCommand`, `ComponentPreview`, `ComponentControls`.
 
 Props tables must match the wrapper defaults. Do not copy a usage example into the Default column.
 
@@ -174,7 +139,6 @@ pnpm typecheck
 
 ## Do not
 
-- Publish a React-only item. Tests require a Svelte port.
 - Ship a component that only looks right in one theme.
 - Import `./<name>-vanilla` from a file that is not the wrapper the build inlines.
 - Put site chrome (`components/docs-shell.tsx`, `components/ui/button.tsx`) into the registry. `components/ui/*` in this repo is the docs site’s shadcn kit, not the published set.

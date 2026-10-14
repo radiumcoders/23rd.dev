@@ -1,13 +1,6 @@
 # Public APIs
 
-Types below are what the React modules export. Svelte components take the same fields with these renames:
-
-| React | Svelte |
-| --- | --- |
-| `className` | `class` |
-| `children?: ReactNode` | `children?: Snippet` |
-| `scrollRef?: RefObject<HTMLElement \| null>` | `scrollEl?: HTMLElement` |
-| `containerRef?: RefObject<HTMLElement \| null>` | `container?: HTMLElement` |
+Types below are what the React modules export.
 
 Vanilla `onThemeChange` and `onHasGl` are not React props. The wrappers subscribe internally. `Dithered404` vanilla `onHideCursor` is also internal to the wrapper.
 
@@ -415,7 +408,7 @@ type FolioPlayDetail = {
 }
 ```
 
-React exports `playFolioDemo`, `FOLIO_PLAY` (`"folio:play"`), `applyFolioFrame`. The Svelte component listens for that window event. Reduced motion: no tilt, no blur.
+React exports `playFolioDemo`, `FOLIO_PLAY` (`"folio:play"`), `applyFolioFrame`. Reduced motion: no tilt, no blur.
 
 ## typewriter
 

@@ -3,7 +3,6 @@
 import { useSyncExternalStore } from "react"
 
 import { CopyButton } from "@/components/copy-button"
-import { FrameworkSelect } from "@/components/framework-select"
 import { trackEvent } from "@/components/tracwell-analytics"
 import {
   BunIcon,
@@ -19,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { registryItemName, useFramework } from "@/lib/framework"
 import { cn } from "@/lib/utils"
 
 const STORAGE_KEY = "23rd:package-manager"
@@ -98,8 +96,7 @@ export interface CliCommandProps {
    */
   command?: string
   /**
-   * Registry item name without a framework suffix, e.g. `"shader-gradient"`.
-   * The active framework picker appends `-svelte` when Svelte is selected.
+   * Registry item name, e.g. `"shader-gradient"`.
    */
   item?: string
   /** Install from GitHub (`radiumcoders/23rd.dev/<item>`) instead of `@23rd/<item>`. */
@@ -114,11 +111,10 @@ export interface CliCommandProps {
   className?: string
 }
 
-function commandForItem(item: string, github: boolean, svelte: boolean) {
-  const name = registryItemName(item, svelte ? "svelte" : "react")
+function commandForItem(item: string, github: boolean) {
   return github
-    ? `shadcn@latest add radiumcoders/23rd.dev/${name}`
-    : `shadcn@latest add @23rd/${name}`
+    ? `shadcn@latest add radiumcoders/23rd.dev/${item}`
+    : `shadcn@latest add @23rd/${item}`
 }
 
 export function CliCommand({
@@ -132,7 +128,6 @@ export function CliCommand({
   defaultManager = "pnpm",
   className,
 }: CliCommandProps) {
-  const { framework } = useFramework()
   const manager = useSyncExternalStore(
     subscribeManager,
     () => readStoredManager() ?? defaultManager,
@@ -140,8 +135,7 @@ export function CliCommand({
   )
 
   const resolvedCommand =
-    command ??
-    (item ? commandForItem(item, github, framework === "svelte") : "")
+    command ?? (item ? commandForItem(item, github) : "")
 
   const fromCommand = resolvedCommand ? buildCommands(resolvedCommand) : null
   const commands: Record<PackageManager, string> = {
@@ -205,8 +199,6 @@ export function CliCommand({
             </SelectContent>
           </Select>
         </div>
-
-        {item ? <FrameworkSelect /> : null}
       </div>
 
       <div className="flex items-center gap-2 py-1.5 pr-1.5 pl-3.5">
@@ -220,7 +212,6 @@ export function CliCommand({
           onCopied={() =>
             trackEvent("cli_command_copied", {
               package_manager: manager,
-              framework,
               source: github ? "github" : "registry",
               ...(item ? { item } : {}),
             })

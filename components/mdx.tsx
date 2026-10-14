@@ -4,11 +4,6 @@ import type { MDXComponents } from "mdx/types"
 import { CliCommand } from "@/components/cli-command"
 import { ComponentControls } from "@/components/component-controls"
 import { ComponentPreview } from "@/components/component-preview"
-import {
-  FrameworkCode,
-  FrameworkReact,
-  FrameworkSvelte,
-} from "@/components/framework-code"
 import { MdxPre } from "@/components/mdx-pre"
 import {
   MdxTable,
@@ -25,9 +20,6 @@ export function getMDXComponents(components?: MDXComponents) {
     CliCommand,
     ComponentControls,
     ComponentPreview,
-    FrameworkCode,
-    FrameworkReact,
-    FrameworkSvelte,
     pre: MdxPre,
     table: MdxTable,
     thead: MdxTableHeader,

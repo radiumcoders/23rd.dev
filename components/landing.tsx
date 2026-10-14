@@ -54,8 +54,8 @@ function Hero() {
         Components with <span className="text-muted-foreground">a pulse</span>
       </h1>
       <p className="mt-5 max-w-lg text-base text-pretty text-muted-foreground sm:text-lg">
-        Shaders, backgrounds and interactive pieces for React and Svelte. Add
-        one with the shadcn CLI and own every line of it.
+        Shaders, backgrounds and interactive pieces for React. Add one with
+        the shadcn CLI and own every line of it.
       </p>
       <div className="pointer-events-auto mt-8 flex flex-wrap items-center justify-center gap-3">
         <Link
