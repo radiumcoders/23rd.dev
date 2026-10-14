@@ -1,0 +1,80 @@
+---
+title: Snake 404
+description: A dot-matrix 404 where every dot is food. A Nokia-style snake eats the digits, then they come back. Click to play.
+---
+
+import { Snake404Demo } from "@/components/demos"
+
+<Snake404Demo />
+
+## Installation
+
+<CliCommand item="snake-404" />
+
+Or from the public GitHub registry:
+
+<CliCommand item="snake-404" github />
+
+## Usage
+
+Pin it inside a relatively positioned section. The snake finds its own way to the nearest pellet. Each meal travels down the body as a bulge, and the snake grows by one when the bulge reaches the tail.
+
+```tsx
+"use client"
+
+import { Snake404 } from "@/components/ui/snake-404"
+
+export function NotFound() {
+  return (
+    <section className="relative isolate min-h-svh overflow-hidden bg-background">
+      <Snake404 />
+      <div className="pointer-events-none relative z-10 flex min-h-svh flex-col items-center justify-end px-6 pb-16 text-center">
+        <p className="text-sm text-muted-foreground">
+          This page could not be found.
+        </p>
+      </div>
+    </section>
+  )
+}
+```
+
+Click the field, then steer with the arrow keys or WASD. On touch screens, swipe. Hitting a wall or the snake's own body ends the game: the snake blinks and autopilot starts again. Press Esc, or move focus away, to hand control back. Keep overlays `pointer-events-none` so clicks reach the field.
+
+The green Nokia screen:
+
+```tsx
+<Snake404 lcd />
+```
+
+Other status codes. Only the digits 0–9 are drawn.
+
+```tsx
+<Snake404 code="500" />
+```
+
+Step cell by cell like the phone did:
+
+```tsx
+<Snake404 smooth={false} speed={10} />
+```
+
+## Props
+
+| Prop           | Type                          | Default                       |
+| -------------- | ----------------------------- | ----------------------------- |
+| `code`         | `string`                      | `"404"`                       |
+| `color`        | `string`                      | theme ink, or LCD ink         |
+| `cellSize`     | `number`                      | `12`                          |
+| `speed`        | `number`                      | `14`, cells per second        |
+| `maxLength`    | `number`                      | `32`                          |
+| `grid`         | `boolean`                     | `true`                        |
+| `lcd`          | `boolean`                     | `false`                       |
+| `playable`     | `boolean`                     | `true`                        |
+| `score`        | `boolean`                     | `true`                        |
+| `smooth`       | `boolean`                     | `true`                        |
+| `theme`        | `"light" \| "dark" \| "auto"` | `"auto"`                      |
+| `onEat`        | `(left, total) => void`       | none                          |
+| `onClear`      | `() => void`                  | none                          |
+| `onPlayChange` | `(playing) => void`           | none                          |
+| `label`        | `string`                      | `"404, page not found"`       |
+| `className`    | `string`                      | none                          |

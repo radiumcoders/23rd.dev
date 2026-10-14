@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "items": [
+    {
+      "name": "snake-404",
+      "type": "registry:ui",
+      "title": "Snake 404",
+      "description": "Dot-matrix 404 where every dot is food: a Nokia-style snake eats the digits, then they come back. Arrow keys, WASD, or a swipe take over.",
+      "files": [
+        {
+          "path": "snake-404.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/snake-404.tsx"
+        }
+      ]
+    }
+  ]
+}

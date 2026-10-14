@@ -110,6 +110,10 @@ export const ShaderSkyDemo = lazyDemo(() =>
   import("@/registry/shader-sky/shader-sky-demo").then((m) => m.ShaderSkyDemo)
 )
 
+export const Snake404Demo = lazyDemo(() =>
+  import("@/registry/snake-404/snake-404-demo").then((m) => m.Snake404Demo)
+)
+
 export const StretchyFooterDemo = lazyDemo(() =>
   import("@/registry/stretchy-footer/stretchy-footer-demo").then(
     (m) => m.StretchyFooterDemo
