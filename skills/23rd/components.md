@@ -438,6 +438,27 @@ export function Cover() {
 
 Pitfalls: remote images must send CORS headers; an unreadable image is shown clean with no scan. The frame takes the image's aspect ratio and full width; set height and width in `className` to crop instead (`fit` picks cover or contain). Reduced motion shows the clean image immediately.
 
+## prompt-box
+
+AI component. The message composer for a chat UI: a soft, padded shell (tinted, no borders) holding a lifted field with an auto-growing textarea, an attach button, a `toolbar` slot, and a square send button. Images attach by picker, paste, or drop and sit in the shell as small pills (round thumbnail and name; upload `progress` fills the pill). Clicking a pill splits it: the capsule lifts off into a floating island above that pill (absolutely positioned, 10px up, sized to the image's aspect up to 300px tall and the prompt's width; the prompt never moves) carrying the image, with only close and remove buttons in its corner; Escape, a click on it, or a click outside settles it back into the pill. `busy` turns send into stop with a spinner.
+
+Best fit: the input of an AI chat or agent UI, especially one that takes images.
+
+Not this: a reply or text reveal (it is only the input), a general form textarea, or a progress tracker.
+
+Deps: `motion`. Key props: `onSubmit`, `busy`, `onStop`, `attachments` / `onAttachmentsChange`, `toolbar`, `placeholder`.
+
+```tsx
+"use client"
+import { PromptBox } from "@/components/ui/prompt-box"
+
+export function Composer({ busy, stop, send }: { busy: boolean; stop: () => void; send: (text: string) => void }) {
+  return <PromptBox className="max-w-2xl" busy={busy} onStop={stop} onSubmit={({ text }) => send(text)} />
+}
+```
+
+Pitfalls: the island floats above the prompt, so leave room above it (don't put the prompt flush against the top of a clipping container). To show a real upload, control `attachments` and drive each `progress` 0–1, then omit it; uncontrolled images are ready at once. The shell grows upward and downward with content, so don't give it a fixed height; set width with `className`.
+
 ## folio
 
 Section. The sheet tips one way on scroll down, the other on scroll up, blur on the traveling edge, then springs flat. Peak tilt is an internal 16°.

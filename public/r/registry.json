@@ -156,6 +156,22 @@
       "type": "registry:ui"
     },
     {
+      "name": "prompt-box",
+      "title": "Prompt Box",
+      "description": "A prompt field for AI chat in a soft shell. Images attach as pills that open large inside the field, tasks in flight show progress above it, and send turns into stop while a reply is busy.",
+      "dependencies": [
+        "motion"
+      ],
+      "files": [
+        {
+          "path": "registry/prompt-box/prompt-box.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/prompt-box.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "radiant-lines",
       "title": "Radiant Lines",
       "description": "A hyperspace starfield background: colored streaks radiate from the center, with warp speed driven by scroll velocity.",

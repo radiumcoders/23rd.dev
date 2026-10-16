@@ -3,7 +3,7 @@ name: 23rd
 description: >
   Install, choose, and compose 23rd shadcn/ui registry components for React.
   Use when the user wants a UI component, background, shader, WebGL
-  wash, liquid metal or chrome, hero atmosphere, footer, 404, color picker, typewriter text, keyboard shortcut recorder, ASCII effect,
+  wash, liquid metal or chrome, hero atmosphere, footer, 404, color picker, AI chat prompt input, typewriter text, keyboard shortcut recorder, ASCII effect,
   starfield, orb, or page-tilt from the 23rd registry (@23rd, 23rd.dev, radiumcoders/23rd.dev),
   or when adding a new component to this registry. Covers install commands,
   import paths, props, theming, and when not to use each item.
@@ -57,6 +57,7 @@ npm dependencies the registry declares:
 | Item | Dependencies |
 | --- | --- |
 | `gooey-color-picker` | `motion` |
+| `prompt-box` | `motion` |
 | `ring-tower` | `three` |
 | `mech-keyboard` | `three` |
 | every other item | none |
@@ -73,6 +74,7 @@ flowchart TD
   pick -->|Atmosphere behind a hero| atmo{Mood}
   pick -->|Footer or page-end| foot{Treatment}
   pick -->|Reveal an image from a dither| ds[dither-scan]
+  pick -->|Chat input for an AI app| pb[prompt-box]
   pick -->|Full page 404| p404{Treatment}
   pick -->|Scroll makes the page lean| folio[folio]
   pick -->|Character or wordmark| mark{Which}
@@ -105,6 +107,7 @@ Disambiguation that agents get wrong:
 | 404 that burns under the cursor | `dithered-404` | `shader-anime-fire` |
 | Snake game, Nokia, retro 404 or 500 you can play | `snake-404` | `dithered-404` (fire, not a game) |
 | Image that un-dithers, scan line, enhance or processing reveal | `dither-scan` | `dithered-404` (a 404 glyph, not your image) |
+| Chat composer, prompt box, message input, image attachments | `prompt-box` | `typewriter` (a typewriter illustration, not a chat input) |
 | Overscroll rubber band, aurora at the bottom | `stretchy-footer` | `folio` |
 | Page leans while scrolling | `folio` | `stretchy-footer` (that one stretches, it does not tilt) |
 | Stars that speed up when you scroll | `radiant-lines` | `logo-burst` |
@@ -170,6 +173,7 @@ Categories match `content/docs/components/meta.json`.
 | Name | Category | One line |
 | --- | --- | --- |
 | `dither-scan` | AI Components | 1-bit dithered image a diagonal scan line clears in N passes |
+| `prompt-box` | AI Components | Prompt field in a soft shell; image pills open large in place; busy stop |
 | `logo-burst` | Background | Hair-line tentacles explode from center, then breathe |
 | `phosphor-score` | Background | Vertical CRT score; notes fall, bloom, flare |
 | `radiant-lines` | Background | Hyperspace streaks; warp follows scroll |

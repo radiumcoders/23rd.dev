@@ -3,6 +3,7 @@
   "pages": [
     "---AI Components---",
     "dither-scan",
+    "prompt-box",
     "---Background---",
     "logo-burst",
     "radiant-lines",

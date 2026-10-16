@@ -437,6 +437,34 @@ type DitherScanProps = {
 
 `LIGHT_COLORS` `["#18181B", "#F4F4F5"]`, `DARK_COLORS` `["#09090B", "#D4D4D8"]`. Also exports `levelSpec(level, passes, pixelSize)`. Vanilla `onLoad` and `onScanningChange` are internal to the wrapper, which sets `data-scanning` and `aria-busy` while sweeping.
 
+## prompt-box
+
+```ts
+type PromptBoxProps = {
+  value?: string
+  defaultValue?: string // ""
+  onValueChange?: (value: string) => void
+  onSubmit?: (message: { text: string; attachments: PromptBoxAttachment[] }) => void // Enter; Shift+Enter is a newline
+  placeholder?: string // "Ask anything…"
+  attachments?: PromptBoxAttachment[]
+  defaultAttachments?: PromptBoxAttachment[] // []
+  onAttachmentsChange?: (attachments: PromptBoxAttachment[]) => void
+  accept?: string // "image/*", for picker, paste, and drop
+  maxAttachments?: number // 6
+  busy?: boolean // false; send becomes stop with a spinner
+  onStop?: () => void
+  disabled?: boolean
+  toolbar?: ReactNode // beside the attach button
+  minRows?: number // 2
+  maxRows?: number // 8
+  className?: string // on the shell; set the width here
+}
+
+type PromptBoxAttachment = { id: string; name: string; url: string; file?: File; progress?: number /* 0–1 uploading */; error?: boolean }
+```
+
+Also exports `PromptBoxAction` (a toolbar button that matches the field). Uncontrolled text and attachments clear after `onSubmit`. Send is disabled while any attachment has `progress` or `error`. Clicking a pill opens the image large in the shell; Escape or a click closes it. The component makes object URLs for added files, revokes them on remove, and hands them to you on submit. No tasks, slash-command menu, model picker, voice input, or `theme` prop; it uses theme tokens. Put extra controls in `toolbar`.
+
 ## folio
 
 ```ts

@@ -78,6 +78,10 @@ export const PhosphorScoreDemo = lazyDemo(() =>
   )
 )
 
+export const PromptBoxDemo = lazyDemo(() =>
+  import("@/registry/prompt-box/prompt-box-demo").then((m) => m.PromptBoxDemo)
+)
+
 export const RadiantLinesDemo = lazyDemo(() =>
   import("@/registry/radiant-lines/radiant-lines-demo").then(
     (m) => m.RadiantLinesDemo

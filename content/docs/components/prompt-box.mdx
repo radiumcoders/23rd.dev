@@ -1,0 +1,119 @@
+---
+title: Prompt Box
+description: A prompt field for AI chat in a soft shell, with image pills that open large and a busy state.
+---
+
+import { PromptBoxDemo } from "@/components/demos"
+
+<PromptBoxDemo />
+
+## Installation
+
+<CliCommand item="prompt-box" />
+
+Or from the public GitHub registry:
+
+<CliCommand item="prompt-box" github />
+
+## Usage
+
+Enter sends and Shift+Enter starts a new line. Text and attachments clear after sending unless you control them.
+
+```tsx
+"use client"
+
+import { useChat } from "@ai-sdk/react"
+
+import { PromptBox } from "@/components/ui/prompt-box"
+
+export function Composer() {
+  const { sendMessage, status, stop } = useChat()
+
+  return (
+    <PromptBox
+      busy={status === "submitted" || status === "streaming"}
+      onStop={stop}
+      onSubmit={({ text }) => sendMessage({ text })}
+    />
+  )
+}
+```
+
+The field sits lifted inside a soft, padded shell, told apart by tone rather than borders. Attachment pills live in the shell above the field. The field grows with the text from `minRows` to `maxRows`, then scrolls. While `busy`, the send button becomes a stop button with a spinner, and Enter does nothing.
+
+### Images
+
+Images come in through the plus button, a paste, or a drop anywhere on the field. Each one becomes a small pill in the shell, with a round thumbnail and its name. Click a pill and it splits: its capsule lifts off, swells into an island that floats just above it, and carries the image up with it. The island takes the image's shape, up to 300px tall and never wider than the prompt: a portrait opens tall and narrow, a panorama wide and short. The prompt itself never moves; the island floats over whatever sits above it. Once the image lands, two small buttons to close or remove it appear in its corner, and the open pill inverts. Click the image, press Escape, or click anywhere else, and the island settles back into its pill.
+
+Uncontrolled, an image is ready as soon as it's added. To show a real upload, control `attachments` and set `progress` from 0 to 1. The pill fills as it goes, and Send waits until every image is ready. Leave `progress` out once it's done, or set `error`. An image with an error blocks Send until it's removed.
+
+```tsx
+const [files, setFiles] = useState<PromptBoxAttachment[]>([])
+
+<PromptBox
+  attachments={files}
+  onAttachmentsChange={(next) => {
+    setFiles(next)
+    for (const file of next) if (file.file && file.progress === undefined) upload(file)
+  }}
+/>
+```
+
+The prompt makes an object URL for every image it adds. It frees the URL when you remove the image. After a send, the URLs belong to you.
+
+### Toolbar
+
+`toolbar` puts your own controls beside the attach button. `PromptBoxAction` is a button that matches the prompt; give one `ms-auto` to push it toward Send.
+
+```tsx
+import { PromptBox, PromptBoxAction } from "@/components/ui/prompt-box"
+
+<PromptBox
+  toolbar={
+    <>
+      <PromptBoxAction>Auto</PromptBoxAction>
+      <PromptBoxAction className="ms-auto">Opus 5.5</PromptBoxAction>
+    </>
+  }
+/>
+```
+
+## Props
+
+| Prop                  | Type                                  | Default           |
+| --------------------- | ------------------------------------- | ----------------- |
+| `value`               | `string`                              | uncontrolled      |
+| `defaultValue`        | `string`                              | `""`              |
+| `onValueChange`       | `(value: string) => void`             | none              |
+| `onSubmit`            | `(message: PromptBoxMessage) => void` | none              |
+| `placeholder`         | `string`                              | `"Ask anything…"` |
+| `attachments`         | `PromptBoxAttachment[]`               | uncontrolled      |
+| `defaultAttachments`  | `PromptBoxAttachment[]`               | `[]`              |
+| `onAttachmentsChange` | `(attachments) => void`               | none              |
+| `accept`              | `string`                              | `"image/*"`       |
+| `maxAttachments`      | `number`                              | `6`               |
+| `busy`                | `boolean`                             | `false`           |
+| `onStop`              | `() => void`                          | none              |
+| `disabled`            | `boolean`                             | `false`           |
+| `toolbar`             | `ReactNode`                           | none              |
+| `minRows`             | `number`                              | `2`               |
+| `maxRows`             | `number`                              | `8`               |
+| `className`           | `string`                              | none              |
+
+```ts
+type PromptBoxAttachment = {
+  id: string
+  name: string
+  url: string
+  file?: File
+  progress?: number // 0–1 while uploading
+  error?: boolean
+}
+
+type PromptBoxMessage = {
+  text: string
+  attachments: PromptBoxAttachment[]
+}
+```
+
+`className` goes on the shell; set its width there (`max-w-2xl`). An uploading pill shows its `progress` as a fill, so it keeps its width. With reduced motion, the shell and field resize and images open without the spring.
