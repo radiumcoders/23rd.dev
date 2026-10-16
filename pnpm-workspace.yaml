@@ -5,7 +5,3 @@ allowBuilds:
   unrs-resolver: true
   msw: false
   esbuild: true
-  workerd: true
-
-patchedDependencies:
-  '@opennextjs/aws@4.1.0': patches/@opennextjs__aws@4.1.0.patch
