@@ -129,7 +129,7 @@ export function resolveSponsorCheckoutHref(
 
 function readCheckoutUrl(id: SponsorTierId): string | undefined {
   // Dynamic lookup so Next.js does not inline the value at build time.
-  // Cloudflare Worker secrets are then available at request time.
+  // Vercel environment variables are then read at request time.
   return process.env[sponsorCheckoutEnvKey(id)]
 }
 

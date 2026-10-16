@@ -14,9 +14,6 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     ".source/**",
     ".registry-standalone/**",
-    // OpenNext / Wrangler build output (pnpm preview, cf:deploy)
-    ".open-next/**",
-    ".wrangler/**",
   ]),
 ]);
 
