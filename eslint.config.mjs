@@ -18,6 +18,14 @@ const eslintConfig = defineConfig([
     ".open-next/**",
     ".wrangler/**",
   ]),
+  // 21st/ demos run standalone in 21st.dev's sandbox, not as Next pages.
+  {
+    files: ["21st/**"],
+    rules: {
+      "@next/next/no-html-link-for-pages": "off",
+      "@next/next/no-img-element": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;
