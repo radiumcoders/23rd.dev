@@ -50,6 +50,11 @@ export type MechKeyboardProps = {
   recorder?: boolean
   /** Recorder text before the first key. */
   placeholder?: string
+  /**
+   * `KeyboardEvent.code`s the recorder starts on, shown as saved until the
+   * next key, e.g. the current binding: `["MetaLeft", "KeyK"]`.
+   */
+  defaultShortcut?: string[]
   /** `KeyboardEvent.code`s to pulse, e.g. `["MetaLeft", "KeyK"]`. */
   highlight?: string[]
   /** Bottom-row legends. `"auto"` detects Mac. */
@@ -96,6 +101,7 @@ export function MechKeyboard({
   interactive = true,
   recorder = true,
   placeholder = DEFAULT_PLACEHOLDER,
+  defaultShortcut,
   highlight,
   platform = "auto",
   sound = false,
@@ -116,7 +122,11 @@ export function MechKeyboard({
   const [chord, setChord] = useState<{
     codes: string[]
     phase: MechKeyboardChordPhase
-  }>({ codes: [], phase: "idle" })
+  }>(() =>
+    defaultShortcut?.length
+      ? { codes: defaultShortcut, phase: "done" }
+      : { codes: [], phase: "idle" }
+  )
 
   const resolvedPlatform = platform === "auto" ? detected : platform
   const shortcut = formatShortcut(chord.codes, resolvedPlatform)

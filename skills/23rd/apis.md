@@ -503,6 +503,7 @@ type MechKeyboardProps = {
   interactive?: boolean // true: window keys and clicks press keys
   recorder?: boolean // true: illustrated keycaps spelling out the chord
   placeholder?: string // "Press a shortcut"
+  defaultShortcut?: string[] // codes the recorder starts on, shown as saved
   highlight?: string[] // KeyboardEvent.code values to pulse
   platform?: "auto" | "mac" | "pc" // "auto": bottom-row legends and labels
   sound?: boolean // false: synthesized switch sounds
