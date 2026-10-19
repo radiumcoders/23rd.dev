@@ -70,28 +70,29 @@ Remote images must send CORS headers, because the dither reads their pixels. An 
 
 ## Props
 
-| Prop         | Type                                     | Default                    |
-| ------------ | ---------------------------------------- | -------------------------- |
-| `src`        | `string`                                 | required                   |
-| `alt`        | `string`                                 | `""`                       |
-| `passes`     | `number`                                 | `4`, 1–12                  |
-| `duration`   | `number`                                 | `1400`, ms per pass        |
-| `pause`      | `number`                                 | `280`, ms between passes   |
-| `angle`      | `number`                                 | `45`, degrees of travel    |
-| `alternate`  | `boolean`                                | `true`                     |
-| `pixelSize`  | `number`                                 | `6`, first-pass cell in px |
-| `blur`       | `number`                                 | `6`, px, `0` is off        |
-| `colors`     | `[shadow: string, highlight: string]`    | theme ink and paper        |
-| `lineColor`  | `string`                                 | inverts what's under it    |
-| `fit`        | `"cover" \| "contain"`                   | `"cover"`                  |
-| `autoPlay`   | `boolean`                                | `true`, when in view       |
-| `loop`       | `boolean`                                | `false`                    |
-| `loopDelay`  | `number`                                 | `2400`, ms on clean image  |
-| `replayKey`  | `number`                                 | `0`                        |
-| `theme`      | `"light" \| "dark" \| "auto"`            | `"auto"`                   |
-| `onStart`    | `() => void`                             | none                       |
-| `onPass`     | `(pass: number, passes: number) => void` | none                       |
-| `onComplete` | `() => void`                             | none                       |
-| `className`  | `string`                                 | none                       |
+| Prop                    | Type                                     | Default                    |
+| ----------------------- | ---------------------------------------- | -------------------------- |
+| `src`                   | `string`                                 | required                   |
+| `alt`                   | `string`                                 | `""`                       |
+| `passes`                | `number`                                 | `4`, 1–12                  |
+| `duration`              | `number`                                 | `1400`, ms per pass        |
+| `pause`                 | `number`                                 | `280`, ms between passes   |
+| `angle`                 | `number`                                 | `45`, degrees of travel    |
+| `alternate`             | `boolean`                                | `true`                     |
+| `pixelSize`             | `number`                                 | `6`, first-pass cell in px |
+| `blur`                  | `number`                                 | `6`, px, `0` is off        |
+| `colors`                | `[shadow: string, highlight: string]`    | theme ink and paper        |
+| `lineColor`             | `string`                                 | inverts what's under it    |
+| `fit`                   | `"cover" \| "contain"`                   | `"cover"`                  |
+| `autoPlay`              | `boolean`                                | `true`, when in view       |
+| `loop`                  | `boolean`                                | `false`                    |
+| `loopDelay`             | `number`                                 | `2400`, ms on clean image  |
+| `reducedMotionProgress` | `number`                                 | none, 0–1                  |
+| `replayKey`             | `number`                                 | `0`                        |
+| `theme`                 | `"light" \| "dark" \| "auto"`            | `"auto"`                   |
+| `onStart`               | `() => void`                             | none                       |
+| `onPass`                | `(pass: number, passes: number) => void` | none                       |
+| `onComplete`            | `() => void`                             | none                       |
+| `className`             | `string`                                 | none                       |
 
-With reduced motion the image is shown clean, without sweeps.
+With reduced motion the image is shown clean, without sweeps. Set `reducedMotionProgress` (0–1) to hold one still frame instead, with the line resting that far across: the 1-bit print ahead of it, the clean image behind.

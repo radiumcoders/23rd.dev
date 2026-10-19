@@ -50,6 +50,7 @@ export function DitherScan({
   autoPlay = true,
   loop = false,
   loopDelay = 2400,
+  reducedMotionProgress,
   theme = "auto",
   replayKey = 0,
   onStart,
@@ -87,6 +88,7 @@ export function DitherScan({
     autoPlay,
     loop,
     loopDelay,
+    reducedMotionProgress,
     theme,
   }
 
@@ -130,6 +132,7 @@ export function DitherScan({
     autoPlay,
     loop,
     loopDelay,
+    reducedMotionProgress,
     theme,
   ])
 

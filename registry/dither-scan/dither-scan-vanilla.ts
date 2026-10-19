@@ -32,6 +32,12 @@ export type DitherScanOptions = {
   /** Hold on the clean image before a loop, in ms. Default `2400` */
   loopDelay?: number
   /**
+   * Under `prefers-reduced-motion`, hold one frame with the line this far
+   * across, 0–1: the 1-bit print ahead of it, the clean image behind.
+   * Unset shows the clean image.
+   */
+  reducedMotionProgress?: number
+  /**
    * Palette mode. Default `auto` follows shadcn / next-themes
    * (`html.dark` class).
    */
@@ -248,6 +254,8 @@ const SWEEP = 1
 const HOLD = 2
 const DONE = 3
 const RESET = 4
+/** Reduced motion: one frame, the line resting part way across. */
+const STILL = 5
 
 export function createDitherScan(
   wrap: HTMLElement,
@@ -517,6 +525,11 @@ export function createDitherScan(
       return
     }
 
+    if (state === STILL) {
+      drawStill()
+      return
+    }
+
     drawLevel(pass)
     if (state !== SWEEP) return
 
@@ -548,6 +561,34 @@ export function createDitherScan(
     ctx.restore()
 
     drawScanBlur(a, u, e, f)
+
+    ctx.save()
+    ctx.translate(cssW / 2, cssH / 2)
+    ctx.rotate(a)
+    drawLine(u, f)
+    ctx.restore()
+  }
+
+  /** The 1-bit print with the clean image up to the resting line. */
+  const drawStill = () => {
+    const at = Math.min(1, Math.max(0, options.reducedMotionProgress ?? 0))
+    const a = ((options.angle ?? 45) * Math.PI) / 180
+    const cos = Math.abs(Math.cos(a))
+    const sin = Math.abs(Math.sin(a))
+    const e = (cos * cssW + sin * cssH) / 2
+    const f = (sin * cssW + cos * cssH) / 2 + 2
+    const u = -e + 2 * e * at
+
+    drawLevel(0)
+    ctx.save()
+    ctx.translate(cssW / 2, cssH / 2)
+    ctx.rotate(a)
+    ctx.beginPath()
+    ctx.rect(-e - 2, -f, u + e + 2, f * 2)
+    ctx.clip()
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    drawLevel(levels.length - 1)
+    ctx.restore()
 
     ctx.save()
     ctx.translate(cssW / 2, cssH / 2)
@@ -624,6 +665,13 @@ export function createDitherScan(
   const begin = (now = performance.now()) => {
     wantsPlay = false
     const last = levels.length - 1
+    if (reduce && last > 0 && options.reducedMotionProgress != null) {
+      pass = 0
+      state = STILL
+      setScanning(false)
+      redraw()
+      return
+    }
     if (last <= 0 || reduce) {
       pass = Math.max(0, last)
       state = DONE
@@ -778,6 +826,14 @@ export function createDitherScan(
         return
       }
       if (prev.loop !== options.loop && state === DONE) scheduleLoop()
+      if (
+        reduce &&
+        prev.reducedMotionProgress !== options.reducedMotionProgress &&
+        (state === DONE || state === STILL)
+      ) {
+        begin()
+        return
+      }
       if (prev.autoPlay === false && options.autoPlay !== false && state === IDLE) {
         requestPlay()
       }

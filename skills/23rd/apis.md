@@ -426,6 +426,7 @@ type DitherScanProps = {
   autoPlay?: boolean // true, starts when 35% in view
   loop?: boolean // false
   loopDelay?: number // 2400 ms on the clean image
+  reducedMotionProgress?: number // 0–1, reduced motion holds the line here; unset = clean
   theme?: "light" | "dark" | "auto"
   replayKey?: number // increment to re-dither and scan
   onStart?: () => void
