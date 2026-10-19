@@ -276,6 +276,7 @@ type StretchyFooterProps = {
   glow?: number // 0, white floor bloom, 0–1
   flip?: boolean // false; edge columns tallest, middle dips
   rotate?: 0 | 180 // 0; 180 hangs the aurora from the lifted page
+  peek?: number // 0; resting stretch, 0–1 of maxStretch, so the aurora shows before any scroll
   label?: string // "Stretchy overflow"
   demoId?: string
 }

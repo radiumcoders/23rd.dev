@@ -90,6 +90,7 @@ export function StretchyFooter({
   glow = DEFAULT_GLOW,
   flip = false,
   rotate = 0,
+  peek = 0,
   label = "Stretchy overflow",
   demoId,
 }: StretchyFooterProps) {
@@ -125,6 +126,7 @@ export function StretchyFooter({
         glow,
         flip,
         rotate,
+        peek,
         demoId,
       }
     )
@@ -147,6 +149,7 @@ export function StretchyFooter({
       glow,
       flip,
       rotate,
+      peek,
       demoId,
     })
   }, [
@@ -159,6 +162,7 @@ export function StretchyFooter({
     glow,
     flip,
     rotate,
+    peek,
     demoId,
   ])
 

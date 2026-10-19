@@ -71,6 +71,12 @@ export type StretchyFooterOptions = {
    */
   rotate?: 0 | 180
   /**
+   * Resting stretch as a share of `maxStretch`, 0–1: the aurora stays up
+   * over the page floor even before anyone scrolls, overscroll stretches it
+   * further and lifts the page, and it springs back to here. Default `0`.
+   */
+  peek?: number
+  /**
    * Optional id for docs demos. `playStretchyFooterDemo({ target })` only
    * plays footers whose `demoId` matches.
    */
@@ -272,6 +278,8 @@ export function createStretchyFooter(
   const stiffnessOf = () =>
     numberOr(options.stiffness, DEFAULT_STIFFNESS, 10, 4000)
   const dampingOf = () => numberOr(options.damping, DEFAULT_DAMPING, 0, 400)
+  /** Resting stretch in px; only overscroll past it lifts the page. */
+  const peekOf = () => maxOf() * numberOr(options.peek, 0, 0, 1)
   const countOf = () =>
     Math.round(numberOr(options.columns, DEFAULT_COLUMNS, 3, 96))
   /** Overscroll the user has put in, in px. The stretch is its rubber band. */
@@ -354,7 +362,7 @@ export function createStretchyFooter(
 
   function draw() {
     const stretch = Math.max(0, lift.x)
-    liftContent(stretch)
+    liftContent(Math.max(0, stretch - peekOf()))
     const max = maxOf()
     const visible = stretch > 0.2 || columns.some((column) => column.x > 0.2)
     canvas.style.visibility = visible ? "visible" : "hidden"
@@ -417,8 +425,11 @@ export function createStretchyFooter(
   let raf = 0
   let last = 0
   const retarget = () => {
-    const max = maxOf()
-    const target = forced ?? rubberBand(distance, max)
+    const rest = peekOf()
+    const target =
+      forced === null
+        ? rest + rubberBand(distance, maxOf() - rest)
+        : Math.max(forced, rest)
     lift.target = target
     for (const column of columns) column.target = target * column.share
     if (!raf) {
@@ -454,6 +465,19 @@ export function createStretchyFooter(
     }
     draw()
     if (!settled) raf = requestAnimationFrame(frame)
+  }
+
+  /** Jumps straight to the targets: no spring, for reduced motion. */
+  const settle = () => {
+    cancelAnimationFrame(raf)
+    raf = 0
+    lift.x = lift.target
+    lift.v = 0
+    for (const column of columns) {
+      column.x = column.target
+      column.v = 0
+    }
+    draw()
   }
 
   // Gestures.
@@ -584,6 +608,9 @@ export function createStretchyFooter(
   rebuildStrip()
   rebuildColumns()
   layout()
+  // A peek rises into place on mount, or is simply there under reduced motion.
+  retarget()
+  if (reduce) settle()
 
   const instance: StretchyFooterInstance = {
     setOptions(next) {
@@ -591,6 +618,7 @@ export function createStretchyFooter(
       const prevMax = maxOf()
       const prevBlur = blurOf()
       const prevFlip = Boolean(options.flip)
+      const prevPeek = peekOf()
       options = { ...options, ...next }
       if (options.colors !== prevColors) rebuildStrip()
       if (countOf() !== columns.length || Boolean(options.flip) !== prevFlip) {
@@ -599,6 +627,7 @@ export function createStretchyFooter(
       if (maxOf() !== prevMax || blurOf() !== prevBlur) layout()
       if (forced !== null) forced = Math.min(forced, maxOf())
       retarget()
+      if (reduce && forced === null && peekOf() !== prevPeek) settle()
     },
     play({ amount = 0.82, holdMs = 700 } = {}) {
       window.clearTimeout(releaseTimer)
