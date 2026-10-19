@@ -63,6 +63,8 @@ const BLINK_MS = 150
 const BLINKS = 6
 const MAX_QUEUE = 3
 const SWIPE_PX = 24
+/** Share of the digits already eaten when reduced motion holds the frame. */
+const STILL_EATEN = 0.12
 
 const DX = [1, 0, -1, 0] as const
 const DY = [0, 1, 0, -1] as const
@@ -443,7 +445,7 @@ export function createSnake404(
     }
   }
 
-  const spawn = (now: number) => {
+  const spawn = (now: number, forward = true) => {
     const row = Math.floor(rows / 2)
     // Slide in from the left edge; reduced motion parks it on screen.
     const onScreen = reduce
@@ -467,6 +469,27 @@ export function createSnake404(
     queue = []
     phase = onScreen ? "run" : "wait"
     enterAt = now + ENTER_DELAY_MS
+    if (onScreen && forward) fastForward(now)
+  }
+
+  /**
+   * Reduced motion holds one frame, so make it a meal in progress: run the
+   * autopilot until part of the code is eaten and food is right ahead.
+   */
+  const fastForward = (now: number) => {
+    const goal = Math.ceil(glyph.length * STILL_EATEN)
+    let steps = cols * rows * 2
+    let extra = 24
+    while (phase === "run" && steps-- > 0) {
+      if (glyph.length - remaining >= goal) {
+        const ahead = inGrid(nextX, nextY) && visibleFood(nextY * cols + nextX, now)
+        if (ahead || extra-- <= 0) break
+      }
+      commit(now)
+      plan(now)
+    }
+    // A wrong turn ends the run; park it at the edge instead.
+    if (phase === "dead") spawn(now, false)
   }
 
   const refill = (now: number) => {
@@ -696,10 +719,10 @@ export function createSnake404(
     }
 
     if (options.score) {
-      const dot = Math.max(2, Math.round(cell / 4))
+      const dot = Math.max(2, Math.round(cell / 3))
       const digits = String(score).padStart(4, "0")
-      const x0 = ox + cell
-      const y0 = oy + cell
+      const x0 = ox + cell * 2
+      const y0 = oy + cell * 2
       ctx.globalAlpha = 0.6
       for (let d = 0; d < digits.length; d++) {
         const bits = SCORE_DIGITS[digits.charCodeAt(d) - 48]!
