@@ -17,7 +17,6 @@ import {
 } from "react"
 import {
   AnimatePresence,
-  LayoutGroup,
   MotionConfig,
   motion,
   useReducedMotion,
@@ -142,7 +141,17 @@ export function PromptBox({
     onAttachmentsChange
   )
   const reduce = useReducedMotion()
-  const group = useId()
+  // Scopes the shared layout ids, so two prompts on a page never trade
+  // images. Not a LayoutGroup: a group re-measures every member whenever
+  // one measures, which skips `layoutDependency`, so any re-render during
+  // load could slide the contents in from where the page used to be.
+  const scope = useId()
+  // Pills join the shared layout only once someone reaches for the prompt.
+  // Before that they have nothing to fly from; with an id from the first
+  // paint, a pill could fly in from a copy measured before the page settled
+  // (a dev double-mount, a late font or zoom), sliding its capsule sideways.
+  const [armed, setArmed] = useState(false)
+  const arm = () => setArmed(true)
   const rootRef = useRef<HTMLDivElement>(null)
   const shellRef = useRef<HTMLDivElement>(null)
   const areaRef = useRef<HTMLTextAreaElement>(null)
@@ -299,185 +308,189 @@ export function PromptBox({
       transition={reduce ? { duration: 0 } : spring}
       reducedMotion="user"
     >
-      <LayoutGroup id={group}>
-        <div
-          ref={rootRef}
-          {...dragProps}
-          data-slot="prompt-box"
-          data-busy={busy || undefined}
-          onKeyDown={(event) => {
-            if (event.key === "Escape" && open) {
-              event.stopPropagation()
-              setOpenId(null)
-            }
-          }}
-          className={cn("relative w-full", className)}
-        >
-          {/* An open image splits off its pill and floats above the shell,
+      <div
+        ref={rootRef}
+        {...dragProps}
+        data-slot="prompt-box"
+        data-busy={busy || undefined}
+        // Armed on approach, so the pills are measured before a click or
+        // Enter opens one.
+        onPointerEnter={arm}
+        onPointerDownCapture={arm}
+        onFocusCapture={arm}
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && open) {
+            event.stopPropagation()
+            setOpenId(null)
+          }
+        }}
+        className={cn("relative w-full", className)}
+      >
+        {/* An open image splits off its pill and floats above the shell,
               out of the flow, so the prompt itself never moves. */}
-          <AnimatePresence initial={false}>
-            {open ? (
-              <Island
-                key={open.id}
-                file={open}
-                size={sizes[open.id]}
-                anchor={anchor}
-                onClose={() => setOpenId(null)}
-                onRemove={disabled ? undefined : () => remove(open.id)}
-              />
-            ) : null}
-          </AnimatePresence>
+        <AnimatePresence initial={false}>
+          {open ? (
+            <Island
+              key={open.id}
+              file={open}
+              size={sizes[open.id]}
+              anchor={anchor}
+              scope={scope}
+              onClose={() => setOpenId(null)}
+              onRemove={disabled ? undefined : () => remove(open.id)}
+            />
+          ) : null}
+        </AnimatePresence>
 
-          <motion.div
-            ref={shellRef}
-            layout
-            layoutDependency={layoutKey}
-            style={{ borderRadius: 28 }}
-            className={cn(
-              "relative bg-foreground/[0.045] p-2 dark:bg-foreground/[0.06]",
-              disabled && "opacity-60"
-            )}
-          >
-            {files.length > 0 ? (
-              <motion.ul
-                layout="position"
-                layoutDependency={layoutKey}
-                aria-label="Attachments"
-                className="relative flex flex-wrap gap-1.5 px-0.5 pt-0.5 pb-1.5"
-              >
-                <AnimatePresence initial={false} mode="popLayout">
-                  {files.map((file) => (
-                    <Pill
-                      key={file.id}
-                      file={file}
-                      layoutKey={layoutKey}
-                      open={file.id === open?.id}
-                      onToggle={(pill) => {
-                        const root = rootRef.current
-                        if (root) {
-                          setAnchor(
-                            pill.getBoundingClientRect().left -
-                              root.getBoundingClientRect().left
-                          )
-                        }
-                        setOpenId((id) => (id === file.id ? null : file.id))
-                      }}
-                      onSize={(size) =>
-                        setSizes((prev) =>
-                          prev[file.id]?.w === size.w &&
-                          prev[file.id]?.h === size.h
-                            ? prev
-                            : { ...prev, [file.id]: size }
-                        )
-                      }
-                      onRemove={disabled ? undefined : () => remove(file.id)}
-                    />
-                  ))}
-                </AnimatePresence>
-              </motion.ul>
-            ) : null}
-
-            <motion.div
+        <motion.div
+          ref={shellRef}
+          layout
+          layoutDependency={layoutKey}
+          style={{ borderRadius: 28 }}
+          className={cn(
+            "relative bg-foreground/[0.045] p-2 dark:bg-foreground/[0.06]",
+            disabled && "opacity-60"
+          )}
+        >
+          {files.length > 0 ? (
+            <motion.ul
               layout="position"
               layoutDependency={layoutKey}
-              style={{ borderRadius: 20 }}
-              onClick={(event) => {
-                if (event.target === event.currentTarget)
-                  areaRef.current?.focus()
-              }}
-              className="relative bg-background shadow-[0_1px_2px_rgb(0_0_0/0.05),0_6px_20px_-10px_rgb(0_0_0/0.12)] transition-shadow duration-200 focus-within:shadow-[0_1px_2px_rgb(0_0_0/0.06),0_8px_24px_-10px_rgb(0_0_0/0.2)]"
+              aria-label="Attachments"
+              className="relative flex flex-wrap gap-1.5 px-0.5 pt-0.5 pb-1.5"
             >
-              <div className="p-2">
-                <textarea
-                  ref={areaRef}
-                  value={text}
-                  onChange={(event) => setText(event.target.value)}
-                  onKeyDown={onKeyDown}
-                  onPaste={onPaste}
-                  placeholder={placeholder}
-                  aria-label={placeholder}
-                  disabled={disabled}
-                  rows={minRows}
-                  className="block w-full resize-none bg-transparent px-2.5 py-2 text-[15px] leading-6 text-foreground outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
-                />
+              <AnimatePresence initial={false} mode="popLayout">
+                {files.map((file) => (
+                  <Pill
+                    key={file.id}
+                    file={file}
+                    layoutKey={layoutKey}
+                    shared={armed ? scope : undefined}
+                    open={file.id === open?.id}
+                    onToggle={(pill) => {
+                      const root = rootRef.current
+                      if (root) {
+                        setAnchor(
+                          pill.getBoundingClientRect().left -
+                            root.getBoundingClientRect().left
+                        )
+                      }
+                      setOpenId((id) => (id === file.id ? null : file.id))
+                    }}
+                    onSize={(size) =>
+                      setSizes((prev) =>
+                        prev[file.id]?.w === size.w &&
+                        prev[file.id]?.h === size.h
+                          ? prev
+                          : { ...prev, [file.id]: size }
+                      )
+                    }
+                    onRemove={disabled ? undefined : () => remove(file.id)}
+                  />
+                ))}
+              </AnimatePresence>
+            </motion.ul>
+          ) : null}
 
-                <div className="flex items-center justify-between gap-2 pt-1">
-                  <div className="flex min-w-0 flex-1 items-center gap-0.5">
-                    <PromptBoxAction
-                      aria-label="Attach images"
-                      title="Attach images"
-                      disabled={disabled || room === 0}
-                      onClick={() => pickerRef.current?.click()}
-                      className="size-9 justify-center px-0"
-                    >
-                      <PlusIcon />
-                    </PromptBoxAction>
-                    {toolbar}
-                  </div>
+          <motion.div
+            layout="position"
+            layoutDependency={layoutKey}
+            style={{ borderRadius: 20 }}
+            onClick={(event) => {
+              if (event.target === event.currentTarget) areaRef.current?.focus()
+            }}
+            className="relative bg-background shadow-[0_1px_2px_rgb(0_0_0/0.05),0_6px_20px_-10px_rgb(0_0_0/0.12)] transition-shadow duration-200 focus-within:shadow-[0_1px_2px_rgb(0_0_0/0.06),0_8px_24px_-10px_rgb(0_0_0/0.2)]"
+          >
+            <div className="p-2">
+              <textarea
+                ref={areaRef}
+                value={text}
+                onChange={(event) => setText(event.target.value)}
+                onKeyDown={onKeyDown}
+                onPaste={onPaste}
+                placeholder={placeholder}
+                aria-label={placeholder}
+                disabled={disabled}
+                rows={minRows}
+                className="block w-full resize-none bg-transparent px-2.5 py-2 text-[15px] leading-6 text-foreground outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
+              />
 
-                  <button
-                    type="button"
-                    aria-label={busy ? "Stop" : "Send"}
-                    disabled={busy ? disabled : !canSend}
-                    onClick={busy ? onStop : submit}
-                    className={cn(
-                      "relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-[14px] transition-[background-color,color,scale] duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
-                      busy || canSend
-                        ? "bg-foreground text-background hover:bg-foreground/85"
-                        : "cursor-not-allowed bg-foreground/[0.07] text-foreground/35"
-                    )}
+              <div className="flex items-center justify-between gap-2 pt-1">
+                <div className="flex min-w-0 flex-1 items-center gap-0.5">
+                  <PromptBoxAction
+                    aria-label="Attach images"
+                    title="Attach images"
+                    disabled={disabled || room === 0}
+                    onClick={() => pickerRef.current?.click()}
+                    className="size-9 justify-center px-0"
                   >
-                    <AnimatePresence initial={false} mode="popLayout">
-                      <motion.span
-                        key={busy ? "stop" : "send"}
-                        initial={{ opacity: 0, scale: 0.6 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.6 }}
-                        className="grid size-9 place-items-center"
-                      >
-                        {busy ? <StopIcon /> : <ArrowUpIcon />}
-                      </motion.span>
-                    </AnimatePresence>
-                  </button>
+                    <PlusIcon />
+                  </PromptBoxAction>
+                  {toolbar}
                 </div>
-              </div>
-            </motion.div>
 
-            <AnimatePresence>
-              {dragging ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="pointer-events-none absolute inset-2 z-10 grid place-items-center rounded-[20px] border-[1.5px] border-dashed border-foreground/25 bg-background/90"
+                <button
+                  type="button"
+                  aria-label={busy ? "Stop" : "Send"}
+                  disabled={busy ? disabled : !canSend}
+                  onClick={busy ? onStop : submit}
+                  className={cn(
+                    "relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-[14px] transition-[background-color,color,scale] duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
+                    busy || canSend
+                      ? "bg-foreground text-background hover:bg-foreground/85"
+                      : "cursor-not-allowed bg-foreground/[0.07] text-foreground/35"
+                  )}
                 >
-                  <span className="flex items-center gap-2 text-[13px] font-medium text-foreground">
-                    <ImageIcon />
-                    {room > 0
-                      ? "Drop images to attach"
-                      : `Up to ${maxAttachments} files`}
-                  </span>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
+                  <AnimatePresence initial={false} mode="popLayout">
+                    <motion.span
+                      key={busy ? "stop" : "send"}
+                      initial={{ opacity: 0, scale: 0.6 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.6 }}
+                      className="grid size-9 place-items-center"
+                    >
+                      {busy ? <StopIcon /> : <ArrowUpIcon />}
+                    </motion.span>
+                  </AnimatePresence>
+                </button>
+              </div>
+            </div>
           </motion.div>
 
-          <input
-            ref={pickerRef}
-            type="file"
-            accept={accept}
-            multiple
-            hidden
-            tabIndex={-1}
-            onChange={(event) => {
-              if (event.target.files) addFiles(event.target.files)
-              event.target.value = ""
-              areaRef.current?.focus()
-            }}
-          />
-        </div>
-      </LayoutGroup>
+          <AnimatePresence>
+            {dragging ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="pointer-events-none absolute inset-2 z-10 grid place-items-center rounded-[20px] border-[1.5px] border-dashed border-foreground/25 bg-background/90"
+              >
+                <span className="flex items-center gap-2 text-[13px] font-medium text-foreground">
+                  <ImageIcon />
+                  {room > 0
+                    ? "Drop images to attach"
+                    : `Up to ${maxAttachments} files`}
+                </span>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </motion.div>
+
+        <input
+          ref={pickerRef}
+          type="file"
+          accept={accept}
+          multiple
+          hidden
+          tabIndex={-1}
+          onChange={(event) => {
+            if (event.target.files) addFiles(event.target.files)
+            event.target.value = ""
+            areaRef.current?.focus()
+          }}
+        />
+      </div>
     </MotionConfig>
   )
 }
@@ -504,6 +517,7 @@ function Pill({
   ref,
   file,
   layoutKey,
+  shared,
   open,
   onToggle,
   onSize,
@@ -513,6 +527,8 @@ function Pill({
   ref?: Ref<HTMLLIElement>
   file: PromptBoxAttachment
   layoutKey: string
+  /** Prefix for the shared layout ids; until set, the pill shares none. */
+  shared?: string
   open: boolean
   /** Called with the pill, so the island can float above it. */
   onToggle: (pill: HTMLElement) => void
@@ -541,8 +557,13 @@ function Pill({
         // The capsule is shared with the island: opening, it lifts off
         // the pill and swells into the island; closing, it settles back.
         <motion.span
+          // Arming remounts it with its id, so it never flies from before.
+          key={shared ? "shared" : "still"}
           aria-hidden="true"
-          layoutId={`island-${file.id}`}
+          layoutId={shared && `${shared}-island-${file.id}`}
+          // Measured only when the layout really changes, never on an
+          // upload tick.
+          layoutDependency={layoutKey}
           layoutCrossfade={false}
           className="absolute inset-0 bg-background"
           style={{ borderRadius: 16, boxShadow: PILL_SHADOW }}
@@ -586,7 +607,9 @@ function Pill({
           // The image itself is the shared element, so the picture and its
           // frame fly as one; a wrapper would counter-scale the picture.
           <motion.img
-            layoutId={`image-${file.id}`}
+            key={shared ? "shared" : "still"}
+            layoutId={shared && `${shared}-image-${file.id}`}
+            layoutDependency={layoutKey}
             // One image flies; a crossfade would leave a ghost of the other.
             layoutCrossfade={false}
             src={file.url}
@@ -640,6 +663,7 @@ function Island({
   file,
   size,
   anchor,
+  scope,
   onClose,
   onRemove,
 }: {
@@ -647,6 +671,7 @@ function Island({
   file: PromptBoxAttachment
   size?: Size
   anchor: number
+  scope: string
   onClose: () => void
   onRemove?: () => void
 }) {
@@ -673,7 +698,9 @@ function Island({
       ref={ref}
       role="dialog"
       aria-label={file.name}
-      layoutId={`island-${file.id}`}
+      layoutId={`${scope}-island-${file.id}`}
+      // No layoutDependency here: with one, an island opened while the last
+      // one was still settling home never appeared.
       // One island moves; a crossfade would leave a ghost of the capsule.
       layoutCrossfade={false}
       // Leaving, it lingers until the spring rests; let clicks through.
@@ -689,7 +716,7 @@ function Island({
     >
       <div className="relative w-full" style={{ aspectRatio: ratio }}>
         <motion.img
-          layoutId={`image-${file.id}`}
+          layoutId={`${scope}-image-${file.id}`}
           // One image flies; a crossfade would leave a ghost of the other.
           layoutCrossfade={false}
           src={file.url}

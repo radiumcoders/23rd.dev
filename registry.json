@@ -21,6 +21,7 @@
     "registry/shader-gradient/registry.json",
     "registry/shader-metal/registry.json",
     "registry/shader-sky/registry.json",
+    "registry/shader-watercolor/registry.json",
     "registry/snake-404/registry.json",
     "registry/stretchy-footer/registry.json",
     "registry/typewriter/registry.json"

@@ -258,6 +258,38 @@ type ShaderMetalProps = {
 
 Transparent canvas, no CSS fallback: without WebGL the parent's background shows. Theme changes the studio lighting, not the metal.
 
+## shader-watercolor
+
+```ts
+type ShaderWatercolorProps = {
+  src?: string // image, SVG, video, .glb/.gltf/.obj/.stl URL, or inline <svg> markup
+  media?: HTMLVideoElement | HTMLCanvasElement // painted every frame, wins over src, never paused by us
+  alt?: string // none: hidden from assistive tech
+  mode?: "color" | "monochrome" // "color"
+  ink?: string // LIGHT_INK / DARK_INK
+  paper?: string // LIGHT_PAPER / DARK_PAPER, or "transparent"
+  wetness?: number // 0.5, 0–1
+  edges?: number // 0.35, 0–1
+  grain?: number // 0.5, 0–1
+  speed?: number // 0.3, 0 holds still
+  spin?: number // 12, degrees per second, models only
+  scale?: number // 0.84, 0.2–1
+  backdrop?: boolean // true: models in a painted table-and-wall still life, framed as a canvas
+  aspect?: number // 0.8, width over height of a model's canvas
+  interactive?: boolean // true
+  reveal?: boolean // true
+  replayKey?: number // 0, increment to bloom in again
+  theme?: "light" | "dark" | "auto"
+  onLoad?: (kind: "image" | "video" | "model") => void
+  onError?: (error: Error) => void
+  className?: string
+}
+```
+
+`LIGHT_PAPER` `#F5F0E4`, `DARK_PAPER` `#171614`, `LIGHT_INK` `#2E3B4E`, `DARK_INK` `#E6DFD2`. Also exported: `DEFAULT_ASPECT`, `DEFAULT_MODE`, `DEFAULT_WETNESS`, `DEFAULT_EDGES`, `DEFAULT_GRAIN`, `DEFAULT_SPEED`, `DEFAULT_SPIN`, `DEFAULT_SCALE`.
+
+Fills its parent (`absolute inset-0`). Theme changes paper and ink unless you pass them; on dark paper the paint lightens at its edges instead of darkening. Videos from `src` play muted, loop, and pause off screen. Reduced motion holds the paint and model still, pauses those videos, and skips the bloom.
+
 ## stretchy-footer
 
 ```ts

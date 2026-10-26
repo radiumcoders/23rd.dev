@@ -60,6 +60,7 @@ npm dependencies the registry declares:
 | `prompt-box` | `motion` |
 | `ring-tower` | `three` |
 | `mech-keyboard` | `three` |
+| `shader-watercolor` | `three` |
 | every other item | none |
 
 Published index: `https://23rd.dev/r/registry.json`. Docs: `https://23rd.dev/docs`.
@@ -74,6 +75,7 @@ flowchart TD
   pick -->|Atmosphere behind a hero| atmo{Mood}
   pick -->|Footer or page-end| foot{Treatment}
   pick -->|Reveal an image from a dither| ds[dither-scan]
+  pick -->|Paint an image, SVG, video, or 3D model as watercolor| swc[shader-watercolor]
   pick -->|Chat input for an AI app| pb[prompt-box]
   pick -->|Full page 404| p404{Treatment}
   pick -->|Scroll makes the page lean| folio[folio]
@@ -116,6 +118,7 @@ Disambiguation that agents get wrong:
 | ASCII letters that shove, scatter, and fall | `ascii-logo` | `ascii-fluid` (trails, not a wordmark) |
 | CRT notation, phosphor, staves | `phosphor-score` | `shader-sky` |
 | Chrome, liquid metal, gold ribbons | `shader-metal` | `shader-gradient` (a color wash, not a material) |
+| Watercolor, painterly, ink wash, a model or logo as a painting | `shader-watercolor` | `shader-gradient` (no subject), `dither-scan` (a dither reveal, not paint) |
 | Rings, bands, or a tower of screenshots that spins | `ring-tower` | `shader-metal` (no images) |
 | A face / orb / mascot | `live-orb` | `logo-burst` |
 | Typing effect, typewriter, text that types itself | `typewriter` | `ascii-logo` (a wordmark, not prose) |
@@ -184,6 +187,7 @@ Categories match `content/docs/components/meta.json`.
 | `shader-anime-fire` | Shaders | Cel-shaded flames licking up from the bottom |
 | `shader-sky` | Shaders | Clear sky or rain; optional dotted window glass |
 | `shader-metal` | Shaders | Chrome, gold, copper, or graphite ribbons; pointer key light |
+| `shader-watercolor` | Shaders | Any image, SVG, video, or 3D model painted as a drifting watercolor; color or one ink |
 | `stretchy-footer` | Footers | Dia-style rubber overscroll with an aurora floor |
 | `live-orb` | Characters | Lit sphere; eyes follow the pointer |
 | `ascii-logo` | Characters | ASCII wordmark: hover shove, click scatter / fall / gather |

@@ -274,6 +274,31 @@ export function Launch() {
 
 Pitfalls: the canvas is transparent; the parent needs a background. The ribbons run corner to corner through the middle, so centered copy collides with them. `color` overrides `metal`.
 
+## shader-watercolor
+
+Shader. Paints a subject, not a backdrop: an image, an SVG, a video, a live `<canvas>`, or a 3D model (`.glb`, `.gltf`, `.obj`, `.stl`) as a calm watercolor on paper. Washes bleed past the shape and slowly drift, pigment pools along their edges, and the paper's tooth granulates them. `mode="color"` keeps the subject's colors; `mode="monochrome"` paints its values in one ink. Models turn on a turntable. The pointer re-wets the paint, and new subjects bloom onto wet paper.
+
+Best fit: a still life or product as illustration, a logo or icon set as a painting, a quiet hero or empty state with one subject.
+
+Not this: `shader-gradient` for a color wash with no subject; `dither-scan` for a scan-line reveal of a photo.
+
+Deps: `three`. Key props: `src`, `media` (a `<video>` or `<canvas>` painted every frame), `mode` (`color`), `ink`, `paper` (theme, or `transparent`), `wetness` (0.5), `edges` (0.35), `grain` (0.5), `speed` (0.3), `spin` (12°/s), `scale` (0.84), `backdrop` (true: models sit on a painted table against a wall, framed as a canvas), `aspect` (0.8), `interactive` (true), `reveal` (true), `replayKey`, `theme`.
+
+```tsx
+"use client"
+import { ShaderWatercolor } from "@/components/ui/shader-watercolor"
+
+export function StillLife() {
+  return (
+    <section className="relative h-[70svh] overflow-hidden rounded-3xl">
+      <ShaderWatercolor src="/models/teapot.glb" alt="A blue teapot" />
+    </section>
+  )
+}
+```
+
+Pitfalls: it fills its parent with paper, so the parent needs a height. The format is sniffed from the file's bytes, so blob URLs from a file input work; cross-origin files need CORS. A `.gltf` with separate `.bin` or textures needs them on a server; Draco compression is not supported. Untextured OBJ and STL models are painted in clay. Black subjects on dark paper barely show in `color` mode.
+
 ## stretchy-footer
 
 Footer behavior. Overscroll past the bottom stretches an aurora and lifts the page, then snaps back.

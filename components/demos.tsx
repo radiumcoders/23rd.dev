@@ -114,6 +114,12 @@ export const ShaderSkyDemo = lazyDemo(() =>
   import("@/registry/shader-sky/shader-sky-demo").then((m) => m.ShaderSkyDemo)
 )
 
+export const ShaderWatercolorDemo = lazyDemo(() =>
+  import("@/registry/shader-watercolor/shader-watercolor-demo").then(
+    (m) => m.ShaderWatercolorDemo
+  )
+)
+
 export const Snake404Demo = lazyDemo(() =>
   import("@/registry/snake-404/snake-404-demo").then((m) => m.Snake404Demo)
 )

@@ -1,0 +1,120 @@
+---
+title: Shader Watercolor
+description: Paints any image, SVG, video, or 3D model as a calm watercolor that slowly drifts, in full color or one ink.
+---
+
+import { ShaderWatercolorDemo } from "@/components/demos"
+
+<ShaderWatercolorDemo />
+
+## Installation
+
+<CliCommand item="shader-watercolor" />
+
+Or from the public GitHub registry:
+
+<CliCommand item="shader-watercolor" github />
+
+Installs `three` alongside the component.
+
+## Usage
+
+Pin it inside a relatively positioned element with a height. It fills that element with paper and paints the subject in the middle.
+
+```tsx
+"use client"
+
+import { ShaderWatercolor } from "@/components/ui/shader-watercolor"
+
+export function StillLife() {
+  return (
+    <section className="relative h-[70svh] overflow-hidden rounded-3xl">
+      <ShaderWatercolor src="/models/teapot.glb" alt="A blue teapot" />
+    </section>
+  )
+}
+```
+
+`src` takes an image, an SVG, a video (`.mp4`, `.webm`, `.mov`), a `.glb`, `.gltf`, `.obj` or `.stl` model, or inline `<svg>` markup. Videos play muted and loop, painted frame by frame, and pause while they're off screen. The format is read from the file's contents, not its name, so a blob URL from a file input works:
+
+```tsx
+const [src, setSrc] = useState<string>()
+
+<input
+  type="file"
+  accept="image/*,video/*,.svg,.glb,.gltf,.obj,.stl"
+  onChange={(e) => {
+    const file = e.target.files?.[0]
+    if (file) setSrc(URL.createObjectURL(file))
+  }}
+/>
+<ShaderWatercolor src={src} />
+```
+
+Files on another origin need CORS headers. A `.gltf` that points at separate `.bin` or texture files needs them next to it on a server, so pack uploads as `.glb`. Draco-compressed models aren't supported; Meshopt ones are.
+
+### Models
+
+A model is set in a painted still life: a wooden table and a soft wall behind it, lit from the upper left with soft shadows, framed as a canvas that dissolves into the paper. `aspect` sets that canvas's width over height (`0.8`, a portrait, by default). Set `backdrop={false}` to float the model on bare paper instead. With `interactive`, the view drifts a little toward the pointer.
+
+### Live media
+
+Pass `media` a `<video>` or `<canvas>` you drive yourself, and it's painted every frame. The park in the demo above is a plain 2D canvas animation handed over this way. The element stays yours: the component never pauses or clears it. `media` wins over `src`.
+
+```tsx
+const [canvas, setCanvas] = useState<HTMLCanvasElement>()
+
+useEffect(() => {
+  const el = document.createElement("canvas")
+  el.width = 1200
+  el.height = 800
+  // …draw into it every frame
+  setCanvas(el)
+}, [])
+
+<ShaderWatercolor media={canvas} />
+```
+
+### Color or one ink
+
+`mode="color"` keeps the subject's own colors. `mode="monochrome"` paints its values in a single ink, Payne's gray on light paper and bone white on dark. Set `ink` to choose another:
+
+```tsx
+<ShaderWatercolor src="/leaf.svg" mode="monochrome" ink="#5B3A29" />
+```
+
+### The paint
+
+`wetness` sets how far the washes bleed past their shapes and how much they drift. `edges` is the pigment that pools where a wash dries, and `grain` is the tooth of the paper and how much pigment settles in it. `speed` drifts the wet paint; `0` holds it still. A model turns at `spin` degrees per second.
+
+With `interactive`, the pointer re-wets the paint it passes over and the paint dries back after a moment. When a subject loads, the paint blooms onto wet paper. Set `reveal={false}` to skip that, or bump `replayKey` to run it again.
+
+Set `paper="transparent"` to paint straight onto the page. The paper and ink follow the theme unless you set them.
+
+## Props
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `src` | `string` | none, blank paper |
+| `media` | `HTMLVideoElement \| HTMLCanvasElement` | none |
+| `alt` | `string` | none, hidden from assistive tech |
+| `mode` | `"color" \| "monochrome"` | `"color"` |
+| `ink` | `string` | `#2E3B4E` light, `#E6DFD2` dark |
+| `paper` | `string` | `#F5F0E4` light, `#171614` dark; or `"transparent"` |
+| `wetness` | `number` | `0.5`, 0–1 |
+| `edges` | `number` | `0.35`, 0–1 |
+| `grain` | `number` | `0.5`, 0–1 |
+| `speed` | `number` | `0.3`; `0` holds still |
+| `spin` | `number` | `12`, degrees per second, models only |
+| `backdrop` | `boolean` | `true`, models only |
+| `aspect` | `number` | `0.8`, models only |
+| `scale` | `number` | `0.84`, 0.2–1 of the frame |
+| `interactive` | `boolean` | `true` |
+| `reveal` | `boolean` | `true` |
+| `replayKey` | `number` | `0` |
+| `theme` | `"light" \| "dark" \| "auto"` | `"auto"` |
+| `onLoad` | `(kind: "image" \| "video" \| "model") => void` | none |
+| `onError` | `(error: Error) => void` | none |
+| `className` | `string` | none |
+
+`prefers-reduced-motion` holds the paint and the model still, pauses videos it loaded, and skips the bloom.

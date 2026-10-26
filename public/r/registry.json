@@ -256,6 +256,25 @@
       "type": "registry:ui"
     },
     {
+      "name": "shader-watercolor",
+      "title": "Shader Watercolor",
+      "description": "Paints any image, SVG, video, or 3D model as a calm watercolor: soft washes that bleed and slowly drift, pigment pooled at the edges, paper grain, in full color or one ink. The pointer re-wets the paint.",
+      "dependencies": [
+        "three"
+      ],
+      "devDependencies": [
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "registry/shader-watercolor/shader-watercolor.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/shader-watercolor.tsx"
+        }
+      ],
+      "type": "registry:ui"
+    },
+    {
       "name": "snake-404",
       "title": "Snake 404",
       "description": "Dot-matrix 404 where every dot is food: a Nokia-style snake eats the digits, then they come back. Arrow keys, WASD, or a swipe take over.",

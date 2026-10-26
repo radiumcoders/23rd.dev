@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "items": [
+    {
+      "name": "shader-watercolor",
+      "type": "registry:ui",
+      "title": "Shader Watercolor",
+      "description": "Paints any image, SVG, video, or 3D model as a calm watercolor: soft washes that bleed and slowly drift, pigment pooled at the edges, paper grain, in full color or one ink. The pointer re-wets the paint.",
+      "dependencies": ["three"],
+      "devDependencies": ["@types/three"],
+      "files": [
+        {
+          "path": "shader-watercolor.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/shader-watercolor.tsx"
+        }
+      ]
+    }
+  ]
+}
