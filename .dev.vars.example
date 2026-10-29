@@ -1,8 +1,0 @@
-NEXTJS_ENV=development
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# Live Creem payment links.
-CREEM_SPONSOR_DIAMOND_CHECKOUT_URL=https://www.creem.io/payment/prod_1lz1o8e7HtglOuXbMRnSmc
-CREEM_SPONSOR_PLATINUM_CHECKOUT_URL=https://www.creem.io/payment/prod_4kpDvyYwr6XnRuMSysnI3s
-CREEM_SPONSOR_GOLD_CHECKOUT_URL=https://www.creem.io/payment/prod_2NW3lMTPFHeOey3XhUYlM
-CREEM_SPONSOR_SILVER_CHECKOUT_URL=https://www.creem.io/payment/prod_3uz4xoRD5vVePnDwRIJxoi

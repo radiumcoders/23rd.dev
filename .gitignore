@@ -15,11 +15,8 @@
 /.next/
 /out/
 
-# cloudflare / opennext
-.open-next
-.wrangler
-.dev.vars*
-!.dev.vars.example
+# vercel
+.vercel
 
 # fumadocs-mdx generated
 .source
