@@ -1,112 +1,123 @@
+import Link from "next/link"
+
 import { buildPageMetadata } from "@/lib/seo"
+import { getSiteStats } from "@/lib/stats"
+import { getTraffic, type Ranked } from "@/lib/tracwell"
 import { cn } from "@/lib/utils"
-import { getSiteStats, type CategoryCount, type WeekCommits } from "@/lib/stats"
 
 export const revalidate = 3600
 
 export const metadata = buildPageMetadata({
   title: "Stats",
   description:
-    "Open numbers for 23rd: components shipped, GitHub stars, forks, contributors, and commits over the past year.",
+    "Open numbers for 23rd: traffic over the last 30 days, components shipped, GitHub stars, forks, contributors, and commits over the past year.",
   path: "/stats",
-  keywords: ["stats", "open source", "open metrics"],
+  keywords: ["stats", "open source", "open metrics", "analytics"],
 })
 
 const numberFormat = new Intl.NumberFormat("en")
-const weekFormat = new Intl.DateTimeFormat("en", {
+const changeFormat = new Intl.NumberFormat("en", {
+  maximumFractionDigits: 0,
+  signDisplay: "exceptZero",
+})
+const dayFormat = new Intl.DateTimeFormat("en", {
   month: "short",
   day: "numeric",
   timeZone: "UTC",
 })
-const monthFormat = new Intl.DateTimeFormat("en", {
-  month: "short",
-  timeZone: "UTC",
-})
+
+const surface =
+  "rounded-xl bg-sheet p-4 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-5"
 
 function StatTile({
   label,
   value,
+  change,
   className,
 }: {
   label: string
   value: number | null
+  change?: number | null
   className?: string
 }) {
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-1 rounded-xl bg-sheet p-4 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-5",
-        className
-      )}
-    >
+    <div className={cn("flex flex-col gap-1", surface, className)}>
       <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="text-3xl font-semibold tracking-tight tabular-nums">
-        {value === null ? "–" : numberFormat.format(value)}
+      <dd className="flex items-baseline gap-2">
+        <span className="text-3xl font-semibold tracking-tight tabular-nums">
+          {value === null ? "–" : numberFormat.format(value)}
+        </span>
+        {change != null ? (
+          <span className="text-sm text-muted-foreground tabular-nums">
+            {changeFormat.format(change)}%
+          </span>
+        ) : null}
       </dd>
     </div>
   )
 }
 
-function CommitChart({ weeks }: { weeks: WeekCommits[] }) {
-  const max = Math.max(1, ...weeks.map((week) => week.total))
+type Bar = { key: string; label: string; value: number }
+
+function BarChart({
+  title,
+  unit,
+  bars,
+}: {
+  title: string
+  unit: string
+  bars: Bar[]
+}) {
+  const max = Math.max(1, ...bars.map((bar) => bar.value))
 
   return (
-    <section aria-labelledby="commits-heading" className="flex flex-col gap-4">
-      <h2 id="commits-heading" className="text-sm font-medium">
-        Commits per week
-      </h2>
-      <div className="rounded-xl bg-sheet p-4 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-5">
+    <section className="flex flex-col gap-4">
+      <h3 className="text-sm font-medium">{title}</h3>
+      <div className={surface}>
         <div className="flex h-40 items-end gap-[2px]" aria-hidden="true">
-          {weeks.map((week) => {
-            const date = new Date(week.week * 1000)
-            return (
+          {bars.map((bar) => (
+            <div
+              key={bar.key}
+              className="group relative flex h-full flex-1 items-end"
+            >
               <div
-                key={week.week}
-                className="group relative flex h-full flex-1 items-end"
-              >
-                <div
-                  className="w-full rounded-t-[4px] bg-foreground/80 transition-colors group-hover:bg-foreground"
-                  style={{
-                    height: week.total
-                      ? `${Math.max(2, (week.total / max) * 100)}%`
-                      : "2px",
-                    opacity: week.total ? undefined : 0.15,
-                  }}
-                />
-                <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 rounded-md bg-popover px-2 py-1 text-xs whitespace-nowrap opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-                  <span className="font-medium tabular-nums">
-                    {numberFormat.format(week.total)}
-                  </span>{" "}
-                  <span className="text-muted-foreground">
-                    week of {weekFormat.format(date)}
-                  </span>
-                </div>
+                className="w-full rounded-t-[4px] bg-foreground/80 transition-colors group-hover:bg-foreground"
+                style={{
+                  height: bar.value
+                    ? `${Math.max(2, (bar.value / max) * 100)}%`
+                    : "2px",
+                  opacity: bar.value ? undefined : 0.15,
+                }}
+              />
+              <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 rounded-md bg-popover px-2 py-1 text-xs whitespace-nowrap opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+                <span className="font-medium tabular-nums">
+                  {numberFormat.format(bar.value)}
+                </span>{" "}
+                <span className="text-muted-foreground">{bar.label}</span>
               </div>
-            )
-          })}
+            </div>
+          ))}
         </div>
         <div
           className="mt-2 flex justify-between text-xs text-muted-foreground"
           aria-hidden="true"
         >
-          <span>{monthFormat.format(new Date(weeks[0].week * 1000))}</span>
-          <span>
-            {monthFormat.format(new Date(weeks[weeks.length - 1].week * 1000))}
-          </span>
+          <span>{bars[0].label}</span>
+          <span>{bars[bars.length - 1].label}</span>
         </div>
         <table className="sr-only">
-          <caption>Commits per week over the past year</caption>
+          <caption>{title}</caption>
           <thead>
             <tr>
-              <th scope="col">Week of</th>
-              <th scope="col">Commits</th>
+              <th scope="col">Date</th>
+              <th scope="col">{unit}</th>
             </tr>
           </thead>
           <tbody>
-            {weeks.map((week) => (
-              <tr key={week.week}>
-                <td>{weekFormat.format(new Date(week.week * 1000))}</td>
-                <td>{week.total}</td>
+            {bars.map((bar) => (
+              <tr key={bar.key}>
+                <td>{bar.label}</td>
+                <td>{bar.value}</td>
               </tr>
             ))}
           </tbody>
@@ -116,34 +127,46 @@ function CommitChart({ weeks }: { weeks: WeekCommits[] }) {
   )
 }
 
-function CategoryBars({ categories }: { categories: CategoryCount[] }) {
-  const max = Math.max(1, ...categories.map((category) => category.count))
+function BarList({
+  title,
+  rows,
+  className,
+}: {
+  title: string
+  rows: Ranked[]
+  className?: string
+}) {
+  const max = Math.max(1, ...rows.map((row) => row.value))
 
   return (
-    <section
-      aria-labelledby="categories-heading"
-      className="flex flex-col gap-4"
-    >
-      <h2 id="categories-heading" className="text-sm font-medium">
-        Components by category
-      </h2>
-      <ul className="flex flex-col gap-3 rounded-xl bg-sheet p-4 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-5">
-        {categories.map((category) => (
+    <section className={cn("flex min-w-0 flex-col gap-4", className)}>
+      <h3 className="text-sm font-medium">{title}</h3>
+      <ul className={cn("flex flex-1 flex-col gap-3", surface)}>
+        {rows.map((row) => (
           <li
-            key={category.name}
-            className="grid grid-cols-[7.5rem_1fr_2rem] items-center gap-3 text-sm sm:grid-cols-[9rem_1fr_2rem]"
+            key={row.label}
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 text-sm sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_3.5rem] sm:gap-y-3"
           >
-            <span className="truncate text-muted-foreground">
-              {category.name}
-            </span>
-            <span className="h-2 overflow-hidden rounded-full bg-wash">
+            {row.label.startsWith("/") ? (
+              <Link
+                href={row.label}
+                className="truncate text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                {row.label}
+              </Link>
+            ) : (
+              <span className="truncate text-muted-foreground">
+                {row.label}
+              </span>
+            )}
+            <span className="order-last col-span-2 h-2 overflow-hidden rounded-full bg-wash sm:order-none sm:col-span-1">
               <span
                 className="block h-full rounded-full bg-foreground/80"
-                style={{ width: `${(category.count / max) * 100}%` }}
+                style={{ width: `${(row.value / max) * 100}%` }}
               />
             </span>
             <span className="text-right font-medium tabular-nums">
-              {category.count}
+              {numberFormat.format(row.value)}
             </span>
           </li>
         ))}
@@ -153,11 +176,11 @@ function CategoryBars({ categories }: { categories: CategoryCount[] }) {
 }
 
 export default async function StatsPage() {
-  const stats = await getSiteStats()
+  const [stats, traffic] = await Promise.all([getSiteStats(), getTraffic()])
 
   return (
     <main className="flex-1 overflow-x-clip">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-12 px-4 pt-12 pb-24 sm:px-6 sm:pt-16">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-16 px-4 pt-12 pb-24 sm:px-6 sm:pt-16">
         <header className="flex flex-col items-center gap-4 text-center">
           <h1 className="text-4xl font-semibold tracking-tight">Stats</h1>
           <p className="max-w-xl text-balance text-muted-foreground">
@@ -165,21 +188,87 @@ export default async function StatsPage() {
           </p>
         </header>
 
-        <dl className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-          <StatTile label="Components" value={stats.components} />
-          <StatTile label="Stars" value={stats.stars} />
-          <StatTile label="Forks" value={stats.forks} />
-          <StatTile label="Contributors" value={stats.contributors} />
-          <StatTile
-            className="col-span-2 lg:col-span-1"
-            label="Commits past year"
-            value={stats.commitsPastYear}
+        {traffic ? (
+          <section
+            aria-labelledby="traffic-heading"
+            className="flex flex-col gap-8"
+          >
+            <h2
+              id="traffic-heading"
+              className="text-xl font-semibold tracking-tight"
+            >
+              Last 30 days
+            </h2>
+            <dl className="grid grid-cols-2 gap-3">
+              <StatTile
+                label="Visitors"
+                value={traffic.visitors.value}
+                change={traffic.visitors.changePercent}
+              />
+              <StatTile
+                label="Page views"
+                value={traffic.views.value}
+                change={traffic.views.changePercent}
+              />
+            </dl>
+            <BarChart
+              title="Visitors per day"
+              unit="Visitors"
+              bars={traffic.days.map((day) => ({
+                key: day.date,
+                label: dayFormat.format(new Date(day.date)),
+                value: day.visitors,
+              }))}
+            />
+            <BarList title="Top pages" rows={traffic.pages} />
+            <div className="grid gap-8 sm:grid-cols-2">
+              <BarList title="Sources" rows={traffic.sources} />
+              <BarList title="Countries" rows={traffic.countries} />
+            </div>
+            <BarList title="Devices" rows={traffic.devices} />
+          </section>
+        ) : null}
+
+        <section
+          aria-labelledby="project-heading"
+          className="flex flex-col gap-8"
+        >
+          <h2
+            id="project-heading"
+            className="text-xl font-semibold tracking-tight"
+          >
+            Project
+          </h2>
+          <dl className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+            <StatTile label="Components" value={stats.components} />
+            <StatTile label="Stars" value={stats.stars} />
+            <StatTile label="Forks" value={stats.forks} />
+            <StatTile label="Contributors" value={stats.contributors} />
+            <StatTile
+              className="col-span-2 lg:col-span-1"
+              label="Commits, 1 yr"
+              value={stats.commitsPastYear}
+            />
+          </dl>
+          {stats.weeks ? (
+            <BarChart
+              title="Commits per week"
+              unit="Commits"
+              bars={stats.weeks.map((week) => ({
+                key: String(week.week),
+                label: `Week of ${dayFormat.format(new Date(week.week * 1000))}`,
+                value: week.total,
+              }))}
+            />
+          ) : null}
+          <BarList
+            title="Components by category"
+            rows={stats.categories.map((category) => ({
+              label: category.name,
+              value: category.count,
+            }))}
           />
-        </dl>
-
-        {stats.weeks ? <CommitChart weeks={stats.weeks} /> : null}
-
-        <CategoryBars categories={stats.categories} />
+        </section>
       </div>
     </main>
   )
