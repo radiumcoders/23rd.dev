@@ -211,15 +211,6 @@ export default async function StatsPage() {
                 change={traffic.views.changePercent}
               />
             </dl>
-            <BarChart
-              title="Visitors per day"
-              unit="Visitors"
-              bars={traffic.days.map((day) => ({
-                key: day.date,
-                label: dayFormat.format(new Date(day.date)),
-                value: day.visitors,
-              }))}
-            />
             <BarList title="Top pages" rows={traffic.pages} />
             <div className="grid gap-8 sm:grid-cols-2">
               <BarList title="Sources" rows={traffic.sources} />
