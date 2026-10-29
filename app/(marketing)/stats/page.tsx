@@ -10,16 +10,12 @@ export const revalidate = 3600
 export const metadata = buildPageMetadata({
   title: "Stats",
   description:
-    "Open numbers for 23rd: traffic over the last 30 days, components shipped, GitHub stars, forks, contributors, and commits over the past year.",
+    "Open numbers for 23rd: lifetime traffic, components shipped, GitHub stars, forks, contributors, and commits over the past year.",
   path: "/stats",
   keywords: ["stats", "open source", "open metrics", "analytics"],
 })
 
 const numberFormat = new Intl.NumberFormat("en")
-const changeFormat = new Intl.NumberFormat("en", {
-  maximumFractionDigits: 0,
-  signDisplay: "exceptZero",
-})
 const dayFormat = new Intl.DateTimeFormat("en", {
   month: "short",
   day: "numeric",
@@ -32,26 +28,17 @@ const surface =
 function StatTile({
   label,
   value,
-  change,
   className,
 }: {
   label: string
   value: number | null
-  change?: number | null
   className?: string
 }) {
   return (
     <div className={cn("flex flex-col gap-1", surface, className)}>
       <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="flex items-baseline gap-2">
-        <span className="text-3xl font-semibold tracking-tight tabular-nums">
-          {value === null ? "–" : numberFormat.format(value)}
-        </span>
-        {change != null ? (
-          <span className="text-sm text-muted-foreground tabular-nums">
-            {changeFormat.format(change)}%
-          </span>
-        ) : null}
+      <dd className="text-3xl font-semibold tracking-tight tabular-nums">
+        {value === null ? "–" : numberFormat.format(value)}
       </dd>
     </div>
   )
@@ -197,21 +184,12 @@ export default async function StatsPage() {
               id="traffic-heading"
               className="text-xl font-semibold tracking-tight"
             >
-              Last 30 days
+              Traffic
             </h2>
             <dl className="grid grid-cols-2 gap-3">
-              <StatTile
-                label="Visitors"
-                value={traffic.visitors.value}
-                change={traffic.visitors.changePercent}
-              />
-              <StatTile
-                label="Page views"
-                value={traffic.views.value}
-                change={traffic.views.changePercent}
-              />
+              <StatTile label="Visitors" value={traffic.visitors} />
+              <StatTile label="Page views" value={traffic.views} />
             </dl>
-            <BarList title="Top pages" rows={traffic.pages} />
             <div className="grid gap-8 sm:grid-cols-2">
               <BarList title="Sources" rows={traffic.sources} />
               <BarList title="Countries" rows={traffic.countries} />
