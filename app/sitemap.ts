@@ -20,6 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   add("/", 1)
   add("/sponsors", 0.6, "monthly")
+  add("/stats", 0.4, "daily")
   add("/terms", 0.2, "yearly")
   add("/privacy", 0.2, "yearly")
 
