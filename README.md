@@ -130,31 +130,20 @@ Useful scripts:
 | --------------------- | ------------------------------------------------------ |
 | `pnpm dev`            | Next.js dev server                                     |
 | `pnpm build`          | Build registry, OG cards, and the production app       |
-| `pnpm preview`        | Build with OpenNext and preview in the Workers runtime |
-| `pnpm cf:deploy`      | Build with OpenNext and deploy to Cloudflare Workers   |
-| `pnpm cf:upload`      | Build with OpenNext and upload a preview version       |
 | `pnpm registry:build` | Emit `public/r/*.json` from `registry/`                |
 | `pnpm test`           | Registry, listings, OG, and sponsors tests             |
 | `pnpm typecheck`      | MDX + TypeScript check                                 |
 | `pnpm lint`           | ESLint                                                 |
 
-Stack: Next.js 16, React 19, Fumadocs, Tailwind CSS 4, shadcn/ui (Base UI), Cloudflare Workers (OpenNext).
+Stack: Next.js 16, React 19, Fumadocs, Tailwind CSS 4, shadcn/ui (Base UI), Vercel.
 
-### Deploy to Cloudflare
+### Deploy to Vercel
 
-```bash
-pnpm cf:deploy
-```
+The repo is connected to a Vercel project through Vercel's GitHub integration: every push to `main` deploys production at [23rd.dev](https://23rd.dev), and every PR gets a preview deployment whose URL Vercel comments on the PR. GitHub Actions (`.github/workflows/ci.yml`) only runs lint, typecheck, and tests.
 
-GitHub Actions deploys production on push to `main`. Opening a PR uploads a **preview version** (production is untouched) and comments a stable URL, the same idea as Vercel preview deployments:
+Project settings: framework **Next.js**, install command `pnpm install`, build command `pnpm build`. Set the environment variable `ENABLE_EXPERIMENTAL_COREPACK=1` so Vercel uses the pnpm version pinned in `packageManager`, and `GITHUB_TOKEN` (any read-only token) so the build-time star count does not hit GitHub's unauthenticated rate limit.
 
-`https://pr-<number>-23rd-dev.<subdomain>.workers.dev`
-
-That alias stays put as you push more commits to the same PR. Preview URLs live on `workers.dev`; they are public unless you later put [Cloudflare Access](https://developers.cloudflare.com/workers/configuration/cloudflare-access/) in front of them.
-
-You can get the same PR comments from [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/) instead: connect the repo in the [Cloudflare dashboard](https://dash.cloudflare.com/), set the deploy command to `pnpm cf:deploy`, the non-production command to `pnpm cf:upload`, and enable **Builds for non-production branches**. Don’t run both Workers Builds and this GitHub Action for the same events or you’ll double-deploy.
-
-Point `23rd.dev` DNS at the Worker when you’re ready to cut over from Vercel.
+Deploy by hand with the [Vercel CLI](https://vercel.com/docs/cli): `vercel` for a preview, `vercel --prod` for production.
 
 ## Sponsors (Creem)
 
@@ -196,22 +185,20 @@ Prices are in cents (`25000` = $250.00). Repeat for `10000`, `5000`, and `2000`.
 
 ### 3. Put the links in env
 
-Live payment links are already in `wrangler.jsonc`, `.env.example`, `.dev.vars.example`, and the fallback in `lib/sponsors.ts`.
+Live payment links are already in `.env.example` and the fallback in `lib/sponsors.ts`.
 
 Local Next.js (`pnpm dev`): copy `.env.example` → `.env.local`.
 
-Local OpenNext/Wrangler (`pnpm preview`): copy `.dev.vars.example` → `.dev.vars`.
-
-A Cloudflare Worker secret with the same name overrides the `wrangler.jsonc` var:
+A Vercel environment variable with the same name overrides the fallback:
 
 ```bash
-npx wrangler secret put CREEM_SPONSOR_DIAMOND_CHECKOUT_URL
-npx wrangler secret put CREEM_SPONSOR_PLATINUM_CHECKOUT_URL
-npx wrangler secret put CREEM_SPONSOR_GOLD_CHECKOUT_URL
-npx wrangler secret put CREEM_SPONSOR_SILVER_CHECKOUT_URL
+vercel env add CREEM_SPONSOR_DIAMOND_CHECKOUT_URL production
+vercel env add CREEM_SPONSOR_PLATINUM_CHECKOUT_URL production
+vercel env add CREEM_SPONSOR_GOLD_CHECKOUT_URL production
+vercel env add CREEM_SPONSOR_SILVER_CHECKOUT_URL production
 ```
 
-Paste the matching `https://` payment link when prompted. Redeploy after changing a secret.
+Paste the matching `https://` payment link when prompted. Redeploy after changing a variable.
 
 ## Contributing
 

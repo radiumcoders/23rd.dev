@@ -118,7 +118,7 @@ test("every docs page has a static PNG OG card", async () => {
   }
 })
 
-test("the app no longer ships a next/og route that Cloudflare would crash", () => {
+test("the app no longer ships a next/og route", () => {
   const appFiles = walkFiles(join(ROOT, "app"))
   const hits = appFiles.filter((file) => {
     if (!/\.(ts|tsx|js|jsx|mjs)$/.test(file)) return false

@@ -5,6 +5,7 @@ export const DOCS_HOME = "/docs/getting-started"
 
 /** Same secondary links shadscan puts in the site footer. */
 export const FOOTER_LINKS = [
+  { href: "/stats", label: "Stats" },
   { href: "/privacy", label: "Privacy" },
   { href: "/terms", label: "Terms" },
 ] as const
