@@ -8,11 +8,7 @@
     "dev": "next dev",
     "build": "pnpm registry:build && pnpm og:build && next build",
     "start": "next start",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "og:build": "node scripts/build-og-images.mjs",
-    "cf:upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "postinstall": "fumadocs-mdx",
@@ -22,7 +18,6 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
-    "@opennextjs/cloudflare": "^1.20.2",
     "@remixicon/react": "^4.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -53,7 +48,6 @@
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.9.3",
-    "wrangler": "^4.119.0"
+    "typescript": "^5.9.3"
   }
 }
