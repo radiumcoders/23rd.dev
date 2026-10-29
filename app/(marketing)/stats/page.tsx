@@ -216,7 +216,6 @@ export default async function StatsPage() {
               <BarList title="Sources" rows={traffic.sources} />
               <BarList title="Countries" rows={traffic.countries} />
             </div>
-            <BarList title="Devices" rows={traffic.devices} />
           </section>
         ) : null}
 
