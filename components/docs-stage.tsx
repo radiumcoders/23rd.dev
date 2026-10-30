@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState, type ReactNode } from "react"
 
+import { CliCommand } from "@/components/cli-command"
 import { PreviewStageContext } from "@/components/component-preview"
 
 /**
@@ -9,8 +10,17 @@ import { PreviewStageContext } from "@/components/component-preview"
  * top, edge to edge, with the props in a panel beside it, so you can tune
  * the component while you watch it. The page (`children`) follows below.
  * The page's ComponentPreview and ComponentControls move themselves in.
+ * With an `item`, the panel ends in its install command, so it's in reach
+ * the moment the props look right.
  */
-export function DocsStage({ children }: { children: ReactNode }) {
+export function DocsStage({
+  children,
+  item,
+}: {
+  children: ReactNode
+  /** Registry item name for the install command, e.g. `"folio"`. */
+  item?: string
+}) {
   const [slot, setSlot] = useState<HTMLElement | null>(null)
   const [controlsSlot, setControlsSlot] = useState<HTMLElement | null>(null)
   const [hasControls, setHasControls] = useState(false)
@@ -43,11 +53,20 @@ export function DocsStage({ children }: { children: ReactNode }) {
           />
         </div>
         <aside
-          ref={setControlsSlot}
           aria-label="Props"
           hidden={!hasControls}
-          className="overflow-hidden rounded-[1.25rem] bg-sheet [--background:var(--sheet)] xl:w-80 xl:shrink-0 xl:overflow-y-auto 2xl:w-[22rem]"
-        />
+          className="flex flex-col overflow-hidden rounded-[1.25rem] bg-sheet [--background:var(--sheet)] xl:w-80 xl:shrink-0 xl:overflow-y-auto 2xl:w-[22rem]"
+        >
+          <div ref={setControlsSlot} />
+          {item ? (
+            // Pinned to the foot of the panel while the props scroll.
+            <CliCommand
+              item={item}
+              variant="panel"
+              className="mt-auto border-t border-border/60 bg-sheet/90 backdrop-blur-md xl:sticky xl:bottom-0"
+            />
+          ) : null}
+        </aside>
       </div>
       {children}
     </PreviewStageContext.Provider>

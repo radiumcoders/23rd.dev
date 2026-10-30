@@ -83,7 +83,7 @@ export default async function Page(props: {
   // The outline rides inside the sheet, beside the article.
   if (component) {
     return (
-      <DocsStage>
+      <DocsStage item={params.slug?.at(-1)}>
         {/* Same gutter and radius as the stage above it. */}
         <div className="px-2 md:px-3">
           <div

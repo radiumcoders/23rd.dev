@@ -108,6 +108,12 @@ export interface CliCommandProps {
   bun?: string
   /** Initial package manager when nothing is stored yet */
   defaultManager?: PackageManager
+  /**
+   * `card` (default) is the framed block for docs pages. `panel` is the
+   * borderless strip at the foot of the props panel, where the command
+   * wraps instead of scrolling.
+   */
+  variant?: "card" | "panel"
   className?: string
 }
 
@@ -126,6 +132,7 @@ export function CliCommand({
   yarn,
   bun,
   defaultManager = "pnpm",
+  variant = "card",
   className,
 }: CliCommandProps) {
   const manager = useSyncExternalStore(
@@ -134,8 +141,7 @@ export function CliCommand({
     () => defaultManager
   )
 
-  const resolvedCommand =
-    command ?? (item ? commandForItem(item, github) : "")
+  const resolvedCommand = command ?? (item ? commandForItem(item, github) : "")
 
   const fromCommand = resolvedCommand ? buildCommands(resolvedCommand) : null
   const commands: Record<PackageManager, string> = {
@@ -159,6 +165,78 @@ export function CliCommand({
     window.dispatchEvent(new Event(MANAGER_EVENT))
   }
 
+  const managerSelect = (
+    <div className="flex items-center gap-2">
+      <span
+        className="flex size-5 items-center justify-center"
+        aria-hidden
+        title={active.label}
+      >
+        <ActiveIcon className={cn("size-4", active.colorClass)} />
+      </span>
+      <Select
+        value={manager}
+        onValueChange={onManagerChange}
+        items={SELECT_ITEMS}
+      >
+        <SelectTrigger
+          size="sm"
+          aria-label="Package manager"
+          className="h-auto min-h-0 w-auto justify-start gap-0.5 border-transparent bg-transparent px-0 py-0 text-sm font-medium text-foreground/90 shadow-none hover:bg-transparent focus-visible:border-transparent focus-visible:ring-0"
+        >
+          <SelectValue className="flex-none" />
+        </SelectTrigger>
+        <SelectContent align="start" alignItemWithTrigger={false}>
+          <SelectGroup>
+            {PACKAGE_MANAGERS.map(({ value, label }) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </div>
+  )
+
+  const copyButton = (
+    <CopyButton
+      text={activeCommand}
+      label="Copy command"
+      errorMessage="Couldn’t copy command"
+      onCopied={() =>
+        trackEvent("cli_command_copied", {
+          package_manager: manager,
+          source: github ? "github" : "registry",
+          placement: variant,
+          ...(item ? { item } : {}),
+        })
+      }
+    />
+  )
+
+  if (variant === "panel") {
+    return (
+      <figure
+        data-slot="cli-command"
+        className={cn("not-prose m-0 px-3 pt-1 pb-3", className)}
+      >
+        <figcaption className="flex h-10 items-center justify-between gap-3 px-3">
+          <span className="text-[13px] font-medium text-foreground">
+            Install
+          </span>
+          {managerSelect}
+        </figcaption>
+        <div className="flex items-start gap-2 rounded-lg bg-plate py-1.5 pr-1.5 pl-3">
+          <pre className="min-w-0 flex-1 py-1 font-mono text-[12.5px] leading-5 break-words whitespace-pre-wrap text-foreground">
+            <code>{activeCommand}</code>
+          </pre>
+          {copyButton}
+        </div>
+      </figure>
+    )
+  }
+
   return (
     <figure
       data-slot="cli-command"
@@ -168,55 +246,14 @@ export function CliCommand({
       )}
     >
       <div className="flex h-10 items-center justify-between gap-3 border-b px-3.5">
-        <div className="flex items-center gap-2">
-          <span
-            className="flex size-5 items-center justify-center"
-            aria-hidden
-            title={active.label}
-          >
-            <ActiveIcon className={cn("size-4", active.colorClass)} />
-          </span>
-          <Select
-            value={manager}
-            onValueChange={onManagerChange}
-            items={SELECT_ITEMS}
-          >
-            <SelectTrigger
-              size="sm"
-              aria-label="Package manager"
-              className="h-auto min-h-0 w-auto justify-start gap-0.5 border-transparent bg-transparent px-0 py-0 text-sm font-medium text-foreground/90 shadow-none hover:bg-transparent focus-visible:border-transparent focus-visible:ring-0"
-            >
-              <SelectValue className="flex-none" />
-            </SelectTrigger>
-            <SelectContent align="start" alignItemWithTrigger={false}>
-              <SelectGroup>
-                {PACKAGE_MANAGERS.map(({ value, label }) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
+        {managerSelect}
       </div>
 
       <div className="flex items-center gap-2 py-1.5 pr-1.5 pl-3.5">
         <pre className="min-w-0 flex-1 overflow-x-auto py-1 font-mono text-[13px] leading-6 text-foreground">
           <code>{activeCommand}</code>
         </pre>
-        <CopyButton
-          text={activeCommand}
-          label="Copy command"
-          errorMessage="Couldn’t copy command"
-          onCopied={() =>
-            trackEvent("cli_command_copied", {
-              package_manager: manager,
-              source: github ? "github" : "registry",
-              ...(item ? { item } : {}),
-            })
-          }
-        />
+        {copyButton}
       </div>
     </figure>
   )
