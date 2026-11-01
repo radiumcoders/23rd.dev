@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google"
 import { RootProvider } from "fumadocs-ui/provider/next"
 import type { Metadata, Viewport } from "next"
+import Script from "next/script"
 import type { ReactNode } from "react"
 
 import { DocsSearchDialog } from "@/components/docs-search-dialog"
@@ -148,6 +149,11 @@ export default function RootLayout({
           </RootProvider>
         </ThemeProvider>
         <TracwellAnalytics />
+        <Script
+          src="https://talvess.vercel.app/script.js"
+          data-website-id="ac8674df-c6e1-4777-9cc0-bdfbde74c0ca"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )
