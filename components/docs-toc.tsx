@@ -14,9 +14,12 @@ import { cn } from "@/lib/utils"
 export function DocsToc({
   items,
   className,
+  sponsor = true,
 }: {
   items: TOCItemType[]
   className?: string
+  /** Component pages carry the sponsor in the props panel instead. */
+  sponsor?: boolean
 }) {
   return (
     <aside
@@ -28,7 +31,7 @@ export function DocsToc({
       {items.length > 0 ? <DocsTocOutline items={items} /> : null}
 
       <div className="flex flex-col gap-2">
-        <BreezeUiCard />
+        {sponsor ? <BreezeUiCard /> : null}
         <Link
           href="/sponsors"
           className="group flex items-start gap-2.5 rounded-lg border bg-card px-3 py-2.5 transition-colors hover:border-foreground/25"

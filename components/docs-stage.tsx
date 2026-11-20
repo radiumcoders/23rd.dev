@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState, type ReactNode } from "react"
 
+import { BreezeUiCard } from "@/components/breeze-ui"
 import { CliCommand } from "@/components/cli-command"
 import { PreviewStageContext } from "@/components/component-preview"
 
@@ -10,8 +11,8 @@ import { PreviewStageContext } from "@/components/component-preview"
  * top, edge to edge, with the props in a panel beside it, so you can tune
  * the component while you watch it. The page (`children`) follows below.
  * The page's ComponentPreview and ComponentControls move themselves in.
- * With an `item`, the panel ends in its install command, so it's in reach
- * the moment the props look right.
+ * The panel's foot holds the sponsor card and, with an `item`, the install
+ * command, so it's in reach the moment the props look right.
  */
 export function DocsStage({
   children,
@@ -58,14 +59,13 @@ export function DocsStage({
           className="flex flex-col overflow-hidden rounded-[1.25rem] bg-sheet [--background:var(--sheet)] xl:w-80 xl:shrink-0 xl:overflow-y-auto 2xl:w-[22rem]"
         >
           <div ref={setControlsSlot} />
-          {item ? (
-            // Pinned to the foot of the panel while the props scroll.
-            <CliCommand
-              item={item}
-              variant="panel"
-              className="mt-auto border-t border-border/60 bg-sheet/90 backdrop-blur-md xl:sticky xl:bottom-0"
-            />
-          ) : null}
+          {/* Pinned to the foot of the panel while the props scroll. */}
+          <div className="mt-auto border-t border-border/60 bg-sheet/90 backdrop-blur-md xl:sticky xl:bottom-0">
+            <div className={item ? "px-3 pt-3" : "p-3"}>
+              <BreezeUiCard />
+            </div>
+            {item ? <CliCommand item={item} variant="panel" /> : null}
+          </div>
         </aside>
       </div>
       {children}

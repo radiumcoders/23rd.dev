@@ -93,7 +93,11 @@ export default async function Page(props: {
             {jsonLd}
             <div className="flex items-start gap-10">
               {article}
-              <DocsToc items={page.data.toc} className="top-6 pt-1" />
+              <DocsToc
+                items={page.data.toc}
+                className="top-6 pt-1"
+                sponsor={false}
+              />
             </div>
           </div>
         </div>
@@ -128,11 +132,7 @@ export async function generateMetadata(props: {
 
   const path = docsPath(params.slug)
   const extraKeywords = isComponentPage(params.slug)
-    ? [
-        page.data.title,
-        "shadcn component",
-        "React component",
-      ]
+    ? [page.data.title, "shadcn component", "React component"]
     : [page.data.title]
 
   return buildPageMetadata({
