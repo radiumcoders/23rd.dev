@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { RiArrowRightLine, RiGithubFill } from "@remixicon/react"
 
+import { BreezeUiRibbon } from "@/components/breeze-ui"
 import { GithubStars } from "@/components/github-stars"
 import { LandingWall, type WallItem } from "@/components/landing-wall"
 import { Logo } from "@/components/logo"
@@ -19,7 +20,7 @@ const navLink =
 
 function LandingNav({ githubStars }: { githubStars: number | null }) {
   return (
-    <header className="absolute inset-x-0 top-3 z-30 flex justify-center px-3 sm:top-4">
+    <header className="absolute inset-x-0 top-12 z-30 flex justify-center px-3 sm:top-13">
       <nav
         aria-label="Primary"
         className="flex h-12 w-full max-w-3xl items-center gap-1 rounded-full border bg-sheet/75 pr-1.5 pl-2 shadow-[0_10px_40px_-16px_rgb(0_0_0/0.25)] backdrop-blur-xl"
@@ -54,8 +55,8 @@ function Hero() {
         Components with <span className="text-muted-foreground">a pulse</span>
       </h1>
       <p className="mt-5 max-w-lg text-base text-pretty text-muted-foreground sm:text-lg">
-        Shaders, backgrounds and interactive pieces for React. Add one with
-        the shadcn CLI and own every line of it.
+        Shaders, backgrounds and interactive pieces for React. Add one with the
+        shadcn CLI and own every line of it.
       </p>
       <div className="pointer-events-auto mt-8 flex flex-wrap items-center justify-center gap-3">
         <Link
@@ -105,6 +106,7 @@ export function Landing({
         data-landing-frame
         className="relative isolate flex h-full flex-col overflow-hidden rounded-[1.75rem] border bg-sheet [--card-h:calc(var(--card-w)*1.08)] [--card-w:max(clamp(13.5rem,21vw,23rem),17vw)] [--gap:clamp(0.75rem,1.4vw,1.25rem)] [--step:calc(var(--card-h)+var(--gap))] sm:rounded-[2rem]"
       >
+        <BreezeUiRibbon />
         <LandingNav githubStars={githubStars} />
         <LandingWall items={items} layer="edges" />
         <Hero />
